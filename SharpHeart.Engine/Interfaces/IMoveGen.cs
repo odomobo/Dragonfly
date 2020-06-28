@@ -6,6 +6,6 @@ namespace SharpHeart.Engine.Interfaces
 {
     public interface IMoveGen
     {
-        void Generate(ref List<Move> moves, Board board);
+        void Generate(List<Move> moves, Board board);
     }
 }

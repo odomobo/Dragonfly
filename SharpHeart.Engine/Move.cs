@@ -8,11 +8,12 @@ namespace SharpHeart.Engine
     public enum MoveType
     {
         Normal = 1,
-        EnPassant = 2,
-        Promotion = 4,
-        Castling = 8,
-        Quiet = 16,
-        Capture = 32,
+        DoublePawnMove = 2, // TODO: actually use this
+        EnPassant = 4,
+        Promotion = 8,
+        Castling = 16,
+        Quiet = 32,
+        Capture = 64,
     }
 
     public readonly struct Move
