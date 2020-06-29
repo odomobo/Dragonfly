@@ -4,7 +4,7 @@ using System.Text;
 
 namespace SharpHeart.Engine.MoveGen
 {
-    internal static class BishopMoveTable
+    public static class BishopMoveTable
     {
         private const int MaxMaskSize = 9;
         private static readonly MagicMoveTable BishopMoveMagicTable;

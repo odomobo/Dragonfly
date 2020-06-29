@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Runtime.InteropServices.ComTypes;
 using System.Text;
 using System.Threading;
@@ -109,12 +110,13 @@ namespace SharpHeart.Engine
 
         private ulong CalculateOccupied(Color c)
         {
-            return GetPieceBitboard(PieceType.Pawn, c) |
-                   GetPieceBitboard(PieceType.Bishop, c) |
-                   GetPieceBitboard(PieceType.Knight, c) |
-                   GetPieceBitboard(PieceType.Rook, c) |
-                   GetPieceBitboard(PieceType.Queen, c) |
-                   GetPieceBitboard(PieceType.King, c);
+            return 
+                GetPieceBitboard(PieceType.Pawn, c) |
+                GetPieceBitboard(PieceType.Bishop, c) |
+                GetPieceBitboard(PieceType.Knight, c) |
+                GetPieceBitboard(PieceType.Rook, c) |
+                GetPieceBitboard(PieceType.Queen, c) |
+                GetPieceBitboard(PieceType.King, c);
         }
 
         public ulong GetOccupied(Color c)
@@ -216,6 +218,13 @@ namespace SharpHeart.Engine
             return rank*8 + file;
         }
 
+        public static (int file, int rank) FileRankFromIx(int ix)
+        {
+            var rank = ix / 8;
+            var file = ix % 8;
+            return (file, rank);
+        }
+
         public static bool FileRankOnBoard(int file, int rank)
         {
             return file >= 0 && file < 8 && rank >= 0 && rank < 8;
@@ -239,71 +248,6 @@ namespace SharpHeart.Engine
                 {
                     yield return (file, rank);
                 }
-            }
-        }
-
-        #endregion
-
-        #region Debugging
-
-        /*
-         * This dumps a string that looks like:
-         *
-         *    +---------------+
-         *   8|. X . X . X . .|
-         *   7|. . X X X . . .|
-         *   6|X X X . X X X X|
-         *   5|. . X X X . . .|
-         *   4|. X . X . X . .|
-         *   3|X . . X . . X .|
-         *   2|. . . X . . . X|
-         *   1|. . . X . . . .|
-         *     A B C D E F G H
-         *
-         */
-        public static string GetBitboardStr(ulong bb)
-        {
-            StringBuilder sb = new StringBuilder();
-            sb.AppendLine("   +---------------+");
-            for (int rank = 7; rank >= 0; rank--)
-            {
-                sb.Append($"  {rank + 1}|");
-                for (int file = 0; file < 8; file++)
-                {
-                    bool occupied = (Board.ValueFromFileRank(file, rank) & bb) > 0;
-                    sb.Append(occupied ? 'X' : '.');
-                    if (file < 7)
-                        sb.Append(" ");
-                }
-                sb.AppendLine("|");
-            }
-
-            sb.Append("    ");
-            for (int file = 0; file < 8; file++)
-                sb.Append($"{(char)('A' + file)} ");
-
-            return sb.ToString();
-        }
-
-        // TODO: probably remove this, or replace with something that dumps to interface
-        public static void DumpBitboard(ulong bb)
-        {
-            Console.Error.WriteLine(GetBitboardStr(bb));
-        }
-
-        public static void DumpBitboardDebug(ulong bb)
-        {
-            Debug.Print(GetBitboardStr(bb));
-        }
-
-        public static void DumpBitboardsDebug(IEnumerable<ulong> bbs)
-        {
-            int index = 0;
-            foreach (var bb in bbs)
-            {
-                Debug.Print("");
-                Debug.Print($"######## {index++,2} ########");
-                DumpBitboardDebug(bb);
             }
         }
 

@@ -5,7 +5,7 @@ using System.Text;
 
 namespace SharpHeart.Engine.MoveGen
 {
-    internal static class RookMoveTable
+    public static class RookMoveTable
     {
         private const int MaxMaskSize = 12;
         private static readonly MagicMoveTable RookMoveMagicTable;

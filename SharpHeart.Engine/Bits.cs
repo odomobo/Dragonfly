@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Numerics;
+using System.Runtime.CompilerServices;
 using System.Runtime.Intrinsics.X86;
 using System.Text;
 
@@ -8,11 +9,13 @@ namespace SharpHeart.Engine
 {
     public static class Bits
     {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int GetLsb(ulong value)
         {
-            return BitOperations.LeadingZeroCount(value);
+            return BitOperations.TrailingZeroCount(value);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int PopLsb(ref ulong value)
         {
             var ret = GetLsb(value);
@@ -20,6 +23,7 @@ namespace SharpHeart.Engine
             return ret;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int PopCount(ulong value)
         {
             return BitOperations.PopCount(value);
@@ -27,8 +31,15 @@ namespace SharpHeart.Engine
 
         public static ulong ParallelBitDeposit(ulong value, ulong mask)
         {
-            // TODO: conditionally change out logic if not supported; this should be optimized at jit compilation
-            return Bmi2.X64.ParallelBitDeposit(value, mask);
+            if (Bmi2.X64.IsSupported)
+            {
+                return Bmi2.X64.ParallelBitDeposit(value, mask);
+            }
+            else
+            {
+                // TODO: conditionally change out logic if not supported
+                throw new NotImplementedException();
+            }
         }
 
         public static IEnumerable<int> Enumerate(ulong value)
