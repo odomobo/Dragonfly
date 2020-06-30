@@ -1,11 +1,21 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 
 namespace SharpHeart.Engine.MoveGen
 {
-    public sealed class MagicMoveTable
+    public class MagicMoveTable
     {
+        // TODO: better name
+        public sealed class Info
+        {
+            public ulong Mask; 
+            public ulong Magic; 
+            public ulong[] MaskedOccupancyKeys; 
+            public ulong[] MovesValues;
+        }
+
         private readonly int _tableIndexBits;
         private readonly int _tableSize;
 
@@ -18,7 +28,7 @@ namespace SharpHeart.Engine.MoveGen
 
         private readonly TableEntry[] _magicTable;
 
-        public MagicMoveTable(ulong[] masks, ulong[] magics, ulong[][] maskedOccupancyKeys, ulong[][] movesValues, int tableIndexBits)
+        public MagicMoveTable(Info[] infos, int tableIndexBits)
         {
             _tableIndexBits = tableIndexBits;
             _tableSize = 1 << tableIndexBits;
@@ -26,13 +36,9 @@ namespace SharpHeart.Engine.MoveGen
             _magicTable = new TableEntry[64];
             for (int i = 0; i < 64; i++)
             {
-                _magicTable[i].Mask = masks[i];
-                _magicTable[i].MovesTable = CreateValuesTable(
-                    magics[i],
-                    maskedOccupancyKeys[i],
-                    movesValues[i]
-                );
-                _magicTable[i].Magic = magics[i];
+                _magicTable[i].Mask = infos[i].Mask;
+                _magicTable[i].MovesTable = CreateValuesTable(infos[i]);
+                _magicTable[i].Magic = infos[i].Magic;
             }
         }
 
@@ -45,19 +51,19 @@ namespace SharpHeart.Engine.MoveGen
             return magicEntry.MovesTable[tableIndex];
         }
 
-        private ulong[] CreateValuesTable(ulong magic, ulong[] maskedOccupancyKeys, ulong[] movesValues)
+        private ulong[] CreateValuesTable(Info info)
         {
             // TODO: use 1 << maskSize instead?
             var movesTable = new ulong[_tableSize];
-            for (int i = 0; i < maskedOccupancyKeys.Length; i++)
+            for (int i = 0; i < info.MaskedOccupancyKeys.Length; i++)
             {
-                var index = GetTableIndex(maskedOccupancyKeys[i], magic);
+                var index = GetTableIndex(info.MaskedOccupancyKeys[i], info.Magic);
 
                 // if the current index was already populated, that means we had a key collision. Magics are specifically chosen to prevent key collisions
                 if (movesTable[index] > 0)
                     throw new Exception("Magic value is invalid for building magic bitboard lookup table!");
 
-                movesTable[index] = movesValues[i];
+                movesTable[index] = info.MovesValues[i];
             }
 
             return movesTable;
@@ -68,6 +74,11 @@ namespace SharpHeart.Engine.MoveGen
         private int GetTableIndex(ulong maskedOccupancy, ulong magic)
         {
             return (int) ((maskedOccupancy * magic) >> (64 - _tableIndexBits));
+        }
+
+        public ulong[] GetMagics()
+        {
+            return _magicTable.Select(x => x.Magic).ToArray();
         }
     }
 }

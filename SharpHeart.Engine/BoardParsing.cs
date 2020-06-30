@@ -197,6 +197,20 @@ namespace SharpHeart.Engine
             }
         }
 
+        public static void Dump(Move move)
+        {
+            Dump(move.ToDebugString());
+        }
+
+        public static void Dump(IEnumerable<Move> moves)
+        {
+            var movesList = moves.ToList();
+            Dump("");
+            Dump($"######## {movesList.Count()} moves ########");
+            foreach (var move in movesList)
+                Dump(move);
+        }
+
         // TODO: display the board in a less dumb way
         public static void Dump(Board b)
         {
@@ -230,7 +244,7 @@ namespace SharpHeart.Engine
             Dump($"Side to move: {b.SideToMove}");
         }
 
-        private static void Dump(string s)
+        public static void Dump(string s)
         {
             Debug.Print(s);
             Console.Error.WriteLine(s);

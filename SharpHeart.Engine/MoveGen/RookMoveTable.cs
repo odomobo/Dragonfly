@@ -12,19 +12,15 @@ namespace SharpHeart.Engine.MoveGen
 
         static RookMoveTable()
         {
-            var (masks, occupancies, moves) = GetAllMasksOccupanciesMoves();
-            try
+            var magicFinder = new MagicFinder(new Random(0));
+            MagicMoveTableBuilder builder = new MagicMoveTableBuilder(magicFinder, MaxMaskSize);
+
+            foreach (var (file, rank) in Board.GetAllFilesRanks())
             {
-                RookMoveMagicTable = new MagicMoveTable(masks, Magics, occupancies, moves, MaxMaskSize);
+                AddMovesFromSquare(builder, file, rank);
             }
-            catch (Exception e)
-            {
-                Console.Error.WriteLine($"Could not generate table using builtin magics; trying to dynamically generate magics.");
-                Console.Error.WriteLine(e);
-                var magicFinder = new MagicFinder(new Random(0), MaxMaskSize);
-                var dynamicMagics = magicFinder.FindMagics(masks);
-                RookMoveMagicTable = new MagicMoveTable(masks, dynamicMagics, occupancies, moves, MaxMaskSize);
-            }
+
+            RookMoveMagicTable = builder.Build();
         }
 
         public static ulong GetMoves(int ix, ulong occupancy)
@@ -32,9 +28,7 @@ namespace SharpHeart.Engine.MoveGen
             return RookMoveMagicTable.GetMoves(ix, occupancy);
         }
 
-        private static (ulong mask, ulong[] occupancies, ulong[] moves) GetSingleMaskOccupanciesMoves(
-            int srcFile,
-            int srcRank)
+        private static void AddMovesFromSquare(MagicMoveTableBuilder builder, int srcFile, int srcRank)
         {
             ulong mask = 0;
             List<ulong> occupancies = new List<ulong>();
@@ -109,44 +103,16 @@ namespace SharpHeart.Engine.MoveGen
                 moves.Add(singularMoves);
             }
 
-            return (mask, occupancies.ToArray(), moves.ToArray());
-        }
-
-        private static (ulong[] masks, ulong[][] occupancies, ulong[][] moves) GetAllMasksOccupanciesMoves()
-        {
-            var masks = new ulong[64];
-            var occupancies = new ulong[64][];
-            var moves = new ulong[64][];
-
-            foreach (var (file, rank) in Board.GetAllFilesRanks())
+            var ix = Board.IxFromFileRank(srcFile, srcRank);
+            var info = new MagicMoveTable.Info
             {
-                var (mask, singleOccupancies, singleMoves) = GetSingleMaskOccupanciesMoves(file, rank);
-                int ix = Board.IxFromFileRank(file, rank);
-                masks[ix] = mask;
-                occupancies[ix] = singleOccupancies;
-                moves[ix] = singleMoves;
-            }
+                Magic = Magics[ix],
+                Mask = mask,
+                MaskedOccupancyKeys = occupancies.ToArray(),
+                MovesValues = moves.ToArray(),
+            };
 
-            return (masks, occupancies, moves);
-        }
-
-        // This can be used to generate the Magics table
-        public static void DumpMagics()
-        {
-            var (masks, _, _) = GetAllMasksOccupanciesMoves();
-
-            var magicFinder = new MagicFinder(new Random(0), MaxMaskSize);
-            var magics = magicFinder.FindMagics(masks);
-
-            for (int i = 0; i < magics.Length; i++)
-            {
-                var magic = magics[i];
-
-                Console.Write($"0x{magic:x16}UL, ");
-
-                if ((i + 1) % 4 == 0)
-                    Console.WriteLine();
-            }
+            builder.Add(ix, info);
         }
 
         // generated with DumpMagics

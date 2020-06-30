@@ -19,6 +19,7 @@ namespace SharpHeart.UCI
 
             List<Move> moves = new List<Move>();
             moveGen.Generate(moves, board);
+            BoardParsing.Dump(moves);
 
             //Stopwatch sw = new Stopwatch();
             //sw.Start();
