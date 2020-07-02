@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace SharpHeart.Engine.MoveGen
+namespace SharpHeart.Engine.MoveGens
 {
     public class MagicMoveTable
     {

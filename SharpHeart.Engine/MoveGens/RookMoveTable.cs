@@ -4,7 +4,7 @@ using System.Runtime.Intrinsics.X86;
 using System.Text;
 using MersenneTwister;
 
-namespace SharpHeart.Engine.MoveGen
+namespace SharpHeart.Engine.MoveGens
 {
     public static class RookMoveTable
     {

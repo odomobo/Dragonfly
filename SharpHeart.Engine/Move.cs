@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text;
+using SharpHeart.Engine.MoveGens;
 
 namespace SharpHeart.Engine
 {
@@ -9,7 +10,7 @@ namespace SharpHeart.Engine
     public enum MoveType
     {
         Normal = 1,
-        DoublePawnMove = 2, // TODO: actually use this
+        DoublePawnMove = 2,
         EnPassant = 4,
         Promotion = 8,
         Castling = 16,
@@ -17,7 +18,6 @@ namespace SharpHeart.Engine
         Capture = 64,
     }
 
-    [DebuggerDisplay("{ToDebugString()}")]
     public readonly struct Move
     {
         public readonly MoveType MoveType;
@@ -47,77 +47,149 @@ namespace SharpHeart.Engine
             return new Move(type|modifier, pieceType, sourceIx, dstIx, promotionPiece);
         }
 
-        public string ToDebugString()
+        public override string ToString()
         {
-            string pieceTypeStr;
-            // TODO: move lookup to board parsing class
-            switch (PieceType)
-            {
-                case PieceType.Pawn:
-                    pieceTypeStr = "";
-                    break;
-                case PieceType.Knight:
-                    pieceTypeStr = "N";
-                    break;
-                case PieceType.Bishop:
-                    pieceTypeStr = "B";
-                    break;
-                case PieceType.Rook:
-                    pieceTypeStr = "R";
-                    break;
-                case PieceType.Queen:
-                    pieceTypeStr = "Q";
-                    break;
-                case PieceType.King:
-                    pieceTypeStr = "K";
-                    break;
-                default:
-                    pieceTypeStr = "?";
-                    break;
-            }
-
-            string captureStr = "";
-            if ((MoveType & MoveType.Capture) > 0)
-            {
-                if (PieceType == PieceType.Pawn)
-                    captureStr = BoardParsing.FileStrFromIx(SourceIx);
-
-                captureStr += "x";
-            }
-
-            string dstSquareStr = BoardParsing.SquareStrFromIx(DstIx);
-
-            string promotionPieceStr = "";
-            // TODO: move to board parsing class
-            if ((MoveType & MoveType.Promotion) > 0)
-            {
-                switch (PieceType)
-                {
-                    case PieceType.Knight:
-                        promotionPieceStr = "N";
-                        break;
-                    case PieceType.Bishop:
-                        promotionPieceStr = "B";
-                        break;
-                    case PieceType.Rook:
-                        promotionPieceStr = "R";
-                        break;
-                    case PieceType.Queen:
-                        promotionPieceStr = "Q";
-                        break;
-                    default:
-                        promotionPieceStr = "?";
-                        break;
-                }
-            }
-
-            return $"{pieceTypeStr}{captureStr}{dstSquareStr}{promotionPieceStr}";
+            return BoardParsing.MoveToNaiveSanString(this);
         }
 
-        // TODO
-        Board DoMove(Board b)
+        public Board DoMove(Board b)
         {
-            throw new NotImplementedException();
+            var castlingRights = b.CastlingRights & CastlingTables.GetCastlingUpdateMask(this);
+            switch (MoveType)
+            {
+                case MoveType.Normal | MoveType.Quiet:
+                    return DoNormalQuietMove(b, castlingRights);
+                case MoveType.Normal | MoveType.Capture:
+                    return DoNormalCaptureMove(b, castlingRights);
+                case MoveType.DoublePawnMove | MoveType.Quiet:
+                    return DoDoublePawnMove(b, castlingRights);
+                case MoveType.EnPassant | MoveType.Capture:
+                    return DoEnPassantMove(b, castlingRights);
+                case MoveType.Promotion | MoveType.Quiet:
+                    return DoPromotionQuietMove(b, castlingRights);
+                case MoveType.Promotion | MoveType.Capture:
+                    return DoPromotionCaptureMove(b, castlingRights);
+                case MoveType.Castling | MoveType.Quiet:
+                    return DoCastlingQuietMove(b, castlingRights);
+                default:
+                    throw new Exception($"Invalid move type: {MoveType}");
+            }
+        }
+
+        private Board DoNormalQuietMove(Board b, ulong castlingRights)
+        {
+            var pieceBitboards = b.GetPieceBitboards();
+
+            Debug.Assert((pieceBitboards[(int)b.SideToMove][(int)PieceType] & Board.ValueFromIx(SourceIx)) > 0);
+            Debug.Assert((b.GetOccupied() & Board.ValueFromIx(DstIx)) == 0);
+
+            pieceBitboards[(int)b.SideToMove][(int)PieceType] &= ~Board.ValueFromIx(SourceIx);
+            pieceBitboards[(int)b.SideToMove][(int)PieceType] |= Board.ValueFromIx(DstIx);
+
+            return new Board(pieceBitboards, b.SideToMove.Other(), castlingRights, b);
+        }
+
+        private Board DoNormalCaptureMove(Board b, ulong castlingRights)
+        {
+            var pieceBitboards = b.GetPieceBitboards();
+
+            Debug.Assert((pieceBitboards[(int)b.SideToMove][(int)PieceType] & Board.ValueFromIx(SourceIx)) > 0);
+            Debug.Assert((b.GetOccupied(b.SideToMove.Other()) & Board.ValueFromIx(DstIx)) > 0);
+
+            pieceBitboards[(int)b.SideToMove][(int)PieceType] &= ~Board.ValueFromIx(SourceIx);
+            pieceBitboards[(int)b.SideToMove][(int)PieceType] |= Board.ValueFromIx(DstIx);
+
+            for (int i = 0; i < (int)PieceType.Count; i++)
+            {
+                pieceBitboards[(int)b.SideToMove.Other()][i] &= ~Board.ValueFromIx(DstIx);
+            }
+
+            return new Board(pieceBitboards, b.SideToMove.Other(), castlingRights, b);
+        }
+
+        private Board DoDoublePawnMove(Board b, ulong castlingRights)
+        {
+            var pieceBitboards = b.GetPieceBitboards();
+
+            Debug.Assert((pieceBitboards[(int)b.SideToMove][(int)PieceType] & Board.ValueFromIx(SourceIx)) > 0);
+            Debug.Assert((b.GetOccupied() & Board.ValueFromIx(DstIx)) == 0);
+
+            pieceBitboards[(int)b.SideToMove][(int)PieceType] &= ~Board.ValueFromIx(SourceIx);
+            pieceBitboards[(int)b.SideToMove][(int)PieceType] |= Board.ValueFromIx(DstIx);
+
+            // TODO: en passant
+
+            return new Board(pieceBitboards, b.SideToMove.Other(), castlingRights, b);
+        }
+
+        private Board DoEnPassantMove(Board b, ulong castlingRights)
+        {
+            var pieceBitboards = b.GetPieceBitboards();
+
+            var (srcFile, srcRank) = Board.FileRankFromIx(SourceIx);
+            var (dstFile, dstRank) = Board.FileRankFromIx(DstIx);
+            var capturedPawnIx = Board.IxFromFileRank(dstFile, srcRank);
+
+            Debug.Assert((pieceBitboards[(int)b.SideToMove][(int)PieceType] & Board.ValueFromIx(SourceIx)) > 0);
+            Debug.Assert((b.GetOccupied() & Board.ValueFromIx(DstIx)) == 0);
+            Debug.Assert((pieceBitboards[(int)b.SideToMove.Other()][(int)PieceType.Pawn] & Board.ValueFromIx(SourceIx)) > 0);
+            
+
+
+            pieceBitboards[(int)b.SideToMove][(int)PieceType] &= ~Board.ValueFromIx(SourceIx);
+            pieceBitboards[(int)b.SideToMove][(int)PieceType] |= Board.ValueFromIx(DstIx);
+            pieceBitboards[(int) b.SideToMove.Other()][(int) PieceType.Pawn] &= ~Board.ValueFromIx(capturedPawnIx);
+
+            return new Board(pieceBitboards, b.SideToMove.Other(), castlingRights, b);
+        }
+
+        private Board DoPromotionQuietMove(Board b, ulong castlingRights)
+        {
+            var pieceBitboards = b.GetPieceBitboards();
+
+            Debug.Assert((pieceBitboards[(int)b.SideToMove][(int)PieceType] & Board.ValueFromIx(SourceIx)) > 0);
+            Debug.Assert((b.GetOccupied() & Board.ValueFromIx(DstIx)) == 0);
+
+            pieceBitboards[(int)b.SideToMove][(int)PieceType] &= ~Board.ValueFromIx(SourceIx);
+            pieceBitboards[(int)b.SideToMove][(int)PromotionPiece] |= Board.ValueFromIx(DstIx);
+
+            return new Board(pieceBitboards, b.SideToMove.Other(), castlingRights, b);
+        }
+
+        private Board DoPromotionCaptureMove(Board b, ulong castlingRights)
+        {
+            var pieceBitboards = b.GetPieceBitboards();
+
+            Debug.Assert((pieceBitboards[(int)b.SideToMove][(int)PieceType] & Board.ValueFromIx(SourceIx)) > 0);
+            Debug.Assert((b.GetOccupied(b.SideToMove.Other()) & Board.ValueFromIx(DstIx)) > 0);
+
+            pieceBitboards[(int)b.SideToMove][(int)PieceType] &= ~Board.ValueFromIx(SourceIx);
+            pieceBitboards[(int)b.SideToMove][(int)PromotionPiece] |= Board.ValueFromIx(DstIx);
+
+            for (int i = 0; i < (int)PieceType.Count; i++)
+            {
+                pieceBitboards[(int)b.SideToMove.Other()][i] &= ~Board.ValueFromIx(DstIx);
+            }
+
+            return new Board(pieceBitboards, b.SideToMove.Other(), castlingRights, b);
+        }
+
+        private Board DoCastlingQuietMove(Board b, ulong castlingRights)
+        {
+            var pieceBitboards = b.GetPieceBitboards();
+
+            Debug.Assert((pieceBitboards[(int)b.SideToMove][(int)PieceType] & Board.ValueFromIx(SourceIx)) > 0);
+            Debug.Assert((b.GetOccupied() & Board.ValueFromIx(DstIx)) == 0);
+            Debug.Assert((b.GetOccupied() & CastlingTables.GetCastlingEmptySquares(DstIx)) == 0);
+            Debug.Assert((pieceBitboards[(int)b.SideToMove][(int)PieceType.Rook] & CastlingTables.GetCastlingRookSrcValue(DstIx)) > 0);
+
+            pieceBitboards[(int)b.SideToMove][(int)PieceType] &= ~Board.ValueFromIx(SourceIx);
+            pieceBitboards[(int)b.SideToMove][(int)PieceType] |= Board.ValueFromIx(DstIx);
+
+            pieceBitboards[(int)b.SideToMove][(int)PieceType.Rook] &= ~CastlingTables.GetCastlingRookSrcValue(DstIx);
+            pieceBitboards[(int)b.SideToMove][(int)PieceType.Rook] |= CastlingTables.GetCastlingRookDstValue(DstIx);
+
+            return new Board(pieceBitboards, b.SideToMove.Other(), castlingRights, b);
         }
     }
 }

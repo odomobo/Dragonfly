@@ -11,6 +11,7 @@ namespace SharpHeart.Engine
     {
         public static Board FromFen(string fen)
         {
+            // TODO: single pieceBitboards instead of this
             ulong[] whitePieceBitboards = new ulong[(int)PieceType.Count];
             ulong[] blackPieceBitboards = new ulong[(int)PieceType.Count];
 
@@ -82,7 +83,7 @@ namespace SharpHeart.Engine
             // TODO: en passant
             // TODO: move counts
 
-            return new Board(whitePieceBitboards, blackPieceBitboards, sideToMove, castlingRights);
+            return new Board(new []{whitePieceBitboards, blackPieceBitboards}, sideToMove, castlingRights);
         }
 
         public static bool TryParsePiece(char originalC, out PieceType pieceType, out Color color)
@@ -128,6 +129,113 @@ namespace SharpHeart.Engine
             return true;
         }
 
+        public static char PieceTypeToLetter(PieceType pieceType)
+        {
+            // will return uppercase, which is what we want
+            return PieceTypeColorToLetter(pieceType, Color.White);
+        }
+
+        public static char PieceTypeColorToLetter(PieceType pieceType, Color color)
+        {
+            int charCase = 0;
+            if (color == Color.Black)
+                charCase = 'a' - 'A';
+            
+            switch (pieceType)
+            {
+                case PieceType.Pawn:
+                    return (char)('P' + charCase);
+                case PieceType.Knight:
+                    return (char)('N' + charCase);
+                case PieceType.Bishop:
+                    return (char)('B' + charCase);
+                case PieceType.Rook:
+                    return (char)('R' + charCase);
+                case PieceType.Queen:
+                    return (char)('Q' + charCase);
+                case PieceType.King:
+                    return (char)('K' + charCase);
+                default:
+                    return '?';
+            }
+        }
+
+        public static char PieceTypeColorToUnicodePiece(PieceType pieceType, Color color)
+        {
+            if (color == Color.White)
+            {
+                switch (pieceType)
+                {
+                    case PieceType.Pawn:
+                        return '♙';
+                    case PieceType.Knight:
+                        return '♘';
+                    case PieceType.Bishop:
+                        return '♗';
+                    case PieceType.Rook:
+                        return '♖';
+                    case PieceType.Queen:
+                        return '♕';
+                    case PieceType.King:
+                        return '♔';
+                    default:
+                        return '?';
+                }
+            }
+            else
+            {
+                switch (pieceType)
+                {
+                    case PieceType.Pawn:
+                        return '♟';
+                    case PieceType.Knight:
+                        return '♞';
+                    case PieceType.Bishop:
+                        return '♝';
+                    case PieceType.Rook:
+                        return '♜';
+                    case PieceType.Queen:
+                        return '♛';
+                    case PieceType.King:
+                        return '♚';
+                    default:
+                        return '?';
+                }
+            }
+        }
+
+        public static string PieceTypeToSanPrefix(PieceType pieceType)
+        {
+            if (pieceType == PieceType.Pawn)
+                return string.Empty;
+            else
+                return PieceTypeToLetter(pieceType).ToString();
+        }
+
+        public static string MoveToNaiveSanString(Move m)
+        {
+            string pieceTypeStr = PieceTypeToSanPrefix(m.PieceType);
+
+            string captureStr = "";
+            if ((m.MoveType & MoveType.Capture) > 0)
+            {
+                if (m.PieceType == PieceType.Pawn)
+                    captureStr = FileStrFromIx(m.SourceIx);
+
+                captureStr += "x";
+            }
+
+            string dstSquareStr = SquareStrFromIx(m.DstIx);
+
+            string promotionPieceStr = "";
+            if ((m.MoveType & MoveType.Promotion) > 0)
+            {
+                promotionPieceStr = PieceTypeToLetter(m.PromotionPiece).ToString();
+            }
+
+            return $"{pieceTypeStr}{captureStr}{dstSquareStr}{promotionPieceStr}";
+        }
+
         public static string FileStrFromIx(int ix)
         {
             var (file, rank) = Board.FileRankFromIx(ix);
@@ -139,117 +247,5 @@ namespace SharpHeart.Engine
             var (file, rank) = Board.FileRankFromIx(ix);
             return $"{(char)('a' + file)}{rank + 1}";
         }
-
-        #region Debugging
-
-        /*
-         * This dumps a string that looks like:
-         *
-         *    +---------------+
-         *   8|. X . X . X . .|
-         *   7|. . X X X . . .|
-         *   6|X X X . X X X X|
-         *   5|. . X X X . . .|
-         *   4|. X . X . X . .|
-         *   3|X . . X . . X .|
-         *   2|. . . X . . . X|
-         *   1|. . . X . . . .|
-         *     A B C D E F G H
-         *
-         */
-        public static string GetBitboardStr(ulong bb)
-        {
-            StringBuilder sb = new StringBuilder();
-            sb.AppendLine("   +---------------+");
-            for (int rank = 7; rank >= 0; rank--)
-            {
-                sb.Append($"  {rank + 1}|");
-                for (int file = 0; file < 8; file++)
-                {
-                    bool occupied = (Board.ValueFromFileRank(file, rank) & bb) > 0;
-                    sb.Append(occupied ? 'X' : '.');
-                    if (file < 7)
-                        sb.Append(" ");
-                }
-                sb.AppendLine("|");
-            }
-
-            sb.Append("    ");
-            for (int file = 0; file < 8; file++)
-                sb.Append($"{(char)('A' + file)} ");
-
-            return sb.ToString();
-        }
-
-        public static void Dump(ulong bb)
-        {
-            Dump(GetBitboardStr(bb));
-        }
-
-        public static void Dump(IEnumerable<ulong> bbs)
-        {
-            int index = 0;
-            foreach (var bb in bbs)
-            {
-                Dump("");
-                Dump($"######## {index++,2} ########");
-                Dump(bb);
-            }
-        }
-
-        public static void Dump(Move move)
-        {
-            Dump(move.ToDebugString());
-        }
-
-        public static void Dump(IEnumerable<Move> moves)
-        {
-            var movesList = moves.ToList();
-            Dump("");
-            Dump($"######## {movesList.Count()} moves ########");
-            foreach (var move in movesList)
-                Dump(move);
-        }
-
-        // TODO: display the board in a less dumb way
-        public static void Dump(Board b)
-        {
-            foreach (var color in new[] {Color.White, Color.Black})
-            {
-                for (PieceType pieceType = 0; pieceType < PieceType.Count; pieceType++)
-                {
-                    Dump("");
-                    Dump($"######## {color} {pieceType} ########");
-                    Dump(b.GetPieceBitboard(pieceType, color));
-                }
-
-                Dump("");
-                Dump($"######## {color} Occupancy ########");
-                Dump(b.GetOccupied(color));
-            }
-
-            Dump("");
-            Dump($"######## Occupancy ########");
-            Dump(b.GetOccupied());
-
-            Dump("");
-            Dump($"######## En Passant ########");
-            Dump(b.EnPassant);
-
-            Dump("");
-            Dump($"######## Castling ########");
-            Dump(b.CastlingRights);
-
-            Dump("");
-            Dump($"Side to move: {b.SideToMove}");
-        }
-
-        public static void Dump(string s)
-        {
-            Debug.Print(s);
-            Console.Error.WriteLine(s);
-        }
-
-        #endregion
     }
 }

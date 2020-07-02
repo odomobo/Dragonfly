@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace SharpHeart.Engine.MoveGen
+namespace SharpHeart.Engine.MoveGens
 {
     public static class CastlingTables
     {
@@ -15,12 +15,14 @@ namespace SharpHeart.Engine.MoveGen
         private static readonly int WhiteKingIx = Board.IxFromFileRank(4, 0);
         private static readonly int WhiteKingsideRookIx = Board.IxFromFileRank(7, 0);
         private static readonly int WhiteKingsideDstIx = Board.IxFromFileRank(6, 0);
+        private static readonly int WhiteKingsideRookDstIx = Board.IxFromFileRank(5, 0);
         private static readonly ulong WhiteKingsideDst = Board.ValueFromFileRank(6, 0);
         private static readonly ulong WhiteKingsideAttacks = Board.ValueFromFileRank(5, 0) | Board.ValueFromFileRank(6, 0);
         private static readonly ulong WhiteKingsideEmptySquares = Board.ValueFromFileRank(5, 0) | Board.ValueFromFileRank(6, 0);
 
         private static readonly int WhiteQueensideRookIx = Board.IxFromFileRank(0, 0);
         private static readonly int WhiteQueensideDstIx = Board.IxFromFileRank(2, 0);
+        private static readonly int WhiteQueensideRookDstIx = Board.IxFromFileRank(3, 0);
         private static readonly ulong WhiteQueensideDst = Board.ValueFromFileRank(2, 0);
         private static readonly ulong WhiteQueensideAttacks = Board.ValueFromFileRank(3, 0) | Board.ValueFromFileRank(2, 0);
         private static readonly ulong WhiteQueensideEmptySquares = Board.ValueFromFileRank(3, 0) | Board.ValueFromFileRank(2, 0) | Board.ValueFromFileRank(1, 0);
@@ -28,12 +30,14 @@ namespace SharpHeart.Engine.MoveGen
         private static readonly int BlackKingIx = Board.IxFromFileRank(4, 7);
         private static readonly int BlackKingsideRookIx = Board.IxFromFileRank(7, 7);
         private static readonly int BlackKingsideDstIx = Board.IxFromFileRank(6, 7);
+        private static readonly int BlackKingsideRookDstIx = Board.IxFromFileRank(5, 7);
         private static readonly ulong BlackKingsideDst = Board.ValueFromFileRank(6, 7);
         private static readonly ulong BlackKingsideAttacks = Board.ValueFromFileRank(5, 7) | Board.ValueFromFileRank(6, 7);
         private static readonly ulong BlackKingsideEmptySquares = Board.ValueFromFileRank(5, 7) | Board.ValueFromFileRank(6, 7);
 
         private static readonly int BlackQueensideRookIx = Board.IxFromFileRank(0, 7);
         private static readonly int BlackQueensideDstIx = Board.IxFromFileRank(2, 7);
+        private static readonly int BlackQueensideRookDstIx = Board.IxFromFileRank(3, 7);
         private static readonly ulong BlackQueensideDst = Board.ValueFromFileRank(2, 7);
         private static readonly ulong BlackQueensideAttacks = Board.ValueFromFileRank(3, 7) | Board.ValueFromFileRank(2, 7);
         private static readonly ulong BlackQueensideEmptySquares = Board.ValueFromFileRank(3, 7) | Board.ValueFromFileRank(2, 7) | Board.ValueFromFileRank(1, 7);
@@ -113,5 +117,42 @@ namespace SharpHeart.Engine.MoveGen
             ret[BlackQueensideDstIx] = BlackQueensideEmptySquares;
             return ret;
         }
+
+        #region DoMove helpers
+
+        private static readonly ulong[] CastlingRookSrcValues = GenerateCastlingRookSrc();
+        private static readonly ulong[] CastlingRookDstValues = GenerateCastlingRookDst();
+
+        private static ulong[] GenerateCastlingRookSrc()
+        {
+            var ret = new ulong[64];
+            ret[WhiteKingsideDstIx] = Board.ValueFromIx(WhiteKingsideRookIx);
+            ret[WhiteQueensideDstIx] = Board.ValueFromIx(WhiteQueensideRookIx);
+            ret[BlackKingsideDstIx] = Board.ValueFromIx(BlackKingsideRookIx);
+            ret[BlackQueensideDstIx] = Board.ValueFromIx(BlackQueensideRookIx);
+            return ret;
+        }
+
+        private static ulong[] GenerateCastlingRookDst()
+        {
+            var ret = new ulong[64];
+            ret[WhiteKingsideDstIx] = Board.ValueFromIx(WhiteKingsideRookDstIx);
+            ret[WhiteQueensideDstIx] = Board.ValueFromIx(WhiteQueensideRookDstIx);
+            ret[BlackKingsideDstIx] = Board.ValueFromIx(BlackKingsideRookDstIx);
+            ret[BlackQueensideDstIx] = Board.ValueFromIx(BlackQueensideRookDstIx);
+            return ret;
+        }
+
+        public static ulong GetCastlingRookSrcValue(int castlingDstIx)
+        {
+            return CastlingRookSrcValues[castlingDstIx];
+        }
+
+        public static ulong GetCastlingRookDstValue(int castlingDstIx)
+        {
+            return CastlingRookDstValues[castlingDstIx];
+        }
+
+        #endregion
     }
 }

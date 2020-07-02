@@ -6,7 +6,7 @@ using System.Linq;
 using System.Runtime.InteropServices.ComTypes;
 using System.Text;
 using System.Threading;
-using SharpHeart.Engine.MoveGen;
+using SharpHeart.Engine.MoveGens;
 
 namespace SharpHeart.Engine
 {
@@ -16,44 +16,20 @@ namespace SharpHeart.Engine
         private readonly ulong[] _occupiedColor;
         private readonly ulong _occupied;
         private readonly bool?[] _inCheck;
+        private readonly Board? _parent;
+
         public Color SideToMove { get; private set; }
         public ulong EnPassant { get; private set; }
         public ulong CastlingRights { get; private set; }
 
-        // won't be used until we start reusing board objects
-        public Board()
+        // Takes ownership of all arrays passed to it; they should not be changed after the board is created.
+        public Board(ulong[][] pieceBitboards, Color sideToMove, ulong castlingRights)
         {
-            _pieceBitboards = new ulong[(int)PieceType.Count][];
+            // TODO: clone the arrays so we don't get issues if the caller modifies them??? Seems expensive
+            _pieceBitboards = pieceBitboards;
             _occupiedColor = new ulong[2];
             _inCheck = new bool?[2];
-            for (int i = 0; i < _pieceBitboards.Length; i++)
-            {
-                _pieceBitboards[i] = new ulong[2];
-            }
-
-            for (int i = 0; i < _occupiedColor.Length; i++)
-                _occupiedColor[i] = CalculateOccupied((Color) i);
-
-            _occupied = CalculateOccupied();
-
-            // TODO: set other values?? maybe
-
-            throw new NotImplementedException();
-        }
-
-        public Board(ulong[] whitePieceBitboards, ulong[] blackPieceBitboards, Color sideToMove, ulong castlingRights)
-        {
-            // TODO: clone the arrays so we don't get issues if the caller modifies them
-            _pieceBitboards = new ulong[(int)PieceType.Count][];
-            _occupiedColor = new ulong[2];
-            _inCheck = new bool?[2];
-            for (int i = 0; i < _pieceBitboards.Length; i++)
-            {
-                _pieceBitboards[i] = new ulong[2];
-                _pieceBitboards[i][(int) Color.Black] = blackPieceBitboards[i];
-                _pieceBitboards[i][(int) Color.White] = whitePieceBitboards[i];
-            }
-
+            
             for (int i = 0; i < _occupiedColor.Length; i++)
                 _occupiedColor[i] = CalculateOccupied((Color)i);
 
@@ -63,49 +39,30 @@ namespace SharpHeart.Engine
             EnPassant = 0;
             CastlingRights = castlingRights;
 
-            // TODO: set other values
-        }
-
-        public Board(ulong[] whitePieceBitboards, ulong[] blackPieceBitboards, Color sideToMove, ulong castlingRights, Board parent)
-        {
-            // TODO: clone the arrays so we don't get issues if the caller modifies them
-            _pieceBitboards = new ulong[(int)PieceType.Count][];
-            _occupiedColor = new ulong[2];
-            _inCheck = new bool?[2];
-            for (int i = 0; i < _pieceBitboards.Length; i++)
-            {
-                _pieceBitboards[i] = new ulong[2];
-                _pieceBitboards[i][(int)Color.Black] = blackPieceBitboards[i];
-                _pieceBitboards[i][(int)Color.White] = whitePieceBitboards[i];
-            }
-
-            for (int i = 0; i < _occupiedColor.Length; i++)
-                _occupiedColor[i] = CalculateOccupied((Color)i);
-
-            _occupied = CalculateOccupied();
-
-            SideToMove = sideToMove;
-            EnPassant = 0;
-            CastlingRights = castlingRights;
+            _parent = null;
 
             // TODO: set other values
         }
 
-        // Won't use this until we start reusing board objects
-        public void Clear()
+        // TODO: hmm... use default parameter?????
+        public Board(ulong[][] pieceBitboards, Color sideToMove, ulong castlingRights, Board parent) 
+            : this(pieceBitboards, sideToMove, castlingRights)
         {
-            for (int i = 0; i < _pieceBitboards.Length; i++)
-            {
-                Array.Clear(_pieceBitboards[i], 0, _pieceBitboards[i].Length);
-            }
+            _parent = parent;
+        }
 
-            // TODO
-            throw new NotImplementedException();
+        public ulong[][] GetPieceBitboards()
+        {
+            return new[]
+            {
+                (ulong[])_pieceBitboards[0].Clone(), // TODO: do this differently?
+                (ulong[])_pieceBitboards[1].Clone(),
+            };
         }
 
         public ulong GetPieceBitboard(PieceType pt, Color c)
         {
-            return _pieceBitboards[(int) pt][(int) c];
+            return _pieceBitboards[(int)c][(int)pt];
         }
 
         private ulong CalculateOccupied(Color c)
@@ -208,8 +165,6 @@ namespace SharpHeart.Engine
             // we checked all possible attacks by all possible piece types
             return false;
         }
-
-        // TODO history and stuff?
 
         #region Static methods
 

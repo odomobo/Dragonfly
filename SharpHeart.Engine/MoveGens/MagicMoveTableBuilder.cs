@@ -5,7 +5,7 @@ using System.Linq;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
 
-namespace SharpHeart.Engine.MoveGen
+namespace SharpHeart.Engine.MoveGens
 {
     public class MagicMoveTableBuilder
     {
@@ -39,7 +39,7 @@ namespace SharpHeart.Engine.MoveGen
             Debug.Assert(_infos.Count == 64);
             if (_magicFailed)
             {
-                BoardParsing.Dump("***** Invalid magic provided to magic move table builder; need to recalc magic tables.");
+                Debugging.Dump("***** Invalid magic provided to magic move table builder; need to recalc magic tables.");
             }
             return new MagicMoveTable(_infos.Values.ToArray());
         }

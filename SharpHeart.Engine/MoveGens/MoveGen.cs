@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using SharpHeart.Engine.Interfaces;
 
-namespace SharpHeart.Engine.MoveGen
+namespace SharpHeart.Engine.MoveGens
 {
     public sealed class MoveGen : IMoveGen
     {
@@ -157,6 +157,7 @@ namespace SharpHeart.Engine.MoveGen
                 if ((board.GetOccupied() & CastlingTables.GetCastlingEmptySquares(dstIx)) > 0)
                     continue;
 
+                // TODO: do these incheck validations as part of move validation? not sure...
                 if (board.InCheck(board.SideToMove))
                     continue;
 

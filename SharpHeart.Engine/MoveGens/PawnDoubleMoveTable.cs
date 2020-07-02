@@ -5,7 +5,7 @@ using System.Runtime.InteropServices.ComTypes;
 using System.Text;
 using MersenneTwister;
 
-namespace SharpHeart.Engine.MoveGen
+namespace SharpHeart.Engine.MoveGens
 {
     public static class PawnDoubleMoveTable
     {

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using MersenneTwister;
 
-namespace SharpHeart.Engine.MoveGen
+namespace SharpHeart.Engine.MoveGens
 {
     public class MagicFinder
     {

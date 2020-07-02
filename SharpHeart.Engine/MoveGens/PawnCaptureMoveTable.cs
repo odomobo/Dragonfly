@@ -2,19 +2,19 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace SharpHeart.Engine.MoveGen
+namespace SharpHeart.Engine.MoveGens
 {
-    public static class PawnQuietMoveTable
+    public static class PawnCaptureMoveTable
     {
-        private static readonly ulong[][] QuietMoves = GenerateQuietMoves();
+        private static readonly ulong[][] CaptureMoves = GenerateCaptureMoves();
 
-        private static ulong[][] GenerateQuietMoves()
+        private static ulong[][] GenerateCaptureMoves()
         {
             var ret = new ulong[2][];
 
             foreach (var color in new[] { Color.White, Color.Black })
             {
-                ret[(int)color] = GenerateQuietMoves(color);
+                ret[(int)color] = GenerateCaptureMoves(color);
             }
 
             return ret;
@@ -22,10 +22,10 @@ namespace SharpHeart.Engine.MoveGen
 
         public static ulong GetMoves(int ix, Color color)
         {
-            return QuietMoves[(int)color][ix];
+            return CaptureMoves[(int)color][ix];
         }
 
-        private static ulong[] GenerateQuietMoves(Color color)
+        private static ulong[] GenerateCaptureMoves(Color color)
         {
             ulong[] captures = new ulong[64];
             int direction = color.GetPawnDirection();
@@ -33,8 +33,13 @@ namespace SharpHeart.Engine.MoveGen
             {
                 ulong singularCaptures = 0;
                 int dstRank = srcRank + direction;
-                if (Board.FileRankOnBoard(srcFile, dstRank))
-                    singularCaptures |= Board.ValueFromFileRank(srcFile, dstRank);
+                for (int dstFile = srcFile - 1; dstFile <= srcFile + 1; dstFile += 2)
+                {
+                    if (!Board.FileRankOnBoard(dstFile, dstRank))
+                        continue;
+
+                    singularCaptures |= Board.ValueFromFileRank(dstFile, dstRank);
+                }
 
                 captures[Board.IxFromFileRank(srcFile, srcRank)] = singularCaptures;
             }
