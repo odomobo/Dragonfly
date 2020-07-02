@@ -7,13 +7,12 @@ namespace SharpHeart.Engine.MoveGen
 {
     public static class RookMoveTable
     {
-        private const int MaxMaskSize = 12;
         private static readonly MagicMoveTable RookMoveMagicTable;
 
         static RookMoveTable()
         {
-            var magicFinder = new MagicFinder(new Random(0));
-            MagicMoveTableBuilder builder = new MagicMoveTableBuilder(magicFinder, MaxMaskSize);
+            var magicFinder = new MagicFinder(new MTRandom(0));
+            MagicMoveTableBuilder builder = new MagicMoveTableBuilder(magicFinder);
 
             foreach (var (file, rank) in Board.GetAllFilesRanks())
             {
@@ -106,7 +105,7 @@ namespace SharpHeart.Engine.MoveGen
             var ix = Board.IxFromFileRank(srcFile, srcRank);
             var info = new MagicMoveTable.Info
             {
-                Magic = Magics[ix],
+                Magic = Magics.GetOrDefault(ix),
                 Mask = mask,
                 MaskedOccupancyKeys = occupancies.ToArray(),
                 MovesValues = moves.ToArray(),
@@ -118,22 +117,6 @@ namespace SharpHeart.Engine.MoveGen
         // generated with DumpMagics
         private static readonly ulong[] Magics = 
         {
-            0xa280004000288010UL, 0x1440001040082001UL, 0x0080050810002000UL, 0x2200120024022040UL,
-            0x0200200c17020010UL, 0x020000c218071004UL, 0x5020208402000ac8UL, 0x1200004104248402UL,
-            0x4900800280244008UL, 0x8000880840008210UL, 0x2204640400200840UL, 0x2000100208101480UL,
-            0x005020011204000aUL, 0x9000250000880100UL, 0x0002004802100294UL, 0x0006000042009c13UL,
-            0x004000802141800aUL, 0x0113900130094404UL, 0x08009010a001c209UL, 0x4008282a00040002UL,
-            0x0200101c00012800UL, 0x002d902020080124UL, 0x0c04024003008020UL, 0x0000548003094820UL,
-            0x4c16002200110088UL, 0x0080080081884800UL, 0x2010084448040004UL, 0x003a804818010080UL,
-            0x012802080080220cUL, 0x0209380200411200UL, 0x080a00a120100802UL, 0xa010040824104100UL,
-            0x0080230104080080UL, 0x1048200008408051UL, 0x0206200010100104UL, 0x08000400ac100008UL,
-            0x2000800840820400UL, 0x1261000829002402UL, 0x0200a04280242802UL, 0x8080050040800128UL,
-            0x20008a5000212002UL, 0x8006094001202009UL, 0x1608203804202000UL, 0x8022000c08402020UL,
-            0x04009180440d0401UL, 0x0002002040100400UL, 0x80c1020082048200UL, 0x48800080600d4004UL,
-            0x804080c00610300cUL, 0x0090014000600140UL, 0x0008003400200820UL, 0x0083800800040210UL,
-            0x2550102110020602UL, 0x919a222404800089UL, 0x00428b1201400180UL, 0x0000e37001000048UL,
-            0x14008000c021001bUL, 0x0080290010400421UL, 0x4480108004a03a02UL, 0x0004402062005006UL,
-            0x0201000410280005UL, 0x0004000082210019UL, 0x0200210804018042UL, 0xa20e882044008102UL,
         };
     }
 }
