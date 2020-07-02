@@ -86,7 +86,7 @@ namespace SharpHeart.Engine
             pieceBitboards[(int)b.SideToMove][(int)PieceType] &= ~Board.ValueFromIx(SourceIx);
             pieceBitboards[(int)b.SideToMove][(int)PieceType] |= Board.ValueFromIx(DstIx);
 
-            return new Board(pieceBitboards, b.SideToMove.Other(), castlingRights, b);
+            return new Board(pieceBitboards, b.SideToMove.Other(), castlingRights, 0, b);
         }
 
         private Board DoNormalCaptureMove(Board b, ulong castlingRights)
@@ -104,7 +104,7 @@ namespace SharpHeart.Engine
                 pieceBitboards[(int)b.SideToMove.Other()][i] &= ~Board.ValueFromIx(DstIx);
             }
 
-            return new Board(pieceBitboards, b.SideToMove.Other(), castlingRights, b);
+            return new Board(pieceBitboards, b.SideToMove.Other(), castlingRights, 0, b);
         }
 
         private Board DoDoublePawnMove(Board b, ulong castlingRights)
@@ -117,9 +117,9 @@ namespace SharpHeart.Engine
             pieceBitboards[(int)b.SideToMove][(int)PieceType] &= ~Board.ValueFromIx(SourceIx);
             pieceBitboards[(int)b.SideToMove][(int)PieceType] |= Board.ValueFromIx(DstIx);
 
-            // TODO: en passant
+            var enPassant = Board.ValueFromIx((SourceIx + DstIx) / 2);
 
-            return new Board(pieceBitboards, b.SideToMove.Other(), castlingRights, b);
+            return new Board(pieceBitboards, b.SideToMove.Other(), castlingRights, enPassant, b);
         }
 
         private Board DoEnPassantMove(Board b, ulong castlingRights)
@@ -132,7 +132,7 @@ namespace SharpHeart.Engine
 
             Debug.Assert((pieceBitboards[(int)b.SideToMove][(int)PieceType] & Board.ValueFromIx(SourceIx)) > 0);
             Debug.Assert((b.GetOccupied() & Board.ValueFromIx(DstIx)) == 0);
-            Debug.Assert((pieceBitboards[(int)b.SideToMove.Other()][(int)PieceType.Pawn] & Board.ValueFromIx(SourceIx)) > 0);
+            Debug.Assert((pieceBitboards[(int)b.SideToMove.Other()][(int)PieceType.Pawn] & Board.ValueFromIx(capturedPawnIx)) > 0);
             
 
 
@@ -140,7 +140,7 @@ namespace SharpHeart.Engine
             pieceBitboards[(int)b.SideToMove][(int)PieceType] |= Board.ValueFromIx(DstIx);
             pieceBitboards[(int) b.SideToMove.Other()][(int) PieceType.Pawn] &= ~Board.ValueFromIx(capturedPawnIx);
 
-            return new Board(pieceBitboards, b.SideToMove.Other(), castlingRights, b);
+            return new Board(pieceBitboards, b.SideToMove.Other(), castlingRights, 0, b);
         }
 
         private Board DoPromotionQuietMove(Board b, ulong castlingRights)
@@ -153,7 +153,7 @@ namespace SharpHeart.Engine
             pieceBitboards[(int)b.SideToMove][(int)PieceType] &= ~Board.ValueFromIx(SourceIx);
             pieceBitboards[(int)b.SideToMove][(int)PromotionPiece] |= Board.ValueFromIx(DstIx);
 
-            return new Board(pieceBitboards, b.SideToMove.Other(), castlingRights, b);
+            return new Board(pieceBitboards, b.SideToMove.Other(), castlingRights, 0, b);
         }
 
         private Board DoPromotionCaptureMove(Board b, ulong castlingRights)
@@ -171,7 +171,7 @@ namespace SharpHeart.Engine
                 pieceBitboards[(int)b.SideToMove.Other()][i] &= ~Board.ValueFromIx(DstIx);
             }
 
-            return new Board(pieceBitboards, b.SideToMove.Other(), castlingRights, b);
+            return new Board(pieceBitboards, b.SideToMove.Other(), castlingRights, 0, b);
         }
 
         private Board DoCastlingQuietMove(Board b, ulong castlingRights)
@@ -189,7 +189,7 @@ namespace SharpHeart.Engine
             pieceBitboards[(int)b.SideToMove][(int)PieceType.Rook] &= ~CastlingTables.GetCastlingRookSrcValue(DstIx);
             pieceBitboards[(int)b.SideToMove][(int)PieceType.Rook] |= CastlingTables.GetCastlingRookDstValue(DstIx);
 
-            return new Board(pieceBitboards, b.SideToMove.Other(), castlingRights, b);
+            return new Board(pieceBitboards, b.SideToMove.Other(), castlingRights, 0, b);
         }
     }
 }

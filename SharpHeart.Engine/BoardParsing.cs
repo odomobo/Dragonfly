@@ -81,9 +81,10 @@ namespace SharpHeart.Engine
             // TODO: castling rights
             ulong castlingRights = 0;
             // TODO: en passant
+            ulong enPassant = 0;
             // TODO: move counts
 
-            return new Board(new []{whitePieceBitboards, blackPieceBitboards}, sideToMove, castlingRights);
+            return new Board(new []{whitePieceBitboards, blackPieceBitboards}, sideToMove, castlingRights, enPassant);
         }
 
         public static bool TryParsePiece(char originalC, out PieceType pieceType, out Color color)
@@ -234,6 +235,15 @@ namespace SharpHeart.Engine
             }
 
             return $"{pieceTypeStr}{captureStr}{dstSquareStr}{promotionPieceStr}";
+        }
+
+        public static string MoveToCoordinateString(Move m)
+        {
+            string promotionPieceStr = "";
+            if ((m.MoveType & MoveType.Promotion) > 0)
+                promotionPieceStr = PieceTypeColorToLetter(m.PromotionPiece, Color.Black).ToString(); // lowercase
+
+            return $"{SquareStrFromIx(m.SourceIx)}{SquareStrFromIx(m.DstIx)}{promotionPieceStr}";
         }
 
         public static string FileStrFromIx(int ix)

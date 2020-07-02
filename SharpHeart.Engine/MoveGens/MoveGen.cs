@@ -50,6 +50,33 @@ namespace SharpHeart.Engine.MoveGens
             );
         }
 
+        public Move GetMoveFromCoordinateString(Board b, string coordinateString)
+        {
+            if (TryGetMoveFromCoordinateString(b, coordinateString, out Move move))
+                return move;
+            else
+                throw new Exception($"Could not find move: \"{coordinateString}\"");
+        }
+
+        public bool TryGetMoveFromCoordinateString(Board b, string coordinateString, out Move move)
+        {
+            List<Move> moves = new List<Move>();
+            Generate(moves, b);
+
+            foreach (var tmpMove in moves)
+            {
+                var potentialCoordinateString = BoardParsing.MoveToCoordinateString(tmpMove);
+                if (string.Equals(potentialCoordinateString, coordinateString, StringComparison.OrdinalIgnoreCase))
+                {
+                    move = tmpMove;
+                    return true;
+                }
+            }
+
+            move = default;
+            return false;
+        }
+
         private void GeneratePawnMoves(List<Move> moves, Board board, ulong sourceSquares)
         {
             var color = board.SideToMove;
@@ -142,10 +169,7 @@ namespace SharpHeart.Engine.MoveGens
                 // don't allow king to move on piece of same color
                 dstSquares &= ~board.GetOccupied(board.SideToMove);
 
-                foreach (var dstIx in Bits.Enumerate(dstSquares))
-                {
-                    GenerateMoves(moves, MoveType.Normal, PieceType.King, sourceIx, dstSquares, board.GetOccupied());
-                }
+                GenerateMoves(moves, MoveType.Normal, PieceType.King, sourceIx, dstSquares, board.GetOccupied());
             }
         }
 

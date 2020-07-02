@@ -1,17 +1,17 @@
 ## Progress
 
 * Move
-  * 50% (no DoMove yet)
+  * 95% ?
 * MoveGen
   * 95% ?
 * Board
-  * 60%
+  * 80%
 * FenParser: Board*
   * 80%
 * MoveParser: Move*
-  * 0%
+  * 100%
 * Perft: MoveGen, Board*, FenParser, MoveParser
-  * 0%
+  * 100%
 * Evaluation: Board*
   * 0%
 * GameCompleted: Board

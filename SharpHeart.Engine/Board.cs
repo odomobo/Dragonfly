@@ -23,7 +23,7 @@ namespace SharpHeart.Engine
         public ulong CastlingRights { get; private set; }
 
         // Takes ownership of all arrays passed to it; they should not be changed after the board is created.
-        public Board(ulong[][] pieceBitboards, Color sideToMove, ulong castlingRights)
+        public Board(ulong[][] pieceBitboards, Color sideToMove, ulong castlingRights, ulong enPassant, Board parent = null)
         {
             // TODO: clone the arrays so we don't get issues if the caller modifies them??? Seems expensive
             _pieceBitboards = pieceBitboards;
@@ -36,19 +36,12 @@ namespace SharpHeart.Engine
             _occupied = CalculateOccupied();
 
             SideToMove = sideToMove;
-            EnPassant = 0;
+            EnPassant = enPassant;
             CastlingRights = castlingRights;
 
-            _parent = null;
+            _parent = parent;
 
             // TODO: set other values
-        }
-
-        // TODO: hmm... use default parameter?????
-        public Board(ulong[][] pieceBitboards, Color sideToMove, ulong castlingRights, Board parent) 
-            : this(pieceBitboards, sideToMove, castlingRights)
-        {
-            _parent = parent;
         }
 
         public ulong[][] GetPieceBitboards()
