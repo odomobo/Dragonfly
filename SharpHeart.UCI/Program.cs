@@ -13,17 +13,13 @@ namespace SharpHeart.UCI
         static void Main(string[] args)
         {
             var board = BoardParsing.FromFen("r1b2rk1/4nppp/p3p3/2qpP3/8/2N2N2/PP3PPP/2RQ1RK1 b - - 3 14");
-            //BoardParsing.Dump(board);
+            BoardParsing.Dump(board);
 
             var moveGen = new MoveGen();
 
             List<Move> moves = new List<Move>();
-            Stopwatch sw = new Stopwatch();
-            sw.Start();
             moveGen.Generate(moves, board);
-            sw.Stop();
-            Console.WriteLine($"Elapsed time: {sw.Elapsed}");
-            //BoardParsing.Dump(moves);
+            BoardParsing.Dump(moves);
 
             //Stopwatch sw = new Stopwatch();
             //sw.Start();

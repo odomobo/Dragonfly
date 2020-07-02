@@ -4,7 +4,7 @@ using System.Text;
 
 namespace SharpHeart.Engine
 {
-    static class Extensions
+    internal static class Extensions
     {
         public static T GetOrDefault<T>(this T[] array, int index) where T : struct
         {

@@ -386,7 +386,7 @@ using Microsoft.VisualBasic;
 // for BigInteger
 #endif
 
-namespace SharpHeart.Engine
+namespace MersenneTwister
 {
 	public class MTRandom
 	{
