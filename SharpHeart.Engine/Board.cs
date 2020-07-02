@@ -12,7 +12,7 @@ namespace SharpHeart.Engine
 {
     public sealed class Board
     {
-        private readonly ulong[][] _pieceBitboards;
+        private readonly ulong[] _pieceBitboards;
         private readonly ulong[] _occupiedColor;
         private readonly ulong _occupied;
         private readonly bool?[] _inCheck;
@@ -23,7 +23,7 @@ namespace SharpHeart.Engine
         public ulong CastlingRights { get; private set; }
 
         // Takes ownership of all arrays passed to it; they should not be changed after the board is created.
-        public Board(ulong[][] pieceBitboards, Color sideToMove, ulong castlingRights, ulong enPassant, Board parent = null)
+        public Board(ulong[] pieceBitboards, Color sideToMove, ulong castlingRights, ulong enPassant, Board parent = null)
         {
             // TODO: clone the arrays so we don't get issues if the caller modifies them??? Seems expensive
             _pieceBitboards = pieceBitboards;
@@ -44,29 +44,27 @@ namespace SharpHeart.Engine
             // TODO: set other values
         }
 
-        public ulong[][] GetPieceBitboards()
+        public ulong[] GetPieceBitboards()
         {
-            return new[]
-            {
-                (ulong[])_pieceBitboards[0].Clone(), // TODO: do this differently?
-                (ulong[])_pieceBitboards[1].Clone(),
-            };
+            var ret = new ulong[12];
+            Array.Copy(_pieceBitboards, ret, 12);
+            return ret;
         }
 
-        public ulong GetPieceBitboard(PieceType pt, Color c)
+        public ulong GetPieceBitboard(Color c, PieceType pt)
         {
-            return _pieceBitboards[(int)c][(int)pt];
+            return _pieceBitboards[PieceBitboardIndex(c, pt)];
         }
 
         private ulong CalculateOccupied(Color c)
         {
             return 
-                GetPieceBitboard(PieceType.Pawn, c) |
-                GetPieceBitboard(PieceType.Bishop, c) |
-                GetPieceBitboard(PieceType.Knight, c) |
-                GetPieceBitboard(PieceType.Rook, c) |
-                GetPieceBitboard(PieceType.Queen, c) |
-                GetPieceBitboard(PieceType.King, c);
+                GetPieceBitboard(c, PieceType.Pawn) |
+                GetPieceBitboard(c, PieceType.Bishop) |
+                GetPieceBitboard(c, PieceType.Knight) |
+                GetPieceBitboard(c, PieceType.Rook) |
+                GetPieceBitboard(c, PieceType.Queen) |
+                GetPieceBitboard(c, PieceType.King);
         }
 
         public ulong GetOccupied(Color c)
@@ -89,7 +87,7 @@ namespace SharpHeart.Engine
             var inCheck = _inCheck[(int) side];
             if (!inCheck.HasValue)
             {
-                inCheck = IsAttacked(Bits.GetLsb(GetPieceBitboard(PieceType.King, side)), side);
+                inCheck = IsAttacked(Bits.GetLsb(GetPieceBitboard(side, PieceType.King)), side);
                 _inCheck[(int) side] = inCheck;
             }
 
@@ -107,7 +105,7 @@ namespace SharpHeart.Engine
                 // if we make it here, it's definitely one of these pieces
                 for (PieceType pieceType = 0; pieceType < PieceType.Count; pieceType = pieceType + 1)
                 {
-                    if ((value & GetPieceBitboard(pieceType, color)) > 0)
+                    if ((value & GetPieceBitboard(color, pieceType)) > 0)
                         return (pieceType, color);
                 }
                 throw new Exception();
@@ -129,30 +127,30 @@ namespace SharpHeart.Engine
 
             // rook and queen
             var potentialRookCaptures = RookMoveTable.GetMoves(defenderIx, GetOccupied());
-            if ((potentialRookCaptures & GetPieceBitboard(PieceType.Rook, defenderColor.Other())) > 0)
+            if ((potentialRookCaptures & GetPieceBitboard(defenderColor.Other(), PieceType.Rook)) > 0)
                 return true;
 
-            if ((potentialRookCaptures & GetPieceBitboard(PieceType.Queen, defenderColor.Other())) > 0)
+            if ((potentialRookCaptures & GetPieceBitboard(defenderColor.Other(), PieceType.Queen)) > 0)
                 return true;
 
             // bishop and queen
             var potentialBishopCaptures = BishopMoveTable.GetMoves(defenderIx, GetOccupied());
-            if ((potentialBishopCaptures & GetPieceBitboard(PieceType.Bishop, defenderColor.Other())) > 0)
+            if ((potentialBishopCaptures & GetPieceBitboard(defenderColor.Other(), PieceType.Bishop)) > 0)
                 return true;
 
-            if ((potentialBishopCaptures & GetPieceBitboard(PieceType.Queen, defenderColor.Other())) > 0)
+            if ((potentialBishopCaptures & GetPieceBitboard(defenderColor.Other(), PieceType.Queen)) > 0)
                 return true;
 
             var potentialKnightCaptures = KnightMoveTable.GetMoves(defenderIx);
-            if ((potentialKnightCaptures & GetPieceBitboard(PieceType.Knight, defenderColor.Other())) > 0)
+            if ((potentialKnightCaptures & GetPieceBitboard(defenderColor.Other(), PieceType.Knight)) > 0)
                 return true;
 
             var potentialKingCaptures = KingMoveTable.GetMoves(defenderIx);
-            if ((potentialKingCaptures & GetPieceBitboard(PieceType.King, defenderColor.Other())) > 0)
+            if ((potentialKingCaptures & GetPieceBitboard(defenderColor.Other(), PieceType.King)) > 0)
                 return true;
 
             var potentialPawnCaptures = PawnCaptureMoveTable.GetMoves(defenderIx, defenderColor);
-            if ((potentialPawnCaptures & GetPieceBitboard(PieceType.Pawn, defenderColor.Other())) > 0)
+            if ((potentialPawnCaptures & GetPieceBitboard(defenderColor.Other(), PieceType.Pawn)) > 0)
                 return true;
 
             // we checked all possible attacks by all possible piece types
@@ -160,6 +158,11 @@ namespace SharpHeart.Engine
         }
 
         #region Static methods
+
+        public static int PieceBitboardIndex(Color color, PieceType pieceType)
+        {
+            return ((int) color * 6) + (int) pieceType;
+        }
 
         public static int IxFromFileRank(int file, int rank)
         {

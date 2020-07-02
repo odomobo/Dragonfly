@@ -12,8 +12,7 @@ namespace SharpHeart.Engine
         public static Board FromFen(string fen)
         {
             // TODO: single pieceBitboards instead of this
-            ulong[] whitePieceBitboards = new ulong[(int)PieceType.Count];
-            ulong[] blackPieceBitboards = new ulong[(int)PieceType.Count];
+            ulong[] pieceBitboard = new ulong[12];
 
             var splitFen = fen.Split(' ', StringSplitOptions.RemoveEmptyEntries).ToList();
             if (splitFen.Count < 1)
@@ -54,10 +53,7 @@ namespace SharpHeart.Engine
                     if (BoardParsing.TryParsePiece(c, out var pieceType, out var color))
                     {
                         var value = Board.ValueFromFileRank(file, rank);
-                        if (color == Color.White)
-                            whitePieceBitboards[(int)pieceType] |= value;
-                        else
-                            blackPieceBitboards[(int)pieceType] |= value;
+                        pieceBitboard[Board.PieceBitboardIndex(color, pieceType)] |= value;
 
                         file++;
                         continue;
@@ -84,7 +80,7 @@ namespace SharpHeart.Engine
             ulong enPassant = 0;
             // TODO: move counts
 
-            return new Board(new []{whitePieceBitboards, blackPieceBitboards}, sideToMove, castlingRights, enPassant);
+            return new Board(pieceBitboard, sideToMove, castlingRights, enPassant);
         }
 
         public static bool TryParsePiece(char originalC, out PieceType pieceType, out Color color)

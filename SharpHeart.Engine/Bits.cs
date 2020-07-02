@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Numerics;
 using System.Runtime.CompilerServices;
@@ -14,10 +15,15 @@ namespace SharpHeart.Engine
             return BitOperations.TrailingZeroCount(value);
         }
 
+        public static ulong RemoveLsb(ulong value)
+        {
+            return value & (value - 1);
+        }
+
         public static int PopLsb(ref ulong value)
         {
             var ret = GetLsb(value);
-            value = value & (value - 1);
+            value = RemoveLsb(value);
             return ret;
         }
 

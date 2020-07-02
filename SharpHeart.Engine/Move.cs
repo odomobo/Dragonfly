@@ -80,11 +80,11 @@ namespace SharpHeart.Engine
         {
             var pieceBitboards = b.GetPieceBitboards();
 
-            Debug.Assert((pieceBitboards[(int)b.SideToMove][(int)PieceType] & Board.ValueFromIx(SourceIx)) > 0);
+            Debug.Assert((pieceBitboards[Board.PieceBitboardIndex(b.SideToMove, PieceType)] & Board.ValueFromIx(SourceIx)) > 0);
             Debug.Assert((b.GetOccupied() & Board.ValueFromIx(DstIx)) == 0);
 
-            pieceBitboards[(int)b.SideToMove][(int)PieceType] &= ~Board.ValueFromIx(SourceIx);
-            pieceBitboards[(int)b.SideToMove][(int)PieceType] |= Board.ValueFromIx(DstIx);
+            pieceBitboards[Board.PieceBitboardIndex(b.SideToMove, PieceType)] &= ~Board.ValueFromIx(SourceIx);
+            pieceBitboards[Board.PieceBitboardIndex(b.SideToMove, PieceType)] |= Board.ValueFromIx(DstIx);
 
             return new Board(pieceBitboards, b.SideToMove.Other(), castlingRights, 0, b);
         }
@@ -93,15 +93,15 @@ namespace SharpHeart.Engine
         {
             var pieceBitboards = b.GetPieceBitboards();
 
-            Debug.Assert((pieceBitboards[(int)b.SideToMove][(int)PieceType] & Board.ValueFromIx(SourceIx)) > 0);
+            Debug.Assert((pieceBitboards[Board.PieceBitboardIndex(b.SideToMove, PieceType)] & Board.ValueFromIx(SourceIx)) > 0);
             Debug.Assert((b.GetOccupied(b.SideToMove.Other()) & Board.ValueFromIx(DstIx)) > 0);
 
-            pieceBitboards[(int)b.SideToMove][(int)PieceType] &= ~Board.ValueFromIx(SourceIx);
-            pieceBitboards[(int)b.SideToMove][(int)PieceType] |= Board.ValueFromIx(DstIx);
+            pieceBitboards[Board.PieceBitboardIndex(b.SideToMove, PieceType)] &= ~Board.ValueFromIx(SourceIx);
+            pieceBitboards[Board.PieceBitboardIndex(b.SideToMove, PieceType)] |= Board.ValueFromIx(DstIx);
 
-            for (int i = 0; i < (int)PieceType.Count; i++)
+            for (PieceType pieceType = 0; pieceType < PieceType.Count; pieceType++)
             {
-                pieceBitboards[(int)b.SideToMove.Other()][i] &= ~Board.ValueFromIx(DstIx);
+                pieceBitboards[Board.PieceBitboardIndex(b.SideToMove.Other(), pieceType)] &= ~Board.ValueFromIx(DstIx);
             }
 
             return new Board(pieceBitboards, b.SideToMove.Other(), castlingRights, 0, b);
@@ -111,11 +111,11 @@ namespace SharpHeart.Engine
         {
             var pieceBitboards = b.GetPieceBitboards();
 
-            Debug.Assert((pieceBitboards[(int)b.SideToMove][(int)PieceType] & Board.ValueFromIx(SourceIx)) > 0);
+            Debug.Assert((pieceBitboards[Board.PieceBitboardIndex(b.SideToMove, PieceType)] & Board.ValueFromIx(SourceIx)) > 0);
             Debug.Assert((b.GetOccupied() & Board.ValueFromIx(DstIx)) == 0);
 
-            pieceBitboards[(int)b.SideToMove][(int)PieceType] &= ~Board.ValueFromIx(SourceIx);
-            pieceBitboards[(int)b.SideToMove][(int)PieceType] |= Board.ValueFromIx(DstIx);
+            pieceBitboards[Board.PieceBitboardIndex(b.SideToMove, PieceType)] &= ~Board.ValueFromIx(SourceIx);
+            pieceBitboards[Board.PieceBitboardIndex(b.SideToMove, PieceType)] |= Board.ValueFromIx(DstIx);
 
             var enPassant = Board.ValueFromIx((SourceIx + DstIx) / 2);
 
@@ -130,15 +130,15 @@ namespace SharpHeart.Engine
             var (dstFile, dstRank) = Board.FileRankFromIx(DstIx);
             var capturedPawnIx = Board.IxFromFileRank(dstFile, srcRank);
 
-            Debug.Assert((pieceBitboards[(int)b.SideToMove][(int)PieceType] & Board.ValueFromIx(SourceIx)) > 0);
+            Debug.Assert((pieceBitboards[Board.PieceBitboardIndex(b.SideToMove, PieceType)] & Board.ValueFromIx(SourceIx)) > 0);
             Debug.Assert((b.GetOccupied() & Board.ValueFromIx(DstIx)) == 0);
-            Debug.Assert((pieceBitboards[(int)b.SideToMove.Other()][(int)PieceType.Pawn] & Board.ValueFromIx(capturedPawnIx)) > 0);
+            Debug.Assert((pieceBitboards[Board.PieceBitboardIndex(b.SideToMove.Other(), PieceType.Pawn)] & Board.ValueFromIx(capturedPawnIx)) > 0);
             
 
 
-            pieceBitboards[(int)b.SideToMove][(int)PieceType] &= ~Board.ValueFromIx(SourceIx);
-            pieceBitboards[(int)b.SideToMove][(int)PieceType] |= Board.ValueFromIx(DstIx);
-            pieceBitboards[(int) b.SideToMove.Other()][(int) PieceType.Pawn] &= ~Board.ValueFromIx(capturedPawnIx);
+            pieceBitboards[Board.PieceBitboardIndex(b.SideToMove, PieceType)] &= ~Board.ValueFromIx(SourceIx);
+            pieceBitboards[Board.PieceBitboardIndex(b.SideToMove, PieceType)] |= Board.ValueFromIx(DstIx);
+            pieceBitboards[Board.PieceBitboardIndex( b.SideToMove.Other(),  PieceType.Pawn)] &= ~Board.ValueFromIx(capturedPawnIx);
 
             return new Board(pieceBitboards, b.SideToMove.Other(), castlingRights, 0, b);
         }
@@ -147,11 +147,11 @@ namespace SharpHeart.Engine
         {
             var pieceBitboards = b.GetPieceBitboards();
 
-            Debug.Assert((pieceBitboards[(int)b.SideToMove][(int)PieceType] & Board.ValueFromIx(SourceIx)) > 0);
+            Debug.Assert((pieceBitboards[Board.PieceBitboardIndex(b.SideToMove, PieceType)] & Board.ValueFromIx(SourceIx)) > 0);
             Debug.Assert((b.GetOccupied() & Board.ValueFromIx(DstIx)) == 0);
 
-            pieceBitboards[(int)b.SideToMove][(int)PieceType] &= ~Board.ValueFromIx(SourceIx);
-            pieceBitboards[(int)b.SideToMove][(int)PromotionPiece] |= Board.ValueFromIx(DstIx);
+            pieceBitboards[Board.PieceBitboardIndex(b.SideToMove, PieceType)] &= ~Board.ValueFromIx(SourceIx);
+            pieceBitboards[Board.PieceBitboardIndex(b.SideToMove, PromotionPiece)] |= Board.ValueFromIx(DstIx);
 
             return new Board(pieceBitboards, b.SideToMove.Other(), castlingRights, 0, b);
         }
@@ -160,15 +160,15 @@ namespace SharpHeart.Engine
         {
             var pieceBitboards = b.GetPieceBitboards();
 
-            Debug.Assert((pieceBitboards[(int)b.SideToMove][(int)PieceType] & Board.ValueFromIx(SourceIx)) > 0);
+            Debug.Assert((pieceBitboards[Board.PieceBitboardIndex(b.SideToMove, PieceType)] & Board.ValueFromIx(SourceIx)) > 0);
             Debug.Assert((b.GetOccupied(b.SideToMove.Other()) & Board.ValueFromIx(DstIx)) > 0);
 
-            pieceBitboards[(int)b.SideToMove][(int)PieceType] &= ~Board.ValueFromIx(SourceIx);
-            pieceBitboards[(int)b.SideToMove][(int)PromotionPiece] |= Board.ValueFromIx(DstIx);
+            pieceBitboards[Board.PieceBitboardIndex(b.SideToMove, PieceType)] &= ~Board.ValueFromIx(SourceIx);
+            pieceBitboards[Board.PieceBitboardIndex(b.SideToMove, PromotionPiece)] |= Board.ValueFromIx(DstIx);
 
-            for (int i = 0; i < (int)PieceType.Count; i++)
+            for (PieceType pieceType = 0; pieceType < PieceType.Count; pieceType++)
             {
-                pieceBitboards[(int)b.SideToMove.Other()][i] &= ~Board.ValueFromIx(DstIx);
+                pieceBitboards[Board.PieceBitboardIndex(b.SideToMove.Other(), pieceType)] &= ~Board.ValueFromIx(DstIx);
             }
 
             return new Board(pieceBitboards, b.SideToMove.Other(), castlingRights, 0, b);
@@ -178,16 +178,16 @@ namespace SharpHeart.Engine
         {
             var pieceBitboards = b.GetPieceBitboards();
 
-            Debug.Assert((pieceBitboards[(int)b.SideToMove][(int)PieceType] & Board.ValueFromIx(SourceIx)) > 0);
+            Debug.Assert((pieceBitboards[Board.PieceBitboardIndex(b.SideToMove, PieceType)] & Board.ValueFromIx(SourceIx)) > 0);
             Debug.Assert((b.GetOccupied() & Board.ValueFromIx(DstIx)) == 0);
             Debug.Assert((b.GetOccupied() & CastlingTables.GetCastlingEmptySquares(DstIx)) == 0);
-            Debug.Assert((pieceBitboards[(int)b.SideToMove][(int)PieceType.Rook] & CastlingTables.GetCastlingRookSrcValue(DstIx)) > 0);
+            Debug.Assert((pieceBitboards[Board.PieceBitboardIndex(b.SideToMove, PieceType.Rook)] & CastlingTables.GetCastlingRookSrcValue(DstIx)) > 0);
 
-            pieceBitboards[(int)b.SideToMove][(int)PieceType] &= ~Board.ValueFromIx(SourceIx);
-            pieceBitboards[(int)b.SideToMove][(int)PieceType] |= Board.ValueFromIx(DstIx);
+            pieceBitboards[Board.PieceBitboardIndex(b.SideToMove, PieceType)] &= ~Board.ValueFromIx(SourceIx);
+            pieceBitboards[Board.PieceBitboardIndex(b.SideToMove, PieceType)] |= Board.ValueFromIx(DstIx);
 
-            pieceBitboards[(int)b.SideToMove][(int)PieceType.Rook] &= ~CastlingTables.GetCastlingRookSrcValue(DstIx);
-            pieceBitboards[(int)b.SideToMove][(int)PieceType.Rook] |= CastlingTables.GetCastlingRookDstValue(DstIx);
+            pieceBitboards[Board.PieceBitboardIndex(b.SideToMove, PieceType.Rook)] &= ~CastlingTables.GetCastlingRookSrcValue(DstIx);
+            pieceBitboards[Board.PieceBitboardIndex(b.SideToMove, PieceType.Rook)] |= CastlingTables.GetCastlingRookDstValue(DstIx);
 
             return new Board(pieceBitboards, b.SideToMove.Other(), castlingRights, 0, b);
         }

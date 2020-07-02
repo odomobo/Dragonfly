@@ -12,37 +12,37 @@ namespace SharpHeart.Engine.MoveGens
         
         public void Generate(List<Move> moves, Board board)
         {
-            GeneratePawnMoves(moves, board, board.GetPieceBitboard(PieceType.Pawn, board.SideToMove));
-            GenerateKnightMoves(moves, board, board.GetPieceBitboard(PieceType.Knight, board.SideToMove));
+            GeneratePawnMoves(moves, board, board.GetPieceBitboard(board.SideToMove, PieceType.Pawn));
+            GenerateKnightMoves(moves, board, board.GetPieceBitboard(board.SideToMove, PieceType.Knight));
             // we can combine generation of queen with bishop and rook moves because when we store moves in the move list, we don't record the piece type which is moving
             GenerateBishopMoves(
                 moves,
                 board,
                 PieceType.Bishop,
-                board.GetPieceBitboard(PieceType.Bishop, board.SideToMove)
+                board.GetPieceBitboard(board.SideToMove, PieceType.Bishop)
             );
             GenerateBishopMoves(
                 moves,
                 board,
                 PieceType.Queen,
-                board.GetPieceBitboard(PieceType.Queen, board.SideToMove)
+                board.GetPieceBitboard(board.SideToMove, PieceType.Queen)
             );
             GenerateRookMoves(
                 moves, 
                 board, 
                 PieceType.Rook,
-                board.GetPieceBitboard(PieceType.Rook, board.SideToMove)
+                board.GetPieceBitboard(board.SideToMove, PieceType.Rook)
             );
             GenerateRookMoves(
                 moves,
                 board,
                 PieceType.Queen,
-                board.GetPieceBitboard(PieceType.Queen, board.SideToMove)
+                board.GetPieceBitboard(board.SideToMove, PieceType.Queen)
             );
             GenerateKingNormalMoves(
                 moves,
                 board,
-                board.GetPieceBitboard(PieceType.King, board.SideToMove)
+                board.GetPieceBitboard(board.SideToMove, PieceType.King)
             );
             GenerateKingCastling(
                 moves,
@@ -83,8 +83,10 @@ namespace SharpHeart.Engine.MoveGens
             ulong promotionSourceSquares = sourceSquares & PawnPromotionSourceTable[(int) color];
             ulong nonPromotionSourceSquares = sourceSquares & ~promotionSourceSquares;
 
-            foreach (var sourceIx in Bits.Enumerate(nonPromotionSourceSquares))
+            //foreach (var sourceIx in Bits.Enumerate(nonPromotionSourceSquares))
+            while (nonPromotionSourceSquares > 0)
             {
+                var sourceIx = Bits.PopLsb(ref nonPromotionSourceSquares);
                 // TODO: separate out normal moves from double moves. Normal moves use normal lookup table, double moves use magic lookup table
                 var quiets = PawnQuietMoveTable.GetMoves(sourceIx, color);
                 quiets &= ~board.GetOccupied();
@@ -96,21 +98,39 @@ namespace SharpHeart.Engine.MoveGens
                 var normalCaptures = captures & board.GetOccupied(color.Other());
                 var enPassantCaptures = captures & board.EnPassant;
 
-                foreach (var dstIx in Bits.Enumerate(quiets))
+                //foreach (var dstIx in Bits.Enumerate(quiets))
+                while (quiets > 0)
+                {
+                    var dstIx = Bits.PopLsb(ref quiets);
                     moves.Add(Move.Make(MoveType.Normal, MoveType.Quiet, PieceType.Pawn, sourceIx, dstIx));
+                }
 
-                foreach (var dstIx in Bits.Enumerate(doubles))
+                //foreach (var dstIx in Bits.Enumerate(doubles))
+                while (doubles > 0)
+                {
+                    var dstIx = Bits.PopLsb(ref doubles);
                     moves.Add(Move.Make(MoveType.DoublePawnMove, MoveType.Quiet, PieceType.Pawn, sourceIx, dstIx));
+                }
 
-                foreach (var dstIx in Bits.Enumerate(normalCaptures))
+                //foreach (var dstIx in Bits.Enumerate(normalCaptures))
+                while (normalCaptures > 0)
+                {
+                    var dstIx = Bits.PopLsb(ref normalCaptures);
                     moves.Add(Move.Make(MoveType.Normal, MoveType.Capture, PieceType.Pawn, sourceIx, dstIx));
+                }
 
-                foreach (var dstIx in Bits.Enumerate(enPassantCaptures))
+                //foreach (var dstIx in Bits.Enumerate(enPassantCaptures))
+                while (enPassantCaptures > 0)
+                {
+                    var dstIx = Bits.PopLsb(ref enPassantCaptures);
                     moves.Add(Move.Make(MoveType.EnPassant, MoveType.Capture, PieceType.Pawn, sourceIx, dstIx));
+                }
             }
 
-            foreach (var sourceIx in Bits.Enumerate(promotionSourceSquares))
+            //foreach (var sourceIx in Bits.Enumerate(promotionSourceSquares))
+            while (promotionSourceSquares > 0)
             {
+                var sourceIx = Bits.PopLsb(ref promotionSourceSquares);
                 var quiets = PawnQuietMoveTable.GetMoves(sourceIx, color);
                 quiets &= ~board.GetOccupied();
 
@@ -119,19 +139,29 @@ namespace SharpHeart.Engine.MoveGens
 
                 foreach (var piece in new[] {PieceType.Queen, PieceType.Knight, PieceType.Rook, PieceType.Bishop})
                 {
-                    foreach (var dstIx in Bits.Enumerate(quiets))
+                    //foreach (var dstIx in Bits.Enumerate(quiets))
+                    while (quiets > 0)
+                    {
+                        var dstIx = Bits.PopLsb(ref quiets);
                         moves.Add(Move.Make(MoveType.Promotion, MoveType.Quiet, PieceType.Pawn, sourceIx, dstIx, piece));
+                    }
 
-                    foreach (var dstIx in Bits.Enumerate(captures))
+                    //foreach (var dstIx in Bits.Enumerate(captures))
+                    while (captures > 0)
+                    {
+                        var dstIx = Bits.PopLsb(ref captures);
                         moves.Add(Move.Make(MoveType.Promotion, MoveType.Capture, PieceType.Pawn, sourceIx, dstIx, piece));
+                    }
                 }
             }
         }
 
         private void GenerateKnightMoves(List<Move> moves, Board board, ulong sourceSquares)
         {
-            foreach (var sourceIx in Bits.Enumerate(sourceSquares))
+            //foreach (var sourceIx in Bits.Enumerate(sourceSquares))
+            while (sourceSquares > 0)
             {
+                var sourceIx = Bits.PopLsb(ref sourceSquares);
                 var dstSquares = KnightMoveTable.GetMoves(sourceIx);
                 dstSquares &= ~board.GetOccupied(board.SideToMove);
 
@@ -141,8 +171,10 @@ namespace SharpHeart.Engine.MoveGens
 
         private void GenerateBishopMoves(List<Move> moves, Board board, PieceType pieceType, ulong sourceSquares)
         {
-            foreach (var sourceIx in Bits.Enumerate(sourceSquares))
+            //foreach (var sourceIx in Bits.Enumerate(sourceSquares))
+            while (sourceSquares > 0)
             {
+                var sourceIx = Bits.PopLsb(ref sourceSquares);
                 var dstSquares = BishopMoveTable.GetMoves(sourceIx, board.GetOccupied());
                 dstSquares &= ~board.GetOccupied(board.SideToMove);
 
@@ -152,8 +184,10 @@ namespace SharpHeart.Engine.MoveGens
 
         private void GenerateRookMoves(List<Move> moves, Board board, PieceType pieceType, ulong sourceSquares)
         {
-            foreach (var sourceIx in Bits.Enumerate(sourceSquares))
+            //foreach (var sourceIx in Bits.Enumerate(sourceSquares))
+            while (sourceSquares > 0)
             {
+                var sourceIx = Bits.PopLsb(ref sourceSquares);
                 var dstSquares = RookMoveTable.GetMoves(sourceIx, board.GetOccupied());
                 dstSquares &= ~board.GetOccupied(board.SideToMove);
 
@@ -163,8 +197,10 @@ namespace SharpHeart.Engine.MoveGens
 
         private void GenerateKingNormalMoves(List<Move> moves, Board board, ulong sourceSquares)
         {
-            foreach (var sourceIx in Bits.Enumerate(sourceSquares))
+            //foreach (var sourceIx in Bits.Enumerate(sourceSquares))
+            while (sourceSquares > 0)
             {
+                var sourceIx = Bits.PopLsb(ref sourceSquares);
                 var dstSquares = KingMoveTable.GetMoves(sourceIx);
                 // don't allow king to move on piece of same color
                 dstSquares &= ~board.GetOccupied(board.SideToMove);
@@ -176,8 +212,10 @@ namespace SharpHeart.Engine.MoveGens
         private void GenerateKingCastling(List<Move> moves, Board board)
         {
             var castlingDsts = board.CastlingRights & CastlingTables.GetCastlingRightsDstColorMask(board.SideToMove);
-            foreach (var dstIx in Bits.Enumerate(castlingDsts))
+            //foreach (var dstIx in Bits.Enumerate(castlingDsts))
+            while (castlingDsts > 0)
             {
+                var dstIx = Bits.PopLsb(ref castlingDsts);
                 if ((board.GetOccupied() & CastlingTables.GetCastlingEmptySquares(dstIx)) > 0)
                     continue;
 
@@ -199,7 +237,7 @@ namespace SharpHeart.Engine.MoveGens
                     continue;
 
                 // if we still have castling rights, the inbetween squares aren't occupied, we aren't in check, and we aren't castling through or into check, then we should be good to go!
-                int kingIx = Bits.GetLsb(board.GetPieceBitboard(PieceType.King, board.SideToMove));
+                int kingIx = Bits.GetLsb(board.GetPieceBitboard(board.SideToMove, PieceType.King));
                 moves.Add(Move.Make(MoveType.Castling, MoveType.Quiet, PieceType.King, kingIx, dstIx));
             }
         }
@@ -215,11 +253,19 @@ namespace SharpHeart.Engine.MoveGens
         {
             var (quiets, captures) = SeparateQuietsCaptures(dstSquares, occupancy);
 
-            foreach (var dstIx in Bits.Enumerate(quiets))
+            //foreach (var dstIx in Bits.Enumerate(quiets))
+            while (quiets > 0)
+            {
+                var dstIx = Bits.PopLsb(ref quiets);
                 moves.Add(Move.Make(moveType, MoveType.Quiet, pieceType, sourceIx, dstIx));
+            }
 
-            foreach (var dstIx in Bits.Enumerate(captures))
+            //foreach (var dstIx in Bits.Enumerate(captures))
+            while (captures > 0)
+            {
+                var dstIx = Bits.PopLsb(ref captures);
                 moves.Add(Move.Make(moveType, MoveType.Capture, pieceType, sourceIx, dstIx));
+            }
         }
 
         private static ulong[] GeneratePawnPromotionSourceTable()
