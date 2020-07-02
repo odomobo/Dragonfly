@@ -4,7 +4,7 @@ using System.Text;
 
 namespace SharpHeart.Engine.MoveGen
 {
-    internal static class PawnCaptureMoveTable
+    public static class PawnCaptureMoveTable
     {
         private static readonly ulong[][] CaptureMoves = GenerateCaptureMoves();
 

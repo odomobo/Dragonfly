@@ -9,13 +9,11 @@ namespace SharpHeart.Engine
 {
     public static class Bits
     {
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int GetLsb(ulong value)
         {
             return BitOperations.TrailingZeroCount(value);
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int PopLsb(ref ulong value)
         {
             var ret = GetLsb(value);
@@ -23,7 +21,6 @@ namespace SharpHeart.Engine
             return ret;
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int PopCount(ulong value)
         {
             return BitOperations.PopCount(value);
@@ -37,9 +34,46 @@ namespace SharpHeart.Engine
             }
             else
             {
-                // TODO: conditionally change out logic if not supported
-                throw new NotImplementedException();
+                return NaiveParallelBitDeposit(value, mask);
             }
+        }
+
+        // TODO: test this
+        private static ulong NaiveParallelBitDeposit(ulong value, ulong mask)
+        {
+            ulong ret = 0;
+            ulong currentSourceBit = 1;
+            for (ulong currentDestBit = 1; currentDestBit != 0; currentDestBit <<= 1)
+            {
+                if ((mask & currentDestBit) == 0)
+                    continue;
+
+                if ((value & currentSourceBit) > 0)
+                    ret |= currentDestBit;
+
+                currentSourceBit <<= 1;
+            }
+
+            return ret;
+        }
+
+        // TODO: test this
+        private static ulong NaiveParallelBitExtract(ulong value, ulong mask)
+        {
+            ulong ret = 0;
+            ulong currentDestBit = 1;
+            for (ulong currentSourceBit = 1; currentSourceBit != 0; currentSourceBit <<= 1)
+            {
+                if ((mask & currentSourceBit) == 0)
+                    continue;
+
+                if ((value & currentSourceBit) > 0)
+                    ret |= currentDestBit;
+
+                currentDestBit <<= 1;
+            }
+
+            return ret;
         }
 
         public static IEnumerable<int> Enumerate(ulong value)

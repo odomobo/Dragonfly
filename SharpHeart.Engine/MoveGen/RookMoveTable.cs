@@ -6,7 +6,7 @@ using MersenneTwister;
 
 namespace SharpHeart.Engine.MoveGen
 {
-    internal static class RookMoveTable
+    public static class RookMoveTable
     {
         internal static readonly MagicMoveTable RookMoveMagicTable;
 

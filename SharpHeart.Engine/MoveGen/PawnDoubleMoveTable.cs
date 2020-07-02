@@ -7,7 +7,7 @@ using MersenneTwister;
 
 namespace SharpHeart.Engine.MoveGen
 {
-    internal static class PawnDoubleMoveTable
+    public static class PawnDoubleMoveTable
     {
         internal static readonly MagicMoveTable[] DoubleMovesMagicTables;
         

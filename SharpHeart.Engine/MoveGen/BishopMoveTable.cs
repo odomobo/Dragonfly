@@ -5,7 +5,7 @@ using MersenneTwister;
 
 namespace SharpHeart.Engine.MoveGen
 {
-    internal static class BishopMoveTable
+    public static class BishopMoveTable
     {
         internal static readonly MagicMoveTable BishopMoveMagicTable;
 

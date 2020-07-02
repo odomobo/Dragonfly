@@ -4,7 +4,7 @@ using System.Text;
 
 namespace SharpHeart.Engine.MoveGen
 {
-    internal static class CastlingTables
+    public static class CastlingTables
     {
         // note that attacks lists don't need to include the king's position; we will be explicitly checking if the king is in check
 

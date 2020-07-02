@@ -4,7 +4,7 @@ using System.Text;
 
 namespace SharpHeart.Engine.MoveGen
 {
-    internal static class KnightMoveTable
+    public static class KnightMoveTable
     {
         private static readonly ulong[] KnightMovesLookup = GenerateKnightMovesLookup();
 
