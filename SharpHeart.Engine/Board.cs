@@ -13,9 +13,11 @@ namespace SharpHeart.Engine
     public sealed class Board
     {
         private readonly ulong[] _pieceBitboards;
-        private readonly ulong[] _occupiedColor;
+        private readonly ulong _occupiedWhite;
+        private readonly ulong _occupiedBlack;
         private readonly ulong _occupied;
-        private readonly bool?[] _inCheck;
+        private bool? _inCheckWhite;
+        private bool? _inCheckBlack;
         private readonly Board? _parent;
 
         public Color SideToMove { get; private set; }
@@ -25,13 +27,9 @@ namespace SharpHeart.Engine
         // Takes ownership of all arrays passed to it; they should not be changed after the board is created.
         public Board(ulong[] pieceBitboards, Color sideToMove, ulong castlingRights, ulong enPassant, Board parent = null)
         {
-            // TODO: clone the arrays so we don't get issues if the caller modifies them??? Seems expensive
             _pieceBitboards = pieceBitboards;
-            _occupiedColor = new ulong[2];
-            _inCheck = new bool?[2];
-            
-            for (int i = 0; i < _occupiedColor.Length; i++)
-                _occupiedColor[i] = CalculateOccupied((Color)i);
+            _occupiedWhite = CalculateOccupied(Color.White);
+            _occupiedBlack = CalculateOccupied(Color.Black);
 
             _occupied = CalculateOccupied();
 
@@ -47,7 +45,9 @@ namespace SharpHeart.Engine
         public ulong[] GetPieceBitboards()
         {
             var ret = new ulong[12];
-            Array.Copy(_pieceBitboards, ret, 12);
+            for (int i = 0; i < 12; i++)
+                ret[i] = _pieceBitboards[i];
+            
             return ret;
         }
 
@@ -69,7 +69,10 @@ namespace SharpHeart.Engine
 
         public ulong GetOccupied(Color c)
         {
-            return _occupiedColor[(int) c];
+            if (c == Color.White)
+                return _occupiedWhite;
+            else
+                return _occupiedBlack;
         }
 
         private ulong CalculateOccupied()
@@ -84,14 +87,30 @@ namespace SharpHeart.Engine
 
         public bool InCheck(Color side)
         {
-            var inCheck = _inCheck[(int) side];
-            if (!inCheck.HasValue)
+            if (side == Color.White)
+                return InCheckWhite();
+            else
+                return InCheckBlack();
+        }
+
+        private bool InCheckWhite()
+        {
+            if (!_inCheckWhite.HasValue)
             {
-                inCheck = IsAttacked(Bits.GetLsb(GetPieceBitboard(side, PieceType.King)), side);
-                _inCheck[(int) side] = inCheck;
+                _inCheckWhite = IsAttacked(Bits.GetLsb(GetPieceBitboard(Color.White, PieceType.King)), Color.White);
             }
 
-            return inCheck.Value;
+            return _inCheckWhite.Value;
+        }
+
+        private bool InCheckBlack()
+        {
+            if (!_inCheckBlack.HasValue)
+            {
+                _inCheckBlack = IsAttacked(Bits.GetLsb(GetPieceBitboard(Color.Black, PieceType.King)), Color.Black);
+            }
+
+            return _inCheckBlack.Value;
         }
 
         public (PieceType pieceType, Color color) GetPieceTypeColor(int ix)

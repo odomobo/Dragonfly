@@ -27,15 +27,7 @@ namespace SharpHeart.Engine
 
         public static Color Other(this Color color)
         {
-            switch (color)
-            {
-                case Color.White:
-                    return Color.Black;
-                case Color.Black:
-                    return Color.White;
-                default:
-                    throw new Exception($"Cannot switch color {color}");
-            }
+            return (Color)(~(int)color & 1);
         }
     }
 }

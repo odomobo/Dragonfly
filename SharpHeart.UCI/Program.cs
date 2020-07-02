@@ -69,7 +69,7 @@ namespace SharpHeart.UCI
             
             var moveGen = new MoveGen();
             var perft = new Perft(moveGen);
-            for (int i = 0; i < 10; i++)
+            for (int i = 0; i < 15; i++)
             {
                 int perftNum = 5;
                 Console.Write($"Perft {perftNum}: ");
