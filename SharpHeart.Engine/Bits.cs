@@ -91,5 +91,11 @@ namespace SharpHeart.Engine
                 yield return ix;
             }
         }
+
+        public static bool TryPopLsb(ref ulong value, out int index)
+        {
+            index = PopLsb(ref value);
+            return index != 0;
+        }
     }
 }
