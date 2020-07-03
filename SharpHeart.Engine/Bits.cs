@@ -86,7 +86,7 @@ namespace SharpHeart.Engine
         {
             while (value > 0)
             {
-                var ix = Bits.PopLsb(ref value);
+                var ix = PopLsb(ref value);
 
                 yield return ix;
             }
@@ -94,8 +94,14 @@ namespace SharpHeart.Engine
 
         public static bool TryPopLsb(ref ulong value, out int index)
         {
+            if (value == 0)
+            {
+                index = default;
+                return false;
+            }
+
             index = PopLsb(ref value);
-            return index != 0;
+            return true;
         }
     }
 }
