@@ -65,7 +65,7 @@ namespace SharpHeart.Engine.MoveGens
 
             foreach (var tmpMove in moves)
             {
-                var potentialCoordinateString = BoardParsing.MoveToCoordinateString(tmpMove);
+                var potentialCoordinateString = BoardParsing.CoordinateStringFromMove(tmpMove);
                 if (string.Equals(potentialCoordinateString, coordinateString, StringComparison.OrdinalIgnoreCase))
                 {
                     move = tmpMove;
@@ -133,14 +133,16 @@ namespace SharpHeart.Engine.MoveGens
 
                 foreach (var piece in new[] {PieceType.Queen, PieceType.Knight, PieceType.Rook, PieceType.Bishop})
                 {
+                    var quietsTmp = quiets;
                     //foreach (var dstIx in Bits.Enumerate(quiets))
-                    while (Bits.TryPopLsb(ref quiets, out var dstIx))
+                    while (Bits.TryPopLsb(ref quietsTmp, out var dstIx))
                     {
                         moves.Add(Move.Make(MoveType.Promotion, MoveType.Quiet, PieceType.Pawn, sourceIx, dstIx, piece));
                     }
 
+                    var capturesTmp = captures;
                     //foreach (var dstIx in Bits.Enumerate(captures))
-                    while (Bits.TryPopLsb(ref captures, out var dstIx))
+                    while (Bits.TryPopLsb(ref capturesTmp, out var dstIx))
                     {
                         moves.Add(Move.Make(MoveType.Promotion, MoveType.Capture, PieceType.Pawn, sourceIx, dstIx, piece));
                     }

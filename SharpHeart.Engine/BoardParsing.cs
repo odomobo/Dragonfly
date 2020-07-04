@@ -3,13 +3,15 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
+using System.Threading;
+using SharpHeart.Engine.MoveGens;
 
 namespace SharpHeart.Engine
 {
     // TODO: rename to something nicer
     public static class BoardParsing
     {
-        public static Board FromFen(string fen)
+        public static Board BoardFromFen(string fen)
         {
             // TODO: single pieceBitboards instead of this
             ulong[] pieceBitboard = new ulong[12];
@@ -33,7 +35,14 @@ namespace SharpHeart.Engine
             if (splitFen.Count < 6)
                 splitFen.Add("1");
 
-            var splitBoardState = splitFen[0].Split('/');
+            var strBoard = splitFen[0];
+            var strToMove = splitFen[1];
+            var strCastling = splitFen[2];
+            var strEnPassant = splitFen[3];
+            var strHalfmoveCounter = splitFen[4];
+            var strFullMoves = splitFen[5];
+
+            var splitBoardState = strBoard.Split('/');
             if (splitBoardState.Length != 8)
                 throw new Exception("Bad FEN string"); // TODO: better error type & message
 
@@ -50,7 +59,7 @@ namespace SharpHeart.Engine
                         continue;
                     }
 
-                    if (BoardParsing.TryParsePiece(c, out var pieceType, out var color))
+                    if (TryParsePiece(c, out var pieceType, out var color))
                     {
                         var value = Board.ValueFromFileRank(file, rank);
                         pieceBitboard[Board.PieceBitboardIndex(color, pieceType)] |= value;
@@ -67,17 +76,37 @@ namespace SharpHeart.Engine
             }
 
             Color sideToMove;
-            if (splitFen[1] == "w")
+            if (strToMove == "w")
                 sideToMove = Color.White;
-            else if (splitFen[1] == "b")
+            else if (strToMove == "b")
                 sideToMove = Color.Black;
             else
                 throw new Exception("Bad FEN string"); // TODO: better error type & message
 
-            // TODO: castling rights
+            // TODO: verify castling rights
             ulong castlingRights = 0;
-            // TODO: en passant
-            ulong enPassant = 0;
+            var castlingHash = new HashSet<char>(strCastling);
+            if (castlingHash.Contains('K'))
+                castlingRights |= CastlingTables.WhiteKingsideDst;
+            if (castlingHash.Contains('Q'))
+                castlingRights |= CastlingTables.WhiteQueensideDst;
+            if (castlingHash.Contains('k'))
+                castlingRights |= CastlingTables.BlackKingsideDst;
+            if (castlingHash.Contains('q'))
+                castlingRights |= CastlingTables.BlackQueensideDst;
+
+            // TODO: verify en passant
+            ulong enPassant;
+            if (strEnPassant == "-")
+            {
+                enPassant = 0;
+            }
+            else
+            {
+                var enPassantIx = IxFromSquareStr(strEnPassant);
+                enPassant= Board.ValueFromIx(enPassantIx);
+            }
+
             // TODO: move counts
 
             return new Board(pieceBitboard, sideToMove, castlingRights, enPassant);
@@ -126,13 +155,13 @@ namespace SharpHeart.Engine
             return true;
         }
 
-        public static char PieceTypeToLetter(PieceType pieceType)
+        public static char LetterFromPieceType(PieceType pieceType)
         {
             // will return uppercase, which is what we want
-            return PieceTypeColorToLetter(pieceType, Color.White);
+            return LetterFromPieceTypeColor(pieceType, Color.White);
         }
 
-        public static char PieceTypeColorToLetter(PieceType pieceType, Color color)
+        public static char LetterFromPieceTypeColor(PieceType pieceType, Color color)
         {
             int charCase = 0;
             if (color == Color.Black)
@@ -157,7 +186,7 @@ namespace SharpHeart.Engine
             }
         }
 
-        public static char PieceTypeColorToUnicodePiece(PieceType pieceType, Color color)
+        public static char UnicodePieceFromPieceTypeColor(PieceType pieceType, Color color)
         {
             if (color == Color.White)
             {
@@ -201,17 +230,17 @@ namespace SharpHeart.Engine
             }
         }
 
-        public static string PieceTypeToSanPrefix(PieceType pieceType)
+        public static string SanPrefixFromPieceType(PieceType pieceType)
         {
             if (pieceType == PieceType.Pawn)
                 return string.Empty;
             else
-                return PieceTypeToLetter(pieceType).ToString();
+                return LetterFromPieceType(pieceType).ToString();
         }
 
-        public static string MoveToNaiveSanString(Move m)
+        public static string NaiveSanStringFromMove(Move m)
         {
-            string pieceTypeStr = PieceTypeToSanPrefix(m.PieceType);
+            string pieceTypeStr = SanPrefixFromPieceType(m.PieceType);
 
             string captureStr = "";
             if ((m.MoveType & MoveType.Capture) > 0)
@@ -227,17 +256,17 @@ namespace SharpHeart.Engine
             string promotionPieceStr = "";
             if ((m.MoveType & MoveType.Promotion) > 0)
             {
-                promotionPieceStr = PieceTypeToLetter(m.PromotionPiece).ToString();
+                promotionPieceStr = LetterFromPieceType(m.PromotionPiece).ToString();
             }
 
             return $"{pieceTypeStr}{captureStr}{dstSquareStr}{promotionPieceStr}";
         }
 
-        public static string MoveToCoordinateString(Move m)
+        public static string CoordinateStringFromMove(Move m)
         {
             string promotionPieceStr = "";
             if ((m.MoveType & MoveType.Promotion) > 0)
-                promotionPieceStr = PieceTypeColorToLetter(m.PromotionPiece, Color.Black).ToString(); // lowercase
+                promotionPieceStr = LetterFromPieceTypeColor(m.PromotionPiece, Color.Black).ToString(); // lowercase
 
             return $"{SquareStrFromIx(m.SourceIx)}{SquareStrFromIx(m.DstIx)}{promotionPieceStr}";
         }
@@ -252,6 +281,33 @@ namespace SharpHeart.Engine
         {
             var (file, rank) = Board.FileRankFromIx(ix);
             return $"{(char)('a' + file)}{rank + 1}";
+        }
+
+        public static bool TryGetIxFromSquareStr(string square, out int ix)
+        {
+            ix = 0;
+
+            if (square.Length != 2)
+                return false;
+
+            square = square.ToLower();
+
+            int file = square[0] - 'a';
+            int rank = square[1] - '1';
+
+            if (file < 0 || file > 7 || rank < 0 || rank > 7)
+                return false;
+
+            ix = Board.IxFromFileRank(file, rank);
+            return true;
+        }
+
+        public static int IxFromSquareStr(string square)
+        {
+            if (!TryGetIxFromSquareStr(square, out int ret))
+                throw new Exception($"Invalid square string: \"{square}\"");
+
+            return ret;
         }
     }
 }

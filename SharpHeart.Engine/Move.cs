@@ -49,7 +49,7 @@ namespace SharpHeart.Engine
 
         public override string ToString()
         {
-            return BoardParsing.MoveToNaiveSanString(this);
+            return BoardParsing.NaiveSanStringFromMove(this);
         }
 
         public Board DoMove(Board b)

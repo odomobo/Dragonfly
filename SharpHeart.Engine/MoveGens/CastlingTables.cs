@@ -16,14 +16,14 @@ namespace SharpHeart.Engine.MoveGens
         private static readonly int WhiteKingsideRookIx = Board.IxFromFileRank(7, 0);
         private static readonly int WhiteKingsideDstIx = Board.IxFromFileRank(6, 0);
         private static readonly int WhiteKingsideRookDstIx = Board.IxFromFileRank(5, 0);
-        private static readonly ulong WhiteKingsideDst = Board.ValueFromFileRank(6, 0);
+        public static readonly ulong WhiteKingsideDst = Board.ValueFromFileRank(6, 0);
         private static readonly ulong WhiteKingsideAttacks = Board.ValueFromFileRank(5, 0) | Board.ValueFromFileRank(6, 0);
         private static readonly ulong WhiteKingsideEmptySquares = Board.ValueFromFileRank(5, 0) | Board.ValueFromFileRank(6, 0);
 
         private static readonly int WhiteQueensideRookIx = Board.IxFromFileRank(0, 0);
         private static readonly int WhiteQueensideDstIx = Board.IxFromFileRank(2, 0);
         private static readonly int WhiteQueensideRookDstIx = Board.IxFromFileRank(3, 0);
-        private static readonly ulong WhiteQueensideDst = Board.ValueFromFileRank(2, 0);
+        public static readonly ulong WhiteQueensideDst = Board.ValueFromFileRank(2, 0);
         private static readonly ulong WhiteQueensideAttacks = Board.ValueFromFileRank(3, 0) | Board.ValueFromFileRank(2, 0);
         private static readonly ulong WhiteQueensideEmptySquares = Board.ValueFromFileRank(3, 0) | Board.ValueFromFileRank(2, 0) | Board.ValueFromFileRank(1, 0);
 
@@ -31,14 +31,14 @@ namespace SharpHeart.Engine.MoveGens
         private static readonly int BlackKingsideRookIx = Board.IxFromFileRank(7, 7);
         private static readonly int BlackKingsideDstIx = Board.IxFromFileRank(6, 7);
         private static readonly int BlackKingsideRookDstIx = Board.IxFromFileRank(5, 7);
-        private static readonly ulong BlackKingsideDst = Board.ValueFromFileRank(6, 7);
+        public static readonly ulong BlackKingsideDst = Board.ValueFromFileRank(6, 7);
         private static readonly ulong BlackKingsideAttacks = Board.ValueFromFileRank(5, 7) | Board.ValueFromFileRank(6, 7);
         private static readonly ulong BlackKingsideEmptySquares = Board.ValueFromFileRank(5, 7) | Board.ValueFromFileRank(6, 7);
 
         private static readonly int BlackQueensideRookIx = Board.IxFromFileRank(0, 7);
         private static readonly int BlackQueensideDstIx = Board.IxFromFileRank(2, 7);
         private static readonly int BlackQueensideRookDstIx = Board.IxFromFileRank(3, 7);
-        private static readonly ulong BlackQueensideDst = Board.ValueFromFileRank(2, 7);
+        public static readonly ulong BlackQueensideDst = Board.ValueFromFileRank(2, 7);
         private static readonly ulong BlackQueensideAttacks = Board.ValueFromFileRank(3, 7) | Board.ValueFromFileRank(2, 7);
         private static readonly ulong BlackQueensideEmptySquares = Board.ValueFromFileRank(3, 7) | Board.ValueFromFileRank(2, 7) | Board.ValueFromFileRank(1, 7);
 

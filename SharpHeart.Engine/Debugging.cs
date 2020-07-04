@@ -74,7 +74,7 @@ namespace SharpHeart.Engine
 
         public static void Dump(Move move)
         {
-            Dump(BoardParsing.MoveToNaiveSanString(move));
+            Dump(BoardParsing.NaiveSanStringFromMove(move));
         }
 
         public static void Dump(IEnumerable<Move> moves)
@@ -128,9 +128,9 @@ namespace SharpHeart.Engine
                     if (pieceType != PieceType.None)
                     {
                         if (unicode)
-                            pieceDisplay = BoardParsing.PieceTypeColorToUnicodePiece(pieceType, color);
+                            pieceDisplay = BoardParsing.UnicodePieceFromPieceTypeColor(pieceType, color);
                         else
-                            pieceDisplay = BoardParsing.PieceTypeColorToLetter(pieceType, color);
+                            pieceDisplay = BoardParsing.LetterFromPieceTypeColor(pieceType, color);
                     }
 
                     sb.Append(pieceDisplay);

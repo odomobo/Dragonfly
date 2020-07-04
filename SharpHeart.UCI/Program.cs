@@ -11,91 +11,75 @@ namespace SharpHeart.UCI
         // TODO: where should this live?
         private const string InitialFen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
         private const string TestingFen = "r1b2rk1/4nppp/p3p3/2qpP3/8/2N2N2/PP3PPP/2RQ1RK1 b - - 3 14";
+        private const string KiwipeteFen = "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1";
         static void Main(string[] args)
         {
-            var board = BoardParsing.FromFen(InitialFen);
+            //PerformanceTesting(InitialFen, 5, 150);
+            IncrementalPerft(KiwipeteFen, 7);
+            //DivideTesting(KiwipeteFen, 4, "a1b1", "h3g2", "a2a3");
+        }
+
+        private static void PerformanceTesting(string fen, int perftDepth, int iterations)
+        {
+            var board = BoardParsing.BoardFromFen(fen);
             Debugging.Dump(board);
 
-
-            // ##############
-            // ## Divide testing
-
-            //var moveGen = new MoveGen();
-            //var perft = new Perft(moveGen);
-            //perft.GoDivide(board, 5);
-
-            //Move move = moveGen.GetMoveFromCoordinateString(board, "d2d3");
-            //board = move.DoMove(board);
-            //Debugging.Dump(board);
-            //perft.GoDivide(board, 4);
-
-            //move = moveGen.GetMoveFromCoordinateString(board, "a7a5");
-            //board = move.DoMove(board);
-            //Debugging.Dump(board);
-            //perft.GoDivide(board, 3);
-
-            //move = moveGen.GetMoveFromCoordinateString(board, "e1d2");
-            //board = move.DoMove(board);
-            //Debugging.Dump(board);
-            //perft.GoDivide(board, 2);
-
-            //move = moveGen.GetMoveFromCoordinateString(board, "a5a4");
-            //board = move.DoMove(board);
-            //Debugging.Dump(board);
-            //perft.GoDivide(board, 1);
-
-
-
-            // ##############
-            // ## Incremental perft
-
-            //var moveGen = new MoveGen();
-            //var perft = new Perft(moveGen);
-            //for (int i = 1; i <= 6; i++)
-            //{
-            //    Console.Write($"Perft {i}: ");
-
-            //    Stopwatch sw = new Stopwatch();
-            //    sw.Start();
-            //    int perftResults = perft.GoPerft(board, i);
-            //    sw.Stop();
-            //    double knps = ((double)perftResults) / sw.ElapsedMilliseconds; // it just works out
-            //    Console.WriteLine($"{perftResults} ({knps:F2} knps)");
-            //}
-
-
-            // ##############
-            // ## Performance perft testing
-            
             var moveGen = new MoveGen();
             var perft = new Perft(moveGen);
-            for (int i = 0; i < 115; i++)
+            for (int i = 0; i < iterations; i++)
             {
-                int perftNum = 5;
+                int perftNum = perftDepth;
                 Console.Write($"Perft {perftNum}: ");
 
                 Stopwatch sw = new Stopwatch();
                 sw.Start();
                 int perftResults = perft.GoPerft(board, perftNum);
                 sw.Stop();
-                double knps = ((double)perftResults) / sw.ElapsedMilliseconds; // it just works out
+                double knps = ((double) perftResults) / sw.ElapsedMilliseconds; // it just works out
                 Console.WriteLine($"{perftResults} ({knps:F2} knps)");
             }
 
-            perft.GoPerft(board, 5);
+            perft.GoPerft(board, perftDepth);
+        }
 
-            // 3852 knps best case
+        private static void IncrementalPerft(string fen, int maxDepth)
+        {
+            var board = BoardParsing.BoardFromFen(fen);
+            Debugging.Dump(board);
 
+            var moveGen = new MoveGen();
+            var perft = new Perft(moveGen);
+            for (int i = 1; i <= maxDepth; i++)
+            {
+                Console.Write($"Perft {i}: ");
 
-            //List<Move> moves = new List<Move>();
-            //moveGen.Generate(moves, board);
-            //Debugging.Dump(moves);
+                Stopwatch sw = new Stopwatch();
+                sw.Start();
+                int perftResults = perft.GoPerft(board, i);
+                sw.Stop();
+                double knps = ((double) perftResults) / sw.ElapsedMilliseconds; // it just works out
+                Console.WriteLine($"{perftResults} ({knps:F2} knps)");
+            }
+        }
 
-            //Stopwatch sw = new Stopwatch();
-            //sw.Start();
-            //PawnQuietMoveTable.DumpMagics();
-            //sw.Stop();
-            //Console.WriteLine($"Elapsed time: {sw.Elapsed}");
+        private static void DivideTesting(string fen, int depth, params string[] moves)
+        {
+            var board = BoardParsing.BoardFromFen(fen);
+            Debugging.Dump(board);
+
+            var moveGen = new MoveGen();
+            var perft = new Perft(moveGen);
+            int total = perft.GoDivide(board, depth--);
+            Console.WriteLine($"##### Total moves: {total}");
+
+            foreach (var moveStr in moves)
+            {
+                Move move = moveGen.GetMoveFromCoordinateString(board, moveStr);
+                board = move.DoMove(board);
+                Debugging.Dump(board);
+                total = perft.GoDivide(board, depth--);
+                Console.WriteLine($"##### Total moves: {total}");
+            }
         }
     }
 }

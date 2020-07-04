@@ -50,7 +50,7 @@ namespace SharpHeart.Engine
             var movesDict = new SortedDictionary<string, Move>();
             foreach (var move in moves)
             {
-                movesDict.Add(BoardParsing.MoveToCoordinateString(move), move);
+                movesDict.Add(BoardParsing.CoordinateStringFromMove(move), move);
             }
 
             foreach (var (moveStr, move) in movesDict)
