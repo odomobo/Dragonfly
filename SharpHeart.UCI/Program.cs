@@ -14,19 +14,21 @@ namespace SharpHeart.UCI
         private const string KiwipeteFen = "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1";
         static void Main(string[] args)
         {
-            //PerformanceTesting(InitialFen, 5, 150);
-            IncrementalPerft(KiwipeteFen, 7);
+            PerformanceTesting(InitialFen, 5, TimeSpan.FromSeconds(10));
+            //IncrementalPerft(KiwipeteFen, 7);
             //DivideTesting(KiwipeteFen, 4, "a1b1", "h3g2", "a2a3");
         }
 
-        private static void PerformanceTesting(string fen, int perftDepth, int iterations)
+        private static void PerformanceTesting(string fen, int perftDepth, TimeSpan timespan)
         {
             var board = BoardParsing.BoardFromFen(fen);
             Debugging.Dump(board);
 
             var moveGen = new MoveGen();
             var perft = new Perft(moveGen);
-            for (int i = 0; i < iterations; i++)
+            Stopwatch overallStopwatch = new Stopwatch();
+            overallStopwatch.Start();
+            while (true)
             {
                 int perftNum = perftDepth;
                 Console.Write($"Perft {perftNum}: ");
@@ -37,9 +39,11 @@ namespace SharpHeart.UCI
                 sw.Stop();
                 double knps = ((double) perftResults) / sw.ElapsedMilliseconds; // it just works out
                 Console.WriteLine($"{perftResults} ({knps:F2} knps)");
+                if (overallStopwatch.Elapsed > timespan)
+                    break;
             }
 
-            perft.GoPerft(board, perftDepth);
+            //perft.GoPerft(board, perftDepth);
         }
 
         private static void IncrementalPerft(string fen, int maxDepth)

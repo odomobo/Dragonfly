@@ -1,14 +1,14 @@
 ## Progress
 
 * Move
-  * 95% ?
+  * 100% ?
 * MoveGen
-  * 95% ?
+  * 100%
 * Board
   * 80%
 * FenParser: Board*
   * 80%
-* MoveParser: Move*
+* MoveParser: Move
   * 100%
 * Perft: MoveGen, Board*, FenParser, MoveParser
   * 100%

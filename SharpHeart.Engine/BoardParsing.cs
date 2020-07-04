@@ -112,21 +112,20 @@ namespace SharpHeart.Engine
             return new Board(pieceBitboard, sideToMove, castlingRights, enPassant);
         }
 
-        public static bool TryParsePiece(char originalC, out PieceType pieceType, out Color color)
+        public static bool TryParsePiece(char pieceChar, out PieceType pieceType, out Color color)
         {
-            var c = originalC;
-            if (c >= 'a' && c <= 'z')
+            if (pieceChar >= 'a' && pieceChar <= 'z')
             {
                 color = Color.Black;
             }
             else
             {
                 // lowercase
-                c = (char)(c - 'A' + 'a');
+                pieceChar = (char)(pieceChar - 'A' + 'a');
                 color = Color.White;
             }
 
-            switch (c)
+            switch (pieceChar)
             {
                 case 'p':
                     pieceType = PieceType.Pawn;

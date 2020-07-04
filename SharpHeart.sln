@@ -7,7 +7,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SharpHeart.Engine", "SharpH
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SharpHeart.UCI", "SharpHeart.UCI\SharpHeart.UCI.csproj", "{EAFAB366-56D0-43C5-BAA8-88C735199EE6}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MersenneTwister", "MersenneTwister\MersenneTwister.csproj", "{486B9D5A-1196-479B-9327-B3138BB6F4B1}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MersenneTwister", "MersenneTwister\MersenneTwister.csproj", "{486B9D5A-1196-479B-9327-B3138BB6F4B1}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SharpHeart.Engine.Tests", "SharpHeart.Engine.Tests\SharpHeart.Engine.Tests.csproj", "{262CAF9F-BB05-4FA5-9FF5-4C1FDEFF19F2}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -27,6 +29,10 @@ Global
 		{486B9D5A-1196-479B-9327-B3138BB6F4B1}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{486B9D5A-1196-479B-9327-B3138BB6F4B1}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{486B9D5A-1196-479B-9327-B3138BB6F4B1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{262CAF9F-BB05-4FA5-9FF5-4C1FDEFF19F2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{262CAF9F-BB05-4FA5-9FF5-4C1FDEFF19F2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{262CAF9F-BB05-4FA5-9FF5-4C1FDEFF19F2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{262CAF9F-BB05-4FA5-9FF5-4C1FDEFF19F2}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

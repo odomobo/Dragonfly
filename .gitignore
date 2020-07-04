@@ -5,6 +5,7 @@
 
 # my files
 *.exe
+VTune/
 
 # User-specific files
 *.rsuser
