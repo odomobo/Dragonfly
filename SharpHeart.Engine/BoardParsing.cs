@@ -108,8 +108,10 @@ namespace SharpHeart.Engine
             }
 
             // TODO: move counts
-
-            return new Board(pieceBitboard, sideToMove, castlingRights, enPassant);
+            int halfmoveCounter = int.Parse(strHalfmoveCounter);
+            int fullMove = int.Parse(strFullMoves);
+            
+            return new Board(pieceBitboard, sideToMove, castlingRights, enPassant, halfmoveCounter, fullMove);
         }
 
         public static bool TryParsePiece(char pieceChar, out PieceType pieceType, out Color color)

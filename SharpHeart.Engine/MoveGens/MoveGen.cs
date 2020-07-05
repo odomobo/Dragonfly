@@ -100,25 +100,25 @@ namespace SharpHeart.Engine.MoveGens
                 //foreach (var dstIx in Bits.Enumerate(quiets))
                 while (Bits.TryPopLsb(ref quiets, out var dstIx))
                 {
-                    moves.Add(Move.Make(MoveType.Normal, MoveType.Quiet, PieceType.Pawn, sourceIx, dstIx));
+                    moves.Add(Move.Make(MoveType.Pawn, MoveType.Normal, MoveType.Quiet, PieceType.Pawn, sourceIx, dstIx));
                 }
 
                 //foreach (var dstIx in Bits.Enumerate(doubles))
                 while (Bits.TryPopLsb(ref doubles, out var dstIx))
                 {
-                    moves.Add(Move.Make(MoveType.DoublePawnMove, MoveType.Quiet, PieceType.Pawn, sourceIx, dstIx));
+                    moves.Add(Move.Make(MoveType.Pawn, MoveType.DoubleMove, MoveType.Quiet, PieceType.Pawn, sourceIx, dstIx));
                 }
 
                 //foreach (var dstIx in Bits.Enumerate(normalCaptures))
                 while (Bits.TryPopLsb(ref normalCaptures, out var dstIx))
                 {
-                    moves.Add(Move.Make(MoveType.Normal, MoveType.Capture, PieceType.Pawn, sourceIx, dstIx));
+                    moves.Add(Move.Make(MoveType.Pawn, MoveType.Normal, MoveType.Capture, PieceType.Pawn, sourceIx, dstIx));
                 }
 
                 //foreach (var dstIx in Bits.Enumerate(enPassantCaptures))
                 while (Bits.TryPopLsb(ref enPassantCaptures, out var dstIx))
                 {
-                    moves.Add(Move.Make(MoveType.EnPassant, MoveType.Capture, PieceType.Pawn, sourceIx, dstIx));
+                    moves.Add(Move.Make(MoveType.Pawn, MoveType.EnPassant, MoveType.Capture, PieceType.Pawn, sourceIx, dstIx));
                 }
             }
 
@@ -137,14 +137,14 @@ namespace SharpHeart.Engine.MoveGens
                     //foreach (var dstIx in Bits.Enumerate(quiets))
                     while (Bits.TryPopLsb(ref quietsTmp, out var dstIx))
                     {
-                        moves.Add(Move.Make(MoveType.Promotion, MoveType.Quiet, PieceType.Pawn, sourceIx, dstIx, piece));
+                        moves.Add(Move.Make(MoveType.Pawn, MoveType.Promotion, MoveType.Quiet, PieceType.Pawn, sourceIx, dstIx, piece));
                     }
 
                     var capturesTmp = captures;
                     //foreach (var dstIx in Bits.Enumerate(captures))
                     while (Bits.TryPopLsb(ref capturesTmp, out var dstIx))
                     {
-                        moves.Add(Move.Make(MoveType.Promotion, MoveType.Capture, PieceType.Pawn, sourceIx, dstIx, piece));
+                        moves.Add(Move.Make(MoveType.Pawn, MoveType.Promotion, MoveType.Capture, PieceType.Pawn, sourceIx, dstIx, piece));
                     }
                 }
             }
@@ -227,7 +227,7 @@ namespace SharpHeart.Engine.MoveGens
 
                 // if we still have castling rights, the inbetween squares aren't occupied, we aren't in check, and we aren't castling through or into check, then we should be good to go!
                 int kingIx = Bits.GetLsb(board.GetPieceBitboard(board.SideToMove, PieceType.King));
-                moves.Add(Move.Make(MoveType.Castling, MoveType.Quiet, PieceType.King, kingIx, dstIx));
+                moves.Add(Move.Make(0, MoveType.Castling, MoveType.Quiet, PieceType.King, kingIx, dstIx));
             }
         }
         
@@ -245,13 +245,13 @@ namespace SharpHeart.Engine.MoveGens
             //foreach (var dstIx in Bits.Enumerate(quiets))
             while (Bits.TryPopLsb(ref quiets, out var dstIx))
             {
-                moves.Add(Move.Make(moveType, MoveType.Quiet, pieceType, sourceIx, dstIx));
+                moves.Add(Move.Make(0, moveType, MoveType.Quiet, pieceType, sourceIx, dstIx));
             }
 
             //foreach (var dstIx in Bits.Enumerate(captures))
             while (Bits.TryPopLsb(ref captures, out var dstIx))
             {
-                moves.Add(Move.Make(moveType, MoveType.Capture, pieceType, sourceIx, dstIx));
+                moves.Add(Move.Make(0, moveType, MoveType.Capture, pieceType, sourceIx, dstIx));
             }
         }
 

@@ -23,9 +23,11 @@ namespace SharpHeart.Engine
         public Color SideToMove { get; private set; }
         public ulong EnPassant { get; private set; }
         public ulong CastlingRights { get; private set; }
+        public int HalfmoveCounter { get; private set; }
+        public int FullMove { get; private set; }
 
         // Takes ownership of all arrays passed to it; they should not be changed after the board is created.
-        public Board(ulong[] pieceBitboards, Color sideToMove, ulong castlingRights, ulong enPassant, Board parent = null)
+        private Board(ulong[] pieceBitboards, Color sideToMove, ulong castlingRights, ulong enPassant)
         {
             _pieceBitboards = pieceBitboards;
             _occupiedWhite = CalculateOccupied(Color.White);
@@ -34,12 +36,35 @@ namespace SharpHeart.Engine
             _occupied = CalculateOccupied();
 
             SideToMove = sideToMove;
-            EnPassant = enPassant;
             CastlingRights = castlingRights;
+            EnPassant = enPassant;
+        }
+
+        // Takes ownership of all arrays passed to it; they should not be changed after the board is created.
+        public Board(ulong[] pieceBitboards, Color sideToMove, ulong castlingRights, ulong enPassant, Board parent, bool captureOrPawnMove)
+            : this(pieceBitboards, sideToMove, castlingRights, enPassant)
+        {
+            if (captureOrPawnMove)
+                HalfmoveCounter = 0;
+            else
+                HalfmoveCounter = parent.HalfmoveCounter + 1;
+
+            if (sideToMove == Color.White)
+                FullMove = parent.FullMove + 1;
+            else
+                FullMove = parent.FullMove;
 
             _parent = parent;
+        }
 
-            // TODO: set other values
+        // Takes ownership of all arrays passed to it; they should not be changed after the board is created.
+        public Board(ulong[] pieceBitboards, Color sideToMove, ulong castlingRights, ulong enPassant, int halfmoveCounter, int fullMove)
+            :this(pieceBitboards, sideToMove, castlingRights, enPassant)
+        {
+            HalfmoveCounter = halfmoveCounter;
+            FullMove = fullMove;
+            
+            _parent = null;
         }
 
         public ulong[] GetPieceBitboards()

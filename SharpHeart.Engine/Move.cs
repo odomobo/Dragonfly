@@ -9,13 +9,14 @@ namespace SharpHeart.Engine
     [Flags]
     public enum MoveType
     {
-        Normal = 1,
-        DoublePawnMove = 2,
-        EnPassant = 4,
-        Promotion = 8,
-        Castling = 16,
-        Quiet = 32,
-        Capture = 64,
+        Pawn = 1,
+        Normal = 2,
+        DoubleMove = 4,
+        EnPassant = 8,
+        Promotion = 16,
+        Castling = 32,
+        Quiet = 64,
+        Capture = 128,
     }
 
     public readonly struct Move
@@ -36,6 +37,7 @@ namespace SharpHeart.Engine
         }
 
         public static Move Make(
+            MoveType pawn,
             MoveType type,
             MoveType modifier,
             PieceType pieceType,
@@ -44,7 +46,7 @@ namespace SharpHeart.Engine
             PieceType promotionPiece = PieceType.None
         )
         {
-            return new Move(type|modifier, pieceType, sourceIx, dstIx, promotionPiece);
+            return new Move(pawn|type|modifier, pieceType, sourceIx, dstIx, promotionPiece);
         }
 
         public override string ToString()
@@ -57,23 +59,39 @@ namespace SharpHeart.Engine
             var castlingRights = b.CastlingRights & CastlingTables.GetCastlingUpdateMask(this);
             switch (MoveType)
             {
+                case MoveType.Pawn | MoveType.Normal | MoveType.Quiet:
+                    return DoPawnNormalQuietMove(b, castlingRights);
                 case MoveType.Normal | MoveType.Quiet:
                     return DoNormalQuietMove(b, castlingRights);
                 case MoveType.Normal | MoveType.Capture:
+                case MoveType.Pawn | MoveType.Normal | MoveType.Capture:
                     return DoNormalCaptureMove(b, castlingRights);
-                case MoveType.DoublePawnMove | MoveType.Quiet:
+                case MoveType.Pawn | MoveType.DoubleMove | MoveType.Quiet:
                     return DoDoublePawnMove(b, castlingRights);
-                case MoveType.EnPassant | MoveType.Capture:
+                case MoveType.Pawn | MoveType.EnPassant | MoveType.Capture:
                     return DoEnPassantMove(b, castlingRights);
-                case MoveType.Promotion | MoveType.Quiet:
+                case MoveType.Pawn | MoveType.Promotion | MoveType.Quiet:
                     return DoPromotionQuietMove(b, castlingRights);
-                case MoveType.Promotion | MoveType.Capture:
+                case MoveType.Pawn | MoveType.Promotion | MoveType.Capture:
                     return DoPromotionCaptureMove(b, castlingRights);
                 case MoveType.Castling | MoveType.Quiet:
                     return DoCastlingQuietMove(b, castlingRights);
                 default:
                     throw new Exception($"Invalid move type: {MoveType}");
             }
+        }
+
+        private Board DoPawnNormalQuietMove(Board b, ulong castlingRights)
+        {
+            var pieceBitboards = b.GetPieceBitboards();
+
+            Debug.Assert((pieceBitboards[Board.PieceBitboardIndex(b.SideToMove, PieceType)] & Board.ValueFromIx(SourceIx)) > 0);
+            Debug.Assert((b.GetOccupied() & Board.ValueFromIx(DstIx)) == 0);
+
+            pieceBitboards[Board.PieceBitboardIndex(b.SideToMove, PieceType)] &= ~Board.ValueFromIx(SourceIx);
+            pieceBitboards[Board.PieceBitboardIndex(b.SideToMove, PieceType)] |= Board.ValueFromIx(DstIx);
+
+            return new Board(pieceBitboards, b.SideToMove.Other(), castlingRights, 0, b, true);
         }
 
         private Board DoNormalQuietMove(Board b, ulong castlingRights)
@@ -86,7 +104,7 @@ namespace SharpHeart.Engine
             pieceBitboards[Board.PieceBitboardIndex(b.SideToMove, PieceType)] &= ~Board.ValueFromIx(SourceIx);
             pieceBitboards[Board.PieceBitboardIndex(b.SideToMove, PieceType)] |= Board.ValueFromIx(DstIx);
 
-            return new Board(pieceBitboards, b.SideToMove.Other(), castlingRights, 0, b);
+            return new Board(pieceBitboards, b.SideToMove.Other(), castlingRights, 0, b, false);
         }
 
         private Board DoNormalCaptureMove(Board b, ulong castlingRights)
@@ -104,7 +122,7 @@ namespace SharpHeart.Engine
                 pieceBitboards[Board.PieceBitboardIndex(b.SideToMove.Other(), pieceType)] &= ~Board.ValueFromIx(DstIx);
             }
 
-            return new Board(pieceBitboards, b.SideToMove.Other(), castlingRights, 0, b);
+            return new Board(pieceBitboards, b.SideToMove.Other(), castlingRights, 0, b, true);
         }
 
         private Board DoDoublePawnMove(Board b, ulong castlingRights)
@@ -119,7 +137,7 @@ namespace SharpHeart.Engine
 
             var enPassant = Board.ValueFromIx((SourceIx + DstIx) / 2);
 
-            return new Board(pieceBitboards, b.SideToMove.Other(), castlingRights, enPassant, b);
+            return new Board(pieceBitboards, b.SideToMove.Other(), castlingRights, enPassant, b, true);
         }
 
         private Board DoEnPassantMove(Board b, ulong castlingRights)
@@ -140,7 +158,7 @@ namespace SharpHeart.Engine
             pieceBitboards[Board.PieceBitboardIndex(b.SideToMove, PieceType)] |= Board.ValueFromIx(DstIx);
             pieceBitboards[Board.PieceBitboardIndex( b.SideToMove.Other(),  PieceType.Pawn)] &= ~Board.ValueFromIx(capturedPawnIx);
 
-            return new Board(pieceBitboards, b.SideToMove.Other(), castlingRights, 0, b);
+            return new Board(pieceBitboards, b.SideToMove.Other(), castlingRights, 0, b, true);
         }
 
         private Board DoPromotionQuietMove(Board b, ulong castlingRights)
@@ -153,7 +171,7 @@ namespace SharpHeart.Engine
             pieceBitboards[Board.PieceBitboardIndex(b.SideToMove, PieceType)] &= ~Board.ValueFromIx(SourceIx);
             pieceBitboards[Board.PieceBitboardIndex(b.SideToMove, PromotionPiece)] |= Board.ValueFromIx(DstIx);
 
-            return new Board(pieceBitboards, b.SideToMove.Other(), castlingRights, 0, b);
+            return new Board(pieceBitboards, b.SideToMove.Other(), castlingRights, 0, b, true);
         }
 
         private Board DoPromotionCaptureMove(Board b, ulong castlingRights)
@@ -171,7 +189,7 @@ namespace SharpHeart.Engine
                 pieceBitboards[Board.PieceBitboardIndex(b.SideToMove.Other(), pieceType)] &= ~Board.ValueFromIx(DstIx);
             }
 
-            return new Board(pieceBitboards, b.SideToMove.Other(), castlingRights, 0, b);
+            return new Board(pieceBitboards, b.SideToMove.Other(), castlingRights, 0, b, true);
         }
 
         private Board DoCastlingQuietMove(Board b, ulong castlingRights)
@@ -189,7 +207,7 @@ namespace SharpHeart.Engine
             pieceBitboards[Board.PieceBitboardIndex(b.SideToMove, PieceType.Rook)] &= ~CastlingTables.GetCastlingRookSrcValue(DstIx);
             pieceBitboards[Board.PieceBitboardIndex(b.SideToMove, PieceType.Rook)] |= CastlingTables.GetCastlingRookDstValue(DstIx);
 
-            return new Board(pieceBitboards, b.SideToMove.Other(), castlingRights, 0, b);
+            return new Board(pieceBitboards, b.SideToMove.Other(), castlingRights, 0, b, false);
         }
     }
 }
