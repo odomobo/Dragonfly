@@ -116,13 +116,16 @@ namespace SharpHeart.Engine
             _pieceBitboards[Board.PieceBitboardIndex(parent.SideToMove, move.PieceType)] &= ~Board.ValueFromIx(move.SourceIx);
             _pieceBitboards[Board.PieceBitboardIndex(parent.SideToMove, move.PieceType)] |= Board.ValueFromIx(move.DstIx);
 
-            (_occupied, _occupiedWhite, _occupiedBlack) = CalculateOccupieds();
+            _occupiedWhite = CalculateOccupied(Color.White);
+            _occupiedBlack = CalculateOccupied(Color.Black);
+            _occupied = _occupiedWhite | _occupiedBlack;
             _parent = parent;
 
             SideToMove = parent.SideToMove.Other();
             EnPassant = 0;
             CastlingRights = parent.CastlingRights & CastlingTables.GetCastlingUpdateMask(move);
-            (HalfmoveCounter, FullMove) = CalculateMoveNumbers(parent, move.PieceType == PieceType.Pawn);
+            HalfmoveCounter = CalculateHalfmoveCounter(parent, move.PieceType == PieceType.Pawn);
+            FullMove = CalculateFullMove(parent);
         }
 
         private Board(Board parent, Move move, NormalCaptureMove x)
@@ -140,13 +143,16 @@ namespace SharpHeart.Engine
                 _pieceBitboards[Board.PieceBitboardIndex(parent.SideToMove.Other(), pieceType)] &= ~Board.ValueFromIx(move.DstIx);
             }
 
-            (_occupied, _occupiedWhite, _occupiedBlack) = CalculateOccupieds();
+            _occupiedWhite = CalculateOccupied(Color.White);
+            _occupiedBlack = CalculateOccupied(Color.Black);
+            _occupied = _occupiedWhite | _occupiedBlack;
             _parent = parent;
 
             SideToMove = parent.SideToMove.Other();
             EnPassant = 0;
             CastlingRights = parent.CastlingRights & CastlingTables.GetCastlingUpdateMask(move);
-            (HalfmoveCounter, FullMove) = CalculateMoveNumbers(parent, true);
+            HalfmoveCounter = CalculateHalfmoveCounter(parent, true);
+            FullMove = CalculateFullMove(parent);
         }
 
         private Board(Board parent, Move move, DoublePawnMove x)
@@ -159,13 +165,16 @@ namespace SharpHeart.Engine
             _pieceBitboards[Board.PieceBitboardIndex(parent.SideToMove, move.PieceType)] &= ~Board.ValueFromIx(move.SourceIx);
             _pieceBitboards[Board.PieceBitboardIndex(parent.SideToMove, move.PieceType)] |= Board.ValueFromIx(move.DstIx);
 
-            (_occupied, _occupiedWhite, _occupiedBlack) = CalculateOccupieds();
+            _occupiedWhite = CalculateOccupied(Color.White);
+            _occupiedBlack = CalculateOccupied(Color.Black);
+            _occupied = _occupiedWhite | _occupiedBlack;
             _parent = parent;
 
             SideToMove = parent.SideToMove.Other();
             EnPassant = Board.ValueFromIx((move.SourceIx + move.DstIx) / 2);
             CastlingRights = parent.CastlingRights & CastlingTables.GetCastlingUpdateMask(move);
-            (HalfmoveCounter, FullMove) = CalculateMoveNumbers(parent, true);
+            HalfmoveCounter = CalculateHalfmoveCounter(parent, true);
+            FullMove = CalculateFullMove(parent);
         }
 
         private Board(Board parent, Move move, EnPassantMove x)
@@ -184,13 +193,16 @@ namespace SharpHeart.Engine
             _pieceBitboards[Board.PieceBitboardIndex(parent.SideToMove, move.PieceType)] |= Board.ValueFromIx(move.DstIx);
             _pieceBitboards[Board.PieceBitboardIndex(parent.SideToMove.Other(), PieceType.Pawn)] &= ~Board.ValueFromIx(capturedPawnIx);
 
-            (_occupied, _occupiedWhite, _occupiedBlack) = CalculateOccupieds();
+            _occupiedWhite = CalculateOccupied(Color.White);
+            _occupiedBlack = CalculateOccupied(Color.Black);
+            _occupied = _occupiedWhite | _occupiedBlack;
             _parent = parent;
 
             SideToMove = parent.SideToMove.Other();
             EnPassant = 0;
             CastlingRights = parent.CastlingRights & CastlingTables.GetCastlingUpdateMask(move);
-            (HalfmoveCounter, FullMove) = CalculateMoveNumbers(parent, true);
+            HalfmoveCounter = CalculateHalfmoveCounter(parent, true);
+            FullMove = CalculateFullMove(parent);
         }
 
         private Board(Board parent, Move move, PromotionQuietMove x)
@@ -203,13 +215,16 @@ namespace SharpHeart.Engine
             _pieceBitboards[Board.PieceBitboardIndex(parent.SideToMove, move.PieceType)] &= ~Board.ValueFromIx(move.SourceIx);
             _pieceBitboards[Board.PieceBitboardIndex(parent.SideToMove, move.PromotionPiece)] |= Board.ValueFromIx(move.DstIx);
 
-            (_occupied, _occupiedWhite, _occupiedBlack) = CalculateOccupieds();
+            _occupiedWhite = CalculateOccupied(Color.White);
+            _occupiedBlack = CalculateOccupied(Color.Black);
+            _occupied = _occupiedWhite | _occupiedBlack;
             _parent = parent;
 
             SideToMove = parent.SideToMove.Other();
             EnPassant = 0;
             CastlingRights = parent.CastlingRights & CastlingTables.GetCastlingUpdateMask(move);
-            (HalfmoveCounter, FullMove) = CalculateMoveNumbers(parent, true);
+            HalfmoveCounter = CalculateHalfmoveCounter(parent, true);
+            FullMove = CalculateFullMove(parent);
         }
 
         private Board(Board parent, Move move, PromotionCaptureMove x)
@@ -227,13 +242,16 @@ namespace SharpHeart.Engine
                 _pieceBitboards[Board.PieceBitboardIndex(parent.SideToMove.Other(), pieceType)] &= ~Board.ValueFromIx(move.DstIx);
             }
 
-            (_occupied, _occupiedWhite, _occupiedBlack) = CalculateOccupieds();
+            _occupiedWhite = CalculateOccupied(Color.White);
+            _occupiedBlack = CalculateOccupied(Color.Black);
+            _occupied = _occupiedWhite | _occupiedBlack;
             _parent = parent;
 
             SideToMove = parent.SideToMove.Other();
             EnPassant = 0;
             CastlingRights = parent.CastlingRights & CastlingTables.GetCastlingUpdateMask(move);
-            (HalfmoveCounter, FullMove) = CalculateMoveNumbers(parent, true);
+            HalfmoveCounter = CalculateHalfmoveCounter(parent, true);
+            FullMove = CalculateFullMove(parent);
         }
 
         private Board(Board parent, Move move, CastlingQuietMove x)
@@ -251,24 +269,19 @@ namespace SharpHeart.Engine
             _pieceBitboards[Board.PieceBitboardIndex(parent.SideToMove, PieceType.Rook)] &= ~CastlingTables.GetCastlingRookSrcValue(move.DstIx);
             _pieceBitboards[Board.PieceBitboardIndex(parent.SideToMove, PieceType.Rook)] |= CastlingTables.GetCastlingRookDstValue(move.DstIx);
 
-            (_occupied, _occupiedWhite, _occupiedBlack) = CalculateOccupieds();
+            _occupiedWhite = CalculateOccupied(Color.White);
+            _occupiedBlack = CalculateOccupied(Color.Black);
+            _occupied = _occupiedWhite | _occupiedBlack;
             _parent = parent;
 
             SideToMove = parent.SideToMove.Other();
             EnPassant = 0;
             CastlingRights = parent.CastlingRights & CastlingTables.GetCastlingUpdateMask(move);
-            (HalfmoveCounter, FullMove) = CalculateMoveNumbers(parent, false);
+            HalfmoveCounter = CalculateHalfmoveCounter(parent, false);
+            FullMove = CalculateFullMove(parent);
         }
 
-        private (ulong occupied, ulong occupiedWhite, ulong occupiedBlack) CalculateOccupieds()
-        {
-            var occupiedWhite = CalculateOccupied(Color.White);
-            var occupiedBlack = CalculateOccupied(Color.Black);
-            var occupied = occupiedWhite | occupiedBlack;
-            return (occupied, occupiedWhite, occupiedBlack);
-        }
-
-        private static (int halfmoveCounter, int fullMove) CalculateMoveNumbers(Board parent, bool captureOrPawnMove)
+        private static int CalculateHalfmoveCounter(Board parent, bool captureOrPawnMove)
         {
             int halfmoveCounter;
             if (captureOrPawnMove)
@@ -276,13 +289,18 @@ namespace SharpHeart.Engine
             else
                 halfmoveCounter = parent.HalfmoveCounter + 1;
 
+            return halfmoveCounter;
+        }
+
+        private static int CalculateFullMove(Board parent)
+        {
             int fullMove;
             if (parent.SideToMove == Color.White)
                 fullMove = parent.FullMove + 1;
             else
                 fullMove = parent.FullMove;
 
-            return (halfmoveCounter, fullMove);
+            return fullMove;
         }
 
         #endregion FromMoves
