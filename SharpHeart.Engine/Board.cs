@@ -279,7 +279,7 @@ namespace SharpHeart.Engine
             var ret = new ulong[12];
             for (int i = 0; i < 12; i++)
                 ret[i] = _pieceBitboards[i];
-            
+
             return ret;
         }
 
