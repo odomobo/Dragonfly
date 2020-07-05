@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices.ComTypes;
 using System.Text;
 using System.Threading;
@@ -66,6 +67,226 @@ namespace SharpHeart.Engine
             
             _parent = null;
         }
+
+        #region MyRegion
+
+        // used to select appropriate constructors
+
+        private struct NormalQuietMove{}
+        private struct NormalCaptureMove{}
+        private struct DoublePawnMove{}
+        private struct EnPassantMove{}
+        private struct PromotionQuietMove{}
+        private struct PromotionCaptureMove{}
+        private struct CastlingQuietMove{}
+
+        public Board DoMove(Move move)
+        {
+            var parent = this;
+            switch (move.MoveType)
+            {
+                case MoveType.Pawn | MoveType.Normal | MoveType.Quiet:
+                case MoveType.Normal | MoveType.Quiet:
+                    return new Board(parent, move, new NormalQuietMove());
+                case MoveType.Normal | MoveType.Capture:
+                case MoveType.Pawn | MoveType.Normal | MoveType.Capture:
+                    return new Board(parent, move, new NormalCaptureMove());
+                case MoveType.Pawn | MoveType.DoubleMove | MoveType.Quiet:
+                    return new Board(parent, move, new DoublePawnMove());
+                case MoveType.Pawn | MoveType.EnPassant | MoveType.Capture:
+                    return new Board(parent, move, new EnPassantMove());
+                case MoveType.Pawn | MoveType.Promotion | MoveType.Quiet:
+                    return new Board(parent, move, new PromotionQuietMove());
+                case MoveType.Pawn | MoveType.Promotion | MoveType.Capture:
+                    return new Board(parent, move, new PromotionCaptureMove());
+                case MoveType.Castling | MoveType.Quiet:
+                    return new Board(parent, move, new CastlingQuietMove());
+                default:
+                    throw new Exception($"Invalid move type: {move.MoveType}");
+            }
+        }
+
+        private Board(Board parent, Move move, NormalQuietMove x)
+        {
+            _pieceBitboards = parent.GetPieceBitboards();
+
+            Debug.Assert((_pieceBitboards[Board.PieceBitboardIndex(parent.SideToMove, move.PieceType)] & Board.ValueFromIx(move.SourceIx)) > 0);
+            Debug.Assert((parent.GetOccupied() & Board.ValueFromIx(move.DstIx)) == 0);
+
+            _pieceBitboards[Board.PieceBitboardIndex(parent.SideToMove, move.PieceType)] &= ~Board.ValueFromIx(move.SourceIx);
+            _pieceBitboards[Board.PieceBitboardIndex(parent.SideToMove, move.PieceType)] |= Board.ValueFromIx(move.DstIx);
+
+            (_occupied, _occupiedWhite, _occupiedBlack) = CalculateOccupieds();
+            _parent = parent;
+
+            SideToMove = parent.SideToMove.Other();
+            EnPassant = 0;
+            CastlingRights = parent.CastlingRights & CastlingTables.GetCastlingUpdateMask(move);
+            (HalfmoveCounter, FullMove) = CalculateMoveNumbers(parent, move.PieceType == PieceType.Pawn);
+        }
+
+        private Board(Board parent, Move move, NormalCaptureMove x)
+        {
+            _pieceBitboards = parent.GetPieceBitboards();
+
+            Debug.Assert((_pieceBitboards[Board.PieceBitboardIndex(parent.SideToMove, move.PieceType)] & Board.ValueFromIx(move.SourceIx)) > 0);
+            Debug.Assert((parent.GetOccupied(parent.SideToMove.Other()) & Board.ValueFromIx(move.DstIx)) > 0);
+
+            _pieceBitboards[Board.PieceBitboardIndex(parent.SideToMove, move.PieceType)] &= ~Board.ValueFromIx(move.SourceIx);
+            _pieceBitboards[Board.PieceBitboardIndex(parent.SideToMove, move.PieceType)] |= Board.ValueFromIx(move.DstIx);
+
+            for (PieceType pieceType = 0; pieceType < PieceType.Count; pieceType++)
+            {
+                _pieceBitboards[Board.PieceBitboardIndex(parent.SideToMove.Other(), pieceType)] &= ~Board.ValueFromIx(move.DstIx);
+            }
+
+            (_occupied, _occupiedWhite, _occupiedBlack) = CalculateOccupieds();
+            _parent = parent;
+
+            SideToMove = parent.SideToMove.Other();
+            EnPassant = 0;
+            CastlingRights = parent.CastlingRights & CastlingTables.GetCastlingUpdateMask(move);
+            (HalfmoveCounter, FullMove) = CalculateMoveNumbers(parent, true);
+        }
+
+        private Board(Board parent, Move move, DoublePawnMove x)
+        {
+            _pieceBitboards = parent.GetPieceBitboards();
+
+            Debug.Assert((_pieceBitboards[Board.PieceBitboardIndex(parent.SideToMove, move.PieceType)] & Board.ValueFromIx(move.SourceIx)) > 0);
+            Debug.Assert((parent.GetOccupied() & Board.ValueFromIx(move.DstIx)) == 0);
+
+            _pieceBitboards[Board.PieceBitboardIndex(parent.SideToMove, move.PieceType)] &= ~Board.ValueFromIx(move.SourceIx);
+            _pieceBitboards[Board.PieceBitboardIndex(parent.SideToMove, move.PieceType)] |= Board.ValueFromIx(move.DstIx);
+
+            (_occupied, _occupiedWhite, _occupiedBlack) = CalculateOccupieds();
+            _parent = parent;
+
+            SideToMove = parent.SideToMove.Other();
+            EnPassant = Board.ValueFromIx((move.SourceIx + move.DstIx) / 2);
+            CastlingRights = parent.CastlingRights & CastlingTables.GetCastlingUpdateMask(move);
+            (HalfmoveCounter, FullMove) = CalculateMoveNumbers(parent, true);
+        }
+
+        private Board(Board parent, Move move, EnPassantMove x)
+        {
+            _pieceBitboards = parent.GetPieceBitboards();
+
+            var (srcFile, srcRank) = Board.FileRankFromIx(move.SourceIx);
+            var (dstFile, dstRank) = Board.FileRankFromIx(move.DstIx);
+            var capturedPawnIx = Board.IxFromFileRank(dstFile, srcRank);
+
+            Debug.Assert((_pieceBitboards[Board.PieceBitboardIndex(parent.SideToMove, move.PieceType)] & Board.ValueFromIx(move.SourceIx)) > 0);
+            Debug.Assert((parent.GetOccupied() & Board.ValueFromIx(move.DstIx)) == 0);
+            Debug.Assert((_pieceBitboards[Board.PieceBitboardIndex(parent.SideToMove.Other(), PieceType.Pawn)] & Board.ValueFromIx(capturedPawnIx)) > 0);
+
+            _pieceBitboards[Board.PieceBitboardIndex(parent.SideToMove, move.PieceType)] &= ~Board.ValueFromIx(move.SourceIx);
+            _pieceBitboards[Board.PieceBitboardIndex(parent.SideToMove, move.PieceType)] |= Board.ValueFromIx(move.DstIx);
+            _pieceBitboards[Board.PieceBitboardIndex(parent.SideToMove.Other(), PieceType.Pawn)] &= ~Board.ValueFromIx(capturedPawnIx);
+
+            (_occupied, _occupiedWhite, _occupiedBlack) = CalculateOccupieds();
+            _parent = parent;
+
+            SideToMove = parent.SideToMove.Other();
+            EnPassant = 0;
+            CastlingRights = parent.CastlingRights & CastlingTables.GetCastlingUpdateMask(move);
+            (HalfmoveCounter, FullMove) = CalculateMoveNumbers(parent, true);
+        }
+
+        private Board(Board parent, Move move, PromotionQuietMove x)
+        {
+            _pieceBitboards = parent.GetPieceBitboards();
+
+            Debug.Assert((_pieceBitboards[Board.PieceBitboardIndex(parent.SideToMove, move.PieceType)] & Board.ValueFromIx(move.SourceIx)) > 0);
+            Debug.Assert((parent.GetOccupied() & Board.ValueFromIx(move.DstIx)) == 0);
+
+            _pieceBitboards[Board.PieceBitboardIndex(parent.SideToMove, move.PieceType)] &= ~Board.ValueFromIx(move.SourceIx);
+            _pieceBitboards[Board.PieceBitboardIndex(parent.SideToMove, move.PromotionPiece)] |= Board.ValueFromIx(move.DstIx);
+
+            (_occupied, _occupiedWhite, _occupiedBlack) = CalculateOccupieds();
+            _parent = parent;
+
+            SideToMove = parent.SideToMove.Other();
+            EnPassant = 0;
+            CastlingRights = parent.CastlingRights & CastlingTables.GetCastlingUpdateMask(move);
+            (HalfmoveCounter, FullMove) = CalculateMoveNumbers(parent, true);
+        }
+
+        private Board(Board parent, Move move, PromotionCaptureMove x)
+        {
+            _pieceBitboards = parent.GetPieceBitboards();
+
+            Debug.Assert((_pieceBitboards[Board.PieceBitboardIndex(parent.SideToMove, move.PieceType)] & Board.ValueFromIx(move.SourceIx)) > 0);
+            Debug.Assert((parent.GetOccupied(parent.SideToMove.Other()) & Board.ValueFromIx(move.DstIx)) > 0);
+
+            _pieceBitboards[Board.PieceBitboardIndex(parent.SideToMove, move.PieceType)] &= ~Board.ValueFromIx(move.SourceIx);
+            _pieceBitboards[Board.PieceBitboardIndex(parent.SideToMove, move.PromotionPiece)] |= Board.ValueFromIx(move.DstIx);
+
+            for (PieceType pieceType = 0; pieceType < PieceType.Count; pieceType++)
+            {
+                _pieceBitboards[Board.PieceBitboardIndex(parent.SideToMove.Other(), pieceType)] &= ~Board.ValueFromIx(move.DstIx);
+            }
+
+            (_occupied, _occupiedWhite, _occupiedBlack) = CalculateOccupieds();
+            _parent = parent;
+
+            SideToMove = parent.SideToMove.Other();
+            EnPassant = 0;
+            CastlingRights = parent.CastlingRights & CastlingTables.GetCastlingUpdateMask(move);
+            (HalfmoveCounter, FullMove) = CalculateMoveNumbers(parent, true);
+        }
+
+        private Board(Board parent, Move move, CastlingQuietMove x)
+        {
+            _pieceBitboards = parent.GetPieceBitboards();
+
+            Debug.Assert((_pieceBitboards[Board.PieceBitboardIndex(parent.SideToMove, move.PieceType)] & Board.ValueFromIx(move.SourceIx)) > 0);
+            Debug.Assert((parent.GetOccupied() & Board.ValueFromIx(move.DstIx)) == 0);
+            Debug.Assert((parent.GetOccupied() & CastlingTables.GetCastlingEmptySquares(move.DstIx)) == 0);
+            Debug.Assert((_pieceBitboards[Board.PieceBitboardIndex(parent.SideToMove, PieceType.Rook)] & CastlingTables.GetCastlingRookSrcValue(move.DstIx)) > 0);
+
+            _pieceBitboards[Board.PieceBitboardIndex(parent.SideToMove, move.PieceType)] &= ~Board.ValueFromIx(move.SourceIx);
+            _pieceBitboards[Board.PieceBitboardIndex(parent.SideToMove, move.PieceType)] |= Board.ValueFromIx(move.DstIx);
+
+            _pieceBitboards[Board.PieceBitboardIndex(parent.SideToMove, PieceType.Rook)] &= ~CastlingTables.GetCastlingRookSrcValue(move.DstIx);
+            _pieceBitboards[Board.PieceBitboardIndex(parent.SideToMove, PieceType.Rook)] |= CastlingTables.GetCastlingRookDstValue(move.DstIx);
+
+            (_occupied, _occupiedWhite, _occupiedBlack) = CalculateOccupieds();
+            _parent = parent;
+
+            SideToMove = parent.SideToMove.Other();
+            EnPassant = 0;
+            CastlingRights = parent.CastlingRights & CastlingTables.GetCastlingUpdateMask(move);
+            (HalfmoveCounter, FullMove) = CalculateMoveNumbers(parent, false);
+        }
+
+        private (ulong occupied, ulong occupiedWhite, ulong occupiedBlack) CalculateOccupieds()
+        {
+            var occupiedWhite = CalculateOccupied(Color.White);
+            var occupiedBlack = CalculateOccupied(Color.Black);
+            var occupied = occupiedWhite | occupiedBlack;
+            return (occupied, occupiedWhite, occupiedBlack);
+        }
+
+        private static (int halfmoveCounter, int fullMove) CalculateMoveNumbers(Board parent, bool captureOrPawnMove)
+        {
+            int halfmoveCounter;
+            if (captureOrPawnMove)
+                halfmoveCounter = 0;
+            else
+                halfmoveCounter = parent.HalfmoveCounter + 1;
+
+            int fullMove;
+            if (parent.SideToMove == Color.White)
+                fullMove = parent.FullMove + 1;
+            else
+                fullMove = parent.FullMove;
+
+            return (halfmoveCounter, fullMove);
+        }
+
+        #endregion FromMoves
+
 
         public ulong[] GetPieceBitboards()
         {

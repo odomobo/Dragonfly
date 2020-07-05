@@ -15,9 +15,9 @@ namespace SharpHeart.UCI
         private const string KiwipeteFen = "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1";
         static void Main(string[] args)
         {
-            PerformanceTesting(OpeningFen, 5, TimeSpan.FromSeconds(10));
+            //PerformanceTesting(OpeningFen, 5, TimeSpan.FromSeconds(10));
             //IncrementalPerft(KiwipeteFen, 7);
-            //DivideTesting(KiwipeteFen, 4, "a1b1", "h3g2", "a2a3");
+            DivideTesting("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1", 2, "a2a3");
         }
 
         private static void PerformanceTesting(string fen, int perftDepth, TimeSpan timespan)
@@ -80,7 +80,7 @@ namespace SharpHeart.UCI
             foreach (var moveStr in moves)
             {
                 Move move = moveGen.GetMoveFromCoordinateString(board, moveStr);
-                board = move.DoMove(board);
+                board = board.DoMove(move);
                 Debugging.Dump(board);
                 total = perft.GoDivide(board, depth--);
                 Console.WriteLine($"##### Total moves: {total}");

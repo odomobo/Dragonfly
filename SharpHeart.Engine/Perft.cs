@@ -25,7 +25,7 @@ namespace SharpHeart.Engine
 
             foreach (var move in moves)
             {
-                var nextBoard = move.DoMove(b);
+                var nextBoard = b.DoMove(move);
                 
                 // if we moved into check, clearly it was an invalid move
                 if (nextBoard.InCheck(nextBoard.SideToMove.Other()))
@@ -55,7 +55,7 @@ namespace SharpHeart.Engine
 
             foreach (var (moveStr, move) in movesDict)
             {
-                var nextBoard = move.DoMove(b);
+                var nextBoard = b.DoMove(move);
 
                 // if we moved into check, clearly it was an invalid move
                 if (nextBoard.InCheck(nextBoard.SideToMove.Other()))

@@ -8,12 +8,10 @@ using SharpHeart.Engine.MoveGens;
 
 namespace SharpHeart.Engine
 {
-    // TODO: rename to something nicer
     public static class BoardParsing
     {
         public static Board BoardFromFen(string fen)
         {
-            // TODO: single pieceBitboards instead of this
             ulong[] pieceBitboard = new ulong[12];
 
             var splitFen = fen.Split(' ', StringSplitOptions.RemoveEmptyEntries).ToList();
