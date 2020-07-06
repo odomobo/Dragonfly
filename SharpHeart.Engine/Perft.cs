@@ -37,39 +37,5 @@ namespace SharpHeart.Engine
 
             return ret;
         }
-
-        public int GoDivide(Board b, int depth)
-        {
-            if (depth <= 0)
-                return 1;
-
-            var ret = 0;
-
-            List<Move> moves = new List<Move>();
-            _moveGen.Generate(moves, b);
-
-            var movesDict = new SortedDictionary<string, Move>();
-            foreach (var move in moves)
-            {
-                movesDict.Add(BoardParsing.CoordinateStringFromMove(move), move);
-            }
-
-            foreach (var (moveStr, move) in movesDict)
-            {
-                var nextBoard = b.DoMove(move);
-
-                // check move legality if using a pseudolegal move generator
-                if (!_moveGen.OnlyLegalMoves && nextBoard.InCheck(nextBoard.SideToMove.Other()))
-                    continue;
-
-                Console.Write($"{moveStr}: ");
-
-                var perft = GoPerft(nextBoard, depth - 1);
-                Console.WriteLine(perft);
-                ret += perft;
-            }
-
-            return ret;
-        }
     }
 }

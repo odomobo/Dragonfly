@@ -81,7 +81,7 @@ namespace SharpHeart.Engine
         {
             var movesList = moves.ToList();
             Dump("");
-            Dump($"######## {movesList.Count()} moves ########");
+            Dump($"######## {movesList.Count} moves ########");
             foreach (var move in movesList)
                 Dump(move);
         }
@@ -147,20 +147,15 @@ namespace SharpHeart.Engine
             return sb.ToString();
         }
 
-        public static void Dump(Board b, bool unicode = false)
+        public static void Dump(Board board, bool unicode = false)
         {
-            Dump(BoardToStr(b, unicode));
+            Dump(BoardToStr(board, unicode));
 
             Dump("");
-            Dump($"######## En Passant ########");
-            Dump(b.EnPassant);
-
-            Dump("");
-            Dump($"######## Castling ########");
-            Dump(b.CastlingRights);
-
-            Dump("");
-            Dump($"Side to move: {b.SideToMove}");
+            string enPassant = BoardParsing.SquareStrFromValue(board.EnPassant);
+            string castling = BoardParsing.CastlingStrFromValue(board.CastlingRights);
+            Dump($"Side to move: {board.SideToMove}; Move#: {board.FullMove}; Castling: {castling}; En Passant: {enPassant}; 50 move counter: {board.FiftyMoveCounter}");
+            Dump(BoardParsing.FenStringFromBoard(board));
         }
 
         public static void DumpMagics()

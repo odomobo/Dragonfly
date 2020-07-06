@@ -8,6 +8,7 @@ using SharpHeart.Engine.MoveGens;
 
 namespace SharpHeart.Engine.Tests
 {
+    [TestFixture]
     public class PerftTests
     {
         private MoveGen _moveGen;
@@ -35,31 +36,20 @@ namespace SharpHeart.Engine.Tests
         {
             get
             {
-                var assembly = Assembly.GetExecutingAssembly();
-                var resourceName = "SharpHeart.Engine.Tests.perfts.epd";
-
-                using (Stream stream = assembly.GetManifestResourceStream(resourceName))
-                using (StreamReader reader = new StreamReader(stream))
+                foreach (var line in Enumerators.GetPerftCasesEnumerator())
                 {
-                    while (true)
+                    var splitLine = line.Split(';', 2);
+
+                    var fen = splitLine[0].Trim();
+                    var perftCases = splitLine[1];
+
+                    foreach (var perftCase in perftCases.Split(';', StringSplitOptions.RemoveEmptyEntries))
                     {
-                        var line = reader.ReadLine();
-                        if (string.IsNullOrWhiteSpace(line))
-                            break;
+                        var match = PerftResultRegex.Match(perftCase);
+                        int depth = int.Parse(match.Groups[1].Value);
+                        int perftResult = int.Parse(match.Groups[2].Value);
 
-                        var splitLine = line.Split(';', 2);
-
-                        var fen = splitLine[0];
-                        var perftCases = splitLine[1];
-
-                        foreach (var perftCase in perftCases.Split(';', StringSplitOptions.RemoveEmptyEntries))
-                        {
-                            var match = PerftResultRegex.Match(perftCase);
-                            int depth = int.Parse(match.Groups[1].Value);
-                            int perftResult = int.Parse(match.Groups[2].Value);
-
-                            yield return new TestCaseData(fen, depth).Returns(perftResult);
-                        }
+                        yield return new TestCaseData(fen, depth).Returns(perftResult);
                     }
                 }
             }

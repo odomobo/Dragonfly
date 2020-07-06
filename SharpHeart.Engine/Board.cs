@@ -25,13 +25,13 @@ namespace SharpHeart.Engine
         public Color SideToMove { get; private set; }
         public ulong EnPassant { get; private set; }
         public ulong CastlingRights { get; private set; }
-        public int HalfmoveCounter { get; private set; }
+        public int FiftyMoveCounter { get; private set; }
         private int _gamePly; // game's fullmove number, starting from 0
         public int FullMove => _gamePly/2 + 1;
         private int _historyPly; // similar to game ply, but from the position we started from, not from the initial position in the game
 
         // Takes ownership of all arrays passed to it; they should not be changed after the board is created.
-        public Board(ulong[] pieceBitboards, Color sideToMove, ulong castlingRights, ulong enPassant, int halfmoveCounter, int fullMove)
+        public Board(ulong[] pieceBitboards, Color sideToMove, ulong castlingRights, ulong enPassant, int fiftyMoveCounter, int fullMove)
         {
             _pieceBitboards = pieceBitboards;
             _occupiedWhite = CalculateOccupied(Color.White);
@@ -43,7 +43,7 @@ namespace SharpHeart.Engine
             CastlingRights = castlingRights;
             EnPassant = enPassant;
 
-            HalfmoveCounter = halfmoveCounter;
+            FiftyMoveCounter = fiftyMoveCounter;
             _gamePly = GamePlyFromFullMove(fullMove, sideToMove);
             _historyPly = 0;
 
@@ -235,7 +235,7 @@ namespace SharpHeart.Engine
             SideToMove = _parent!.SideToMove.Other();
             EnPassant = enPassant;
             CastlingRights = _parent.CastlingRights & CastlingTables.GetCastlingUpdateMask(move);
-            HalfmoveCounter = CalculateHalfmoveCounter(_parent, captureOrPawnMove);
+            FiftyMoveCounter = CalculateHalfmoveCounter(_parent, captureOrPawnMove);
             _gamePly = _parent._gamePly + 1;
             _historyPly = _parent._historyPly + 1;
         }
@@ -246,13 +246,17 @@ namespace SharpHeart.Engine
             if (captureOrPawnMove)
                 halfmoveCounter = 0;
             else
-                halfmoveCounter = parent.HalfmoveCounter + 1;
+                halfmoveCounter = parent.FiftyMoveCounter + 1;
 
             return halfmoveCounter;
         }
 
         #endregion FromMoves
 
+        public override string ToString()
+        {
+            return BoardParsing.FenStringFromBoard(this);
+        }
 
         private ulong[] CopyPieceBitboards()
         {

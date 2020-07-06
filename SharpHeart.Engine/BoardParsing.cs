@@ -82,7 +82,6 @@ namespace SharpHeart.Engine
             else
                 throw new Exception("Bad FEN string"); // TODO: better error type & message
 
-            // TODO: verify castling rights
             ulong castlingRights = 0;
             var castlingHash = new HashSet<char>(strCastling);
             if (castlingHash.Contains('K'))
@@ -94,7 +93,6 @@ namespace SharpHeart.Engine
             if (castlingHash.Contains('q'))
                 castlingRights |= CastlingTables.BlackQueensideDst;
 
-            // TODO: verify en passant
             ulong enPassant;
             if (strEnPassant == "-")
             {
@@ -111,6 +109,44 @@ namespace SharpHeart.Engine
             int fullMove = int.Parse(strFullMoves);
             
             return new Board(pieceBitboard, sideToMove, castlingRights, enPassant, halfmoveCounter, fullMove);
+        }
+
+        public static string FenStringFromBoard(Board board)
+        {
+            var fenBuilder = new StringBuilder();
+            for (int rank = 7; rank >= 0; rank--)
+            {
+                int skipped = 0;
+                for (int file = 0; file < 8; file++)
+                {
+                    var (pieceType, color) = board.GetPieceTypeColor(Board.IxFromFileRank(file, rank));
+                    if (pieceType == PieceType.None)
+                    {
+                        skipped++;
+                        continue;
+                    }
+
+                    // if we found a piece, first let's fill in the count of any skipped moves
+                    if (skipped > 0)
+                    {
+                        fenBuilder.Append(skipped);
+                        skipped = 0;
+                    }
+
+                    fenBuilder.Append(LetterFromPieceTypeColor(pieceType, color));
+                }
+
+                // count any final skipped moves
+                if (skipped > 0)
+                    fenBuilder.Append(skipped);
+
+                if (rank > 0)
+                    fenBuilder.Append("/");
+            }
+
+            var colorStr = board.SideToMove == Color.White ? "w" : "b";
+
+            return $"{fenBuilder} {colorStr} {CastlingStrFromValue(board.CastlingRights)} {SquareStrFromValue(board.EnPassant)} {board.FiftyMoveCounter} {board.FullMove}";
         }
 
         public static bool TryParsePiece(char pieceChar, out PieceType pieceType, out Color color)
@@ -318,6 +354,14 @@ namespace SharpHeart.Engine
             return $"{(char)('a' + file)}";
         }
 
+        public static string SquareStrFromValue(ulong value)
+        {
+            if (value == 0)
+                return "-";
+
+            return SquareStrFromIx(Bits.GetLsb(value));
+        }
+
         public static string SquareStrFromIx(int ix)
         {
             var (file, rank) = Board.FileRankFromIx(ix);
@@ -347,6 +391,24 @@ namespace SharpHeart.Engine
         {
             if (!TryGetIxFromSquareStr(square, out int ret))
                 throw new Exception($"Invalid square string: \"{square}\"");
+
+            return ret;
+        }
+
+        public static string CastlingStrFromValue(ulong castlingRights)
+        {
+            string ret = "";
+            if ((castlingRights & CastlingTables.WhiteKingsideDst) > 0)
+                ret += "K";
+            if ((castlingRights & CastlingTables.WhiteQueensideDst) > 0)
+                ret += "Q";
+            if ((castlingRights & CastlingTables.BlackKingsideDst) > 0)
+                ret += "k";
+            if ((castlingRights & CastlingTables.BlackQueensideDst) > 0)
+                ret += "q";
+
+            if (ret == "")
+                ret = "-";
 
             return ret;
         }

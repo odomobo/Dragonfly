@@ -750,7 +750,7 @@ namespace MersenneTwister
 
 			//for (; k; k--) {
 			//while k<>0, that is: while k>0
-			for (k = k; k >= 1; k += -1)
+			for (; k >= 1; k += -1)
 			{
 				//original expression, rearranged in one line:
 				//mt[i] = (mt[i] ^ ((mt[i-1] ^ (mt[i-1] >> 30)) * 1664525UL)) + init_key[j] + j;
@@ -849,7 +849,7 @@ namespace MersenneTwister
 				//    y = (mt[kk]&UPPER_MASK)|(mt[kk+1]&LOWER_MASK);
 				//    mt[kk] = mt[kk+(M-N)] ^ (y >> 1) ^ mag01[y & 0x1UL];
 				//}
-				for (kk = kk; kk <= NuplimLess1; kk++)
+				for (; kk <= NuplimLess1; kk++)
 				{
 					y = (state.mt[kk] & UPPER_MASK) | (state.mt[kk + 1] & LOWER_MASK);
 					state.mt[kk] = state.mt[kk + (M - N)] ^ (y >> 1) ^ mag01[Convert.ToInt32(y & 1u)];

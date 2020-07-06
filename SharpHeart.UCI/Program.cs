@@ -15,9 +15,9 @@ namespace SharpHeart.UCI
         private const string KiwipeteFen = "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1";
         static void Main(string[] args)
         {
-            PerformanceTesting(OpeningFen, 5, TimeSpan.FromSeconds(10));
+            //PerformanceTesting(OpeningFen, 5, TimeSpan.FromSeconds(10));
             //IncrementalPerft(KiwipeteFen, 7);
-            //DivideTesting("r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1", 4);
+            DivideTesting("r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1", 4, "a2a4");
         }
 
         private static void PerformanceTesting(string fen, int perftDepth, TimeSpan timespan)
@@ -74,17 +74,51 @@ namespace SharpHeart.UCI
 
             var moveGen = new MoveGen();
             var perft = new Perft(moveGen);
-            int total = perft.GoDivide(board, depth--);
-            Console.WriteLine($"##### Total moves: {total}");
+            GoDivide(moveGen, perft, board, depth--);
 
             foreach (var moveStr in moves)
             {
                 Move move = BoardParsing.GetMoveFromCoordinateString(moveGen, board, moveStr);
                 board = board.DoMove(move);
                 Debugging.Dump(board);
-                total = perft.GoDivide(board, depth--);
-                Console.WriteLine($"##### Total moves: {total}");
+                GoDivide(moveGen, perft, board, depth--);
             }
+        }
+
+        private static void GoDivide(MoveGen moveGen, Perft perft, Board board, int depth)
+        {
+            if (depth <= 0)
+            {
+                Console.WriteLine($"##### No moves generated at depth {depth}");
+                return;
+            }
+
+            var total = 0;
+
+            List<Move> moves = new List<Move>();
+            moveGen.Generate(moves, board);
+
+            var movesDict = new SortedDictionary<string, Move>();
+            foreach (var move in moves)
+            {
+                movesDict.Add(BoardParsing.CoordinateStringFromMove(move), move);
+            }
+
+            foreach (var (moveStr, move) in movesDict)
+            {
+                var nextBoard = board.DoMove(move);
+
+                // check move legality if using a pseudolegal move generator
+                if (!moveGen.OnlyLegalMoves && nextBoard.InCheck(nextBoard.SideToMove.Other()))
+                    continue;
+
+                Console.Write($"{moveStr}: ");
+
+                int count = perft.GoPerft(nextBoard, depth - 1);
+                Console.WriteLine(count);
+                total += count;
+            }
+            Console.WriteLine($"##### Total moves: {total}");
         }
     }
 }
