@@ -49,7 +49,7 @@ namespace SharpHeart.Engine.MoveGens
             CastlingEmptySquares = GenerateCastlingEmptySquares();
         }
 
-        public static ulong GetCastlingUpdateMask(in Move move)
+        public static ulong GetCastlingUpdateMask(Move move)
         {
             return CastlingUpdateMaskTable[move.SourceIx] & CastlingUpdateMaskTable[move.DstIx];
         }

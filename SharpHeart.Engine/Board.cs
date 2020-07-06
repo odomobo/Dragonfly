@@ -13,6 +13,7 @@ namespace SharpHeart.Engine
 {
     public sealed class Board
     {
+        // TODO: could replace this with a struct that acts like a ulong[12]
         private readonly ulong[] _pieceBitboards;
         private ulong _occupiedWhite;
         private ulong _occupiedBlack;
@@ -25,50 +26,39 @@ namespace SharpHeart.Engine
         public ulong EnPassant { get; private set; }
         public ulong CastlingRights { get; private set; }
         public int HalfmoveCounter { get; private set; }
-        public int FullMove { get; private set; }
+        private int _gamePly; // game's fullmove number, starting from 0
+        public int FullMove => _gamePly/2 + 1;
+        private int _historyPly; // similar to game ply, but from the position we started from, not from the initial position in the game
 
         // Takes ownership of all arrays passed to it; they should not be changed after the board is created.
-        private Board(ulong[] pieceBitboards, Color sideToMove, ulong castlingRights, ulong enPassant)
+        public Board(ulong[] pieceBitboards, Color sideToMove, ulong castlingRights, ulong enPassant, int halfmoveCounter, int fullMove)
         {
             _pieceBitboards = pieceBitboards;
             _occupiedWhite = CalculateOccupied(Color.White);
             _occupiedBlack = CalculateOccupied(Color.Black);
 
-            _occupied = CalculateOccupied();
+            _occupied = _occupiedWhite | _occupiedBlack;
 
             SideToMove = sideToMove;
             CastlingRights = castlingRights;
             EnPassant = enPassant;
-        }
 
-        // Takes ownership of all arrays passed to it; they should not be changed after the board is created.
-        public Board(ulong[] pieceBitboards, Color sideToMove, ulong castlingRights, ulong enPassant, Board parent, bool captureOrPawnMove)
-            : this(pieceBitboards, sideToMove, castlingRights, enPassant)
-        {
-            if (captureOrPawnMove)
-                HalfmoveCounter = 0;
-            else
-                HalfmoveCounter = parent.HalfmoveCounter + 1;
-
-            if (sideToMove == Color.White)
-                FullMove = parent.FullMove + 1;
-            else
-                FullMove = parent.FullMove;
-
-            _parent = parent;
-        }
-
-        // Takes ownership of all arrays passed to it; they should not be changed after the board is created.
-        public Board(ulong[] pieceBitboards, Color sideToMove, ulong castlingRights, ulong enPassant, int halfmoveCounter, int fullMove)
-            :this(pieceBitboards, sideToMove, castlingRights, enPassant)
-        {
             HalfmoveCounter = halfmoveCounter;
-            FullMove = fullMove;
-            
+            _gamePly = GamePlyFromFullMove(fullMove, sideToMove);
+            _historyPly = 0;
+
             _parent = null;
         }
 
-        #region MyRegion
+        private static int GamePlyFromFullMove(int fullMove, Color sideToMove)
+        {
+            if (sideToMove == Color.White)
+                return (fullMove - 1) * 2;
+            else
+                return (fullMove - 1) * 2 + 1;
+        }
+
+        #region DoMove and its constructors
 
         // used to select appropriate constructors
         private struct NormalQuietMove{}
@@ -79,7 +69,7 @@ namespace SharpHeart.Engine
         private struct PromotionCaptureMove{}
         private struct CastlingMove{}
 
-        public Board DoMove(in Move move)
+        public Board DoMove(Move move)
         {
             var parent = this;
             switch (move.MoveType)
@@ -103,9 +93,9 @@ namespace SharpHeart.Engine
             }
         }
 
-        private Board(Board parent, in Move move, NormalQuietMove x)
+        private Board(Board parent, Move move, NormalQuietMove x)
         {
-            _pieceBitboards = parent.GetPieceBitboards();
+            _pieceBitboards = parent.CopyPieceBitboards();
 
             Debug.Assert((_pieceBitboards[PieceBitboardIndex(parent.SideToMove, move.PieceType)] & ValueFromIx(move.SourceIx)) > 0);
             Debug.Assert((parent.GetOccupied() & ValueFromIx(move.DstIx)) == 0);
@@ -118,9 +108,9 @@ namespace SharpHeart.Engine
             SetBoardData(move, 0, move.PieceType == PieceType.Pawn);
         }
 
-        private Board(Board parent, in Move move, NormalCaptureMove x)
+        private Board(Board parent, Move move, NormalCaptureMove x)
         {
-            _pieceBitboards = parent.GetPieceBitboards();
+            _pieceBitboards = parent.CopyPieceBitboards();
 
             Debug.Assert((_pieceBitboards[PieceBitboardIndex(parent.SideToMove, move.PieceType)] & ValueFromIx(move.SourceIx)) > 0);
             Debug.Assert((parent.GetOccupied(parent.SideToMove.Other()) & ValueFromIx(move.DstIx)) > 0);
@@ -138,9 +128,9 @@ namespace SharpHeart.Engine
             SetBoardData(move, 0, true);
         }
 
-        private Board(Board parent, in Move move, DoublePawnMove x)
+        private Board(Board parent, Move move, DoublePawnMove x)
         {
-            _pieceBitboards = parent.GetPieceBitboards();
+            _pieceBitboards = parent.CopyPieceBitboards();
 
             Debug.Assert((_pieceBitboards[PieceBitboardIndex(parent.SideToMove, move.PieceType)] & ValueFromIx(move.SourceIx)) > 0);
             Debug.Assert((parent.GetOccupied() & ValueFromIx(move.DstIx)) == 0);
@@ -153,9 +143,9 @@ namespace SharpHeart.Engine
             SetBoardData(move, ValueFromIx((move.SourceIx + move.DstIx) / 2), true);
         }
 
-        private Board(Board parent, in Move move, EnPassantMove x)
+        private Board(Board parent, Move move, EnPassantMove x)
         {
-            _pieceBitboards = parent.GetPieceBitboards();
+            _pieceBitboards = parent.CopyPieceBitboards();
 
             var (srcFile, srcRank) = FileRankFromIx(move.SourceIx);
             var (dstFile, dstRank) = FileRankFromIx(move.DstIx);
@@ -174,9 +164,9 @@ namespace SharpHeart.Engine
             SetBoardData(move, 0, true);
         }
 
-        private Board(Board parent, in Move move, PromotionQuietMove x)
+        private Board(Board parent, Move move, PromotionQuietMove x)
         {
-            _pieceBitboards = parent.GetPieceBitboards();
+            _pieceBitboards = parent.CopyPieceBitboards();
 
             Debug.Assert((_pieceBitboards[PieceBitboardIndex(parent.SideToMove, move.PieceType)] & ValueFromIx(move.SourceIx)) > 0);
             Debug.Assert((parent.GetOccupied() & ValueFromIx(move.DstIx)) == 0);
@@ -189,9 +179,9 @@ namespace SharpHeart.Engine
             SetBoardData(move, 0, true);
         }
 
-        private Board(Board parent, in Move move, PromotionCaptureMove x)
+        private Board(Board parent, Move move, PromotionCaptureMove x)
         {
-            _pieceBitboards = parent.GetPieceBitboards();
+            _pieceBitboards = parent.CopyPieceBitboards();
 
             Debug.Assert((_pieceBitboards[PieceBitboardIndex(parent.SideToMove, move.PieceType)] & ValueFromIx(move.SourceIx)) > 0);
             Debug.Assert((parent.GetOccupied(parent.SideToMove.Other()) & ValueFromIx(move.DstIx)) > 0);
@@ -209,9 +199,9 @@ namespace SharpHeart.Engine
             SetBoardData(move, 0, true);
         }
 
-        private Board(Board parent, in Move move, CastlingMove x)
+        private Board(Board parent, Move move, CastlingMove x)
         {
-            _pieceBitboards = parent.GetPieceBitboards();
+            _pieceBitboards = parent.CopyPieceBitboards();
 
             Debug.Assert((_pieceBitboards[PieceBitboardIndex(parent.SideToMove, move.PieceType)] & ValueFromIx(move.SourceIx)) > 0);
             Debug.Assert((parent.GetOccupied() & ValueFromIx(move.DstIx)) == 0);
@@ -235,7 +225,7 @@ namespace SharpHeart.Engine
         /// <param name="move"></param>
         /// <param name="enPassant"></param>
         /// <param name="captureOrPawnMove"></param>
-        private void SetBoardData(in Move move, ulong enPassant, bool captureOrPawnMove)
+        private void SetBoardData(Move move, ulong enPassant, bool captureOrPawnMove)
         {
             _occupiedWhite = CalculateOccupied(Color.White);
             _occupiedBlack = CalculateOccupied(Color.Black);
@@ -246,7 +236,8 @@ namespace SharpHeart.Engine
             EnPassant = enPassant;
             CastlingRights = _parent.CastlingRights & CastlingTables.GetCastlingUpdateMask(move);
             HalfmoveCounter = CalculateHalfmoveCounter(_parent, captureOrPawnMove);
-            FullMove = CalculateFullMove(_parent);
+            _gamePly = _parent._gamePly + 1;
+            _historyPly = _parent._historyPly + 1;
         }
 
         private static int CalculateHalfmoveCounter(Board parent, bool captureOrPawnMove)
@@ -260,21 +251,10 @@ namespace SharpHeart.Engine
             return halfmoveCounter;
         }
 
-        private static int CalculateFullMove(Board parent)
-        {
-            int fullMove;
-            if (parent.SideToMove == Color.White)
-                fullMove = parent.FullMove + 1;
-            else
-                fullMove = parent.FullMove;
-
-            return fullMove;
-        }
-
         #endregion FromMoves
 
 
-        public ulong[] GetPieceBitboards()
+        private ulong[] CopyPieceBitboards()
         {
             var ret = new ulong[12];
             for (int i = 0; i < 12; i++)
@@ -290,13 +270,12 @@ namespace SharpHeart.Engine
 
         private ulong CalculateOccupied(Color c)
         {
-            return 
-                GetPieceBitboard(c, PieceType.Pawn) |
-                GetPieceBitboard(c, PieceType.Bishop) |
-                GetPieceBitboard(c, PieceType.Knight) |
-                GetPieceBitboard(c, PieceType.Rook) |
-                GetPieceBitboard(c, PieceType.Queen) |
-                GetPieceBitboard(c, PieceType.King);
+            ulong ret = 0;
+            // this needs to match calculation used for GetPieceBitboard
+            for (int i = (int)c * 6; i < (int)c * 6 + (int)PieceType.Count; i++)
+                ret |= _pieceBitboards[i];
+
+            return ret;
         }
 
         public ulong GetOccupied(Color c)
@@ -305,11 +284,6 @@ namespace SharpHeart.Engine
                 return _occupiedWhite;
             else
                 return _occupiedBlack;
-        }
-
-        private ulong CalculateOccupied()
-        {
-            return GetOccupied(Color.Black) | GetOccupied(Color.White);
         }
 
         public ulong GetOccupied()

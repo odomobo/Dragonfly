@@ -19,4 +19,12 @@
     <Exec Command="if not exist building (&#xD;&#xA;  type nul &gt; building&#xD;&#xA;  dotnet publish -c Release -r win-x64&#xD;&#xA;  del building&#xD;&#xA;)" />
   </Target>
 
+  <PropertyGroup>
+    <IlcInvariantGlobalization>true</IlcInvariantGlobalization>
+    <RootAllApplicationAssemblies>false</RootAllApplicationAssemblies>
+    <IlcGenerateCompleteTypeMetadata>false</IlcGenerateCompleteTypeMetadata>
+    <IlcDisableReflection>true</IlcDisableReflection>
+    <IlcOptimizationPreference>Speed</IlcOptimizationPreference>
+  </PropertyGroup>
+
 </Project>

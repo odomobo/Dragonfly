@@ -10,7 +10,13 @@ namespace SharpHeart.Engine.MoveGens
     public static class PawnDoubleMoveTable
     {
         internal static readonly MagicMoveTable[] DoubleMovesMagicTables;
-        
+        private static readonly ulong[] StartingRanks = GenerateStartingRanks();
+
+        public static ulong GetStartingRankMask(Color color)
+        {
+            return StartingRanks[(int) color];
+        }
+
         static PawnDoubleMoveTable()
         {
             DoubleMovesMagicTables = new MagicMoveTable[2];
@@ -82,6 +88,23 @@ namespace SharpHeart.Engine.MoveGens
         private static bool IsStartingRank(int rank, Color color)
         {
             return (color == Color.White && rank == 1) || (color == Color.Black && rank == 6);
+        }
+
+        private static ulong[] GenerateStartingRanks()
+        {
+            ulong whiteStarting = 0;
+            ulong blackStarting = 0;
+
+            for (int file = 0; file < 8; file++)
+            {
+                whiteStarting |= Board.ValueFromFileRank(file, 1);
+                blackStarting |= Board.ValueFromFileRank(file, 6);
+            }
+
+            var ret = new ulong[2];
+            ret[(int)Color.White] = whiteStarting;
+            ret[(int)Color.Black] = blackStarting;
+            return ret;
         }
 
         // PawnDoubleMoveTable generated with DumpMagics

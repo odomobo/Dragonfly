@@ -17,7 +17,7 @@ namespace SharpHeart.UCI
         {
             PerformanceTesting(OpeningFen, 5, TimeSpan.FromSeconds(10));
             //IncrementalPerft(KiwipeteFen, 7);
-            //DivideTesting("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1", 2, "a2a3");
+            //DivideTesting("r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1", 4);
         }
 
         private static void PerformanceTesting(string fen, int perftDepth, TimeSpan timespan)
@@ -79,7 +79,7 @@ namespace SharpHeart.UCI
 
             foreach (var moveStr in moves)
             {
-                Move move = moveGen.GetMoveFromCoordinateString(board, moveStr);
+                Move move = BoardParsing.GetMoveFromCoordinateString(moveGen, board, moveStr);
                 board = board.DoMove(move);
                 Debugging.Dump(board);
                 total = perft.GoDivide(board, depth--);

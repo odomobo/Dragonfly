@@ -1,14 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using SharpHeart.Engine.Interfaces;
 using SharpHeart.Engine.MoveGens;
 
 namespace SharpHeart.Engine
 {
     public class Perft
     {
-        private readonly MoveGen _moveGen;
-        public Perft(MoveGen moveGen)
+        private readonly IMoveGen _moveGen;
+        public Perft(IMoveGen moveGen)
         {
             _moveGen = moveGen;
         }
@@ -27,8 +28,8 @@ namespace SharpHeart.Engine
             {
                 var nextBoard = b.DoMove(move);
                 
-                // if we moved into check, clearly it was an invalid move
-                if (nextBoard.InCheck(nextBoard.SideToMove.Other()))
+                // check move legality if using a pseudolegal move generator
+                if (!_moveGen.OnlyLegalMoves && nextBoard.InCheck(nextBoard.SideToMove.Other()))
                     continue;
 
                 ret += GoPerft(nextBoard, depth - 1);
@@ -57,8 +58,8 @@ namespace SharpHeart.Engine
             {
                 var nextBoard = b.DoMove(move);
 
-                // if we moved into check, clearly it was an invalid move
-                if (nextBoard.InCheck(nextBoard.SideToMove.Other()))
+                // check move legality if using a pseudolegal move generator
+                if (!_moveGen.OnlyLegalMoves && nextBoard.InCheck(nextBoard.SideToMove.Other()))
                     continue;
 
                 Console.Write($"{moveStr}: ");

@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading;
+using SharpHeart.Engine.Interfaces;
 using SharpHeart.Engine.MoveGens;
 
 namespace SharpHeart.Engine
@@ -152,6 +153,47 @@ namespace SharpHeart.Engine
             }
 
             return true;
+        }
+
+        public static Move GetMoveFromCoordinateString(IMoveGen moveGen, Board b, string coordinateString)
+        {
+            if (TryGetMoveFromCoordinateString(moveGen, b, coordinateString, out Move move))
+                return move;
+            else
+                throw new Exception($"Could not find move: \"{coordinateString}\"");
+        }
+
+        public static bool TryGetMoveFromCoordinateString(
+            IMoveGen moveGen,
+            Board b,
+            string coordinateString,
+            out Move move)
+        {
+            List<Move> moves = new List<Move>();
+            moveGen.Generate(moves, b);
+
+            foreach (var tmpMove in moves)
+            {
+                var potentialCoordinateString = CoordinateStringFromMove(tmpMove);
+                if (!string.Equals(potentialCoordinateString, coordinateString, StringComparison.OrdinalIgnoreCase))
+                    continue;
+
+                // if a pseudolegal move generator, then we need to make sure that the move we're attempting is even legal
+                if (!moveGen.OnlyLegalMoves)
+                {
+                    var testingBoard = b.DoMove(tmpMove);
+
+                    // if we moved into check, clearly it was an invalid move
+                    if (testingBoard.InCheck(testingBoard.SideToMove.Other()))
+                        continue;
+                }
+
+                move = tmpMove;
+                return true;
+            }
+
+            move = default; // in practice, this is fine, because callers should never use this if returning false
+            return false;
         }
 
         public static char LetterFromPieceType(PieceType pieceType)

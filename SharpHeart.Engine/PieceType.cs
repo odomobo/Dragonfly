@@ -12,7 +12,7 @@ namespace SharpHeart.Engine
         Rook = 3,
         Queen = 4,
         King = 5,
+        None = 6,
         Count = 6,
-        None = -1,
     }
 }
