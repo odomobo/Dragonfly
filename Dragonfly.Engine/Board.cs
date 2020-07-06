@@ -29,8 +29,9 @@ namespace Dragonfly.Engine
         public int GamePly { get; private set; } // game's fullmove number, starting from 0
         public int FullMove => GamePly/2 + 1;
         private int _historyPly; // similar to game ply, but from the position we started from, not from the initial position in the game
-
+        
         public ulong ZobristHash { get; private set; }
+        public int RepetitionNumber { get; private set; }
 
         // Takes ownership of all arrays passed to it; they should not be changed after the board is created.
         public Board(ulong[] pieceBitboards, Color sideToMove, ulong castlingRights, ulong enPassant, int fiftyMoveCounter, int fullMove)
@@ -41,6 +42,8 @@ namespace Dragonfly.Engine
 
             _occupied = _occupiedWhite | _occupiedBlack;
 
+            _parent = null;
+
             SideToMove = sideToMove;
             CastlingRights = castlingRights;
             EnPassant = enPassant;
@@ -49,9 +52,9 @@ namespace Dragonfly.Engine
             GamePly = GamePlyFromFullMove(fullMove, sideToMove);
             _historyPly = 0;
 
-            ZobristHash = ZobristHashing.CalculateFullHash(this);
+            RepetitionNumber = 1;
 
-            _parent = null;
+            ZobristHash = ZobristHashing.CalculateFullHash(this);
         }
 
         private static int GamePlyFromFullMove(int fullMove, Color sideToMove)
@@ -239,22 +242,44 @@ namespace Dragonfly.Engine
             SideToMove = _parent!.SideToMove.Other();
             EnPassant = enPassant;
             CastlingRights = _parent.CastlingRights & CastlingTables.GetCastlingUpdateMask(move);
-            FiftyMoveCounter = CalculateHalfmoveCounter(_parent, captureOrPawnMove);
+            FiftyMoveCounter = CalculateFiftyMoveCounter(_parent, captureOrPawnMove);
             GamePly = _parent.GamePly + 1;
             _historyPly = _parent._historyPly + 1;
 
             ZobristHash = _parent.ZobristHash ^ ZobristHashing.CalculateHashDiff(_parent, this);
+            RepetitionNumber = CalculateRepetitionNumber(this);
         }
 
-        private static int CalculateHalfmoveCounter(Board parent, bool captureOrPawnMove)
+        private static int CalculateFiftyMoveCounter(Board parent, bool captureOrPawnMove)
         {
-            int halfmoveCounter;
+            int fiftyMoveCounter;
             if (captureOrPawnMove)
-                halfmoveCounter = 0;
+                fiftyMoveCounter = 0;
             else
-                halfmoveCounter = parent.FiftyMoveCounter + 1;
+                fiftyMoveCounter = parent.FiftyMoveCounter + 1;
 
-            return halfmoveCounter;
+            return fiftyMoveCounter;
+        }
+
+        // TODO: default to 2 for repetition count when the board we're calculating for is within search
+        private static int CalculateRepetitionNumber(Board board)
+        {
+            var zobristHash = board.ZobristHash;
+
+            // calculate rep count
+            for (int i = board.FiftyMoveCounter - 2; i >= 0; i -= 2)
+            {
+                var tmpBoard = board._parent?._parent;
+                if (tmpBoard == null)
+                    return 1;
+
+                board = tmpBoard;
+
+                if (board.ZobristHash == zobristHash)
+                    return board.RepetitionNumber + 1;
+            }
+
+            return 1;
         }
 
         #endregion FromMoves
