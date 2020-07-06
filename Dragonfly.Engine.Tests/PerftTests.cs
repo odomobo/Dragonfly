@@ -13,12 +13,14 @@ namespace Dragonfly.Engine.Tests
     {
         private MoveGen _moveGen;
         private Perft _perft;
+        private Perft _perftWithHashing;
 
         [SetUp]
         public void Setup()
         {
             _moveGen = new MoveGen();
             _perft = new Perft(_moveGen);
+            _perftWithHashing = new Perft(_moveGen, 1_000_000);
         }
 
         [TestCaseSource(typeof(PerftData), nameof(PerftData.PerftTestCases))]
@@ -26,6 +28,13 @@ namespace Dragonfly.Engine.Tests
         {
             var board = BoardParsing.BoardFromFen(fen);
             return _perft.GoPerft(board, depth);
+        }
+
+        [TestCaseSource(typeof(PerftData), nameof(PerftData.PerftTestCases))]
+        public int PerftWithHashingTest(string fen, int depth)
+        {
+            var board = BoardParsing.BoardFromFen(fen);
+            return _perftWithHashing.GoPerft(board, depth);
         }
     }
 

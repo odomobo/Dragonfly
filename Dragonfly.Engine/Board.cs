@@ -26,9 +26,11 @@ namespace Dragonfly.Engine
         public ulong EnPassant { get; private set; }
         public ulong CastlingRights { get; private set; }
         public int FiftyMoveCounter { get; private set; }
-        private int _gamePly; // game's fullmove number, starting from 0
-        public int FullMove => _gamePly/2 + 1;
+        public int GamePly { get; private set; } // game's fullmove number, starting from 0
+        public int FullMove => GamePly/2 + 1;
         private int _historyPly; // similar to game ply, but from the position we started from, not from the initial position in the game
+
+        public ulong ZobristHash { get; private set; }
 
         // Takes ownership of all arrays passed to it; they should not be changed after the board is created.
         public Board(ulong[] pieceBitboards, Color sideToMove, ulong castlingRights, ulong enPassant, int fiftyMoveCounter, int fullMove)
@@ -44,8 +46,10 @@ namespace Dragonfly.Engine
             EnPassant = enPassant;
 
             FiftyMoveCounter = fiftyMoveCounter;
-            _gamePly = GamePlyFromFullMove(fullMove, sideToMove);
+            GamePly = GamePlyFromFullMove(fullMove, sideToMove);
             _historyPly = 0;
+
+            ZobristHash = ZobristHashing.CalculateFullHash(this);
 
             _parent = null;
         }
@@ -236,8 +240,10 @@ namespace Dragonfly.Engine
             EnPassant = enPassant;
             CastlingRights = _parent.CastlingRights & CastlingTables.GetCastlingUpdateMask(move);
             FiftyMoveCounter = CalculateHalfmoveCounter(_parent, captureOrPawnMove);
-            _gamePly = _parent._gamePly + 1;
+            GamePly = _parent.GamePly + 1;
             _historyPly = _parent._historyPly + 1;
+
+            ZobristHash = _parent.ZobristHash ^ ZobristHashing.CalculateHashDiff(_parent, this);
         }
 
         private static int CalculateHalfmoveCounter(Board parent, bool captureOrPawnMove)

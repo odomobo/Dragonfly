@@ -155,6 +155,7 @@ namespace Dragonfly.Engine
             string enPassant = BoardParsing.SquareStrFromValue(board.EnPassant);
             string castling = BoardParsing.CastlingStrFromValue(board.CastlingRights);
             Dump($"Side to move: {board.SideToMove}; Move#: {board.FullMove}; Castling: {castling}; En Passant: {enPassant}; 50 move counter: {board.FiftyMoveCounter}");
+            Dump($"Zobrist hash: 0x{board.ZobristHash:X16}");
             Dump(BoardParsing.FenStringFromBoard(board));
         }
 
