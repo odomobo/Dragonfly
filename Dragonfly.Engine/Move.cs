@@ -14,21 +14,25 @@ namespace Dragonfly.Engine
         Capture = 64,
     }
 
-    public class Move
+    public readonly struct Move
     {
-        // Note that we could easily compact this to 4 bytes, and then change Move into a readonly struct
-        public readonly MoveType MoveType;
-        public readonly int SourceIx;
-        public readonly int DstIx;
-        public readonly PieceType PromotionPiece;
+        private readonly byte _moveType;
+        private readonly sbyte _sourceIx;
+        private readonly sbyte _dstIx;
+        private readonly byte _promotionPiece;
 
-        // TODO: remove pieceType fro params
+        public MoveType MoveType => (MoveType)_moveType;
+        public int SourceIx => (int)_sourceIx;
+        public int DstIx => (int)_dstIx;
+        public PieceType PromotionPiece => (PieceType)_promotionPiece;
+
+        // TODO: remove pieceType for params
         public Move(MoveType moveType, PieceType pieceType, int sourceIx, int dstIx, PieceType promotionPiece = PieceType.None)
         {
-            MoveType = moveType;
-            SourceIx = sourceIx;
-            DstIx = dstIx;
-            PromotionPiece = promotionPiece;
+            _moveType = (byte)moveType;
+            _sourceIx = (sbyte)sourceIx;
+            _dstIx = (sbyte)dstIx;
+            _promotionPiece = (byte)promotionPiece;
         }
 
         public override string ToString()
