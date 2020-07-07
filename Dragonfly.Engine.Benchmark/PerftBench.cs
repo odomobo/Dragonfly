@@ -3,6 +3,7 @@ using System.Linq.Expressions;
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Columns;
 using BenchmarkDotNet.Configs;
+using BenchmarkDotNet.Engines;
 using BenchmarkDotNet.Jobs;
 using BenchmarkDotNet.Mathematics;
 using BenchmarkDotNet.Reports;
@@ -56,8 +57,10 @@ namespace Dragonfly.Engine.Benchmark
         }
     }
 
-    [SimpleJob(RuntimeMoniker.NetCoreApp31)]
+    //[SimpleJob(RuntimeMoniker.NetCoreApp31)]
     [SimpleJob(RuntimeMoniker.CoreRt31)]
+    [MaxRelativeError(0.005)]
+    [MaxIterationCount(200)]
     [Config(typeof(PerftBenchConfig))]
     public class PerftBench
     {

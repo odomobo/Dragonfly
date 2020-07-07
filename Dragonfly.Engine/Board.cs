@@ -8,15 +8,14 @@ using System.Runtime.InteropServices.ComTypes;
 using System.Text;
 using System.Threading;
 using Dragonfly.Engine.MoveGens;
+using Dragonfly.Engine.PerformanceTypes;
 
 namespace Dragonfly.Engine
 {
     public sealed class Board
     {
-        // TODO: could replace this with a struct that acts like a ulong[12]
-        private readonly ulong[] _pieceBitboards;
-        // TODO: could replace this with a struct that acts like a piece[64]; could be compacted into 32 bytes (or 4 ulongs)
-        private readonly Piece[] _squares;
+        private BitboardArray _pieceBitboards;
+        private PieceSquareArray _squares;
         private ulong _occupiedWhite;
         private ulong _occupiedBlack;
         private ulong _occupied;
@@ -36,11 +35,13 @@ namespace Dragonfly.Engine
         public int RepetitionNumber { get; private set; }
 
         // Takes ownership of all arrays passed to it; they should not be changed after the board is created.
-        public Board(Piece[] squares, Color sideToMove, ulong castlingRights, ulong enPassant, int fiftyMoveCounter, int fullMove)
+        public Board(Piece[] pieceSquares, Color sideToMove, ulong castlingRights, ulong enPassant, int fiftyMoveCounter, int fullMove)
         {
-            _squares = squares;
-            _pieceBitboards = new ulong[12];
-            PopulatePieceBitboardsFromSquares(_pieceBitboards, _squares);
+            // safer to go by the length the PieceSquareArray, because the Piece[] will always error on index out of bounds
+            for (int i = 0; i < _squares.Length; i++)
+                _squares[i] = pieceSquares[i];
+
+            PopulatePieceBitboardsFromSquares(ref _pieceBitboards, pieceSquares);
 
             _occupiedWhite = CalculateOccupied(Color.White);
             _occupiedBlack = CalculateOccupied(Color.Black);
@@ -62,7 +63,7 @@ namespace Dragonfly.Engine
             ZobristHash = ZobristHashing.CalculateFullHash(this);
         }
 
-        private static void PopulatePieceBitboardsFromSquares(ulong[] pieceBitboards, Piece[] squares)
+        private static void PopulatePieceBitboardsFromSquares(ref BitboardArray pieceBitboards, Piece[] squares)
         {
             for (int i = 0; i < pieceBitboards.Length; i++)
                 pieceBitboards[i] = 0;
@@ -364,25 +365,16 @@ namespace Dragonfly.Engine
             return BoardParsing.FenStringFromBoard(this);
         }
 
-        private ulong[] CopyPieceBitboards()
+        // would need to copy the contents if this were an array
+        private BitboardArray CopyPieceBitboards()
         {
-            var ret = new ulong[12];
-
-            // this is cheaper than array.copy for some reason
-            for (int i = 0; i < 12; i++)
-                ret[i] = _pieceBitboards[i];
-
-            return ret;
+            return _pieceBitboards;
         }
 
-        private Piece[] CopySquares()
+        // would need to copy the contents if this were an array
+        private PieceSquareArray CopySquares()
         {
-            var ret = new Piece[64];
-
-            // this is cheaper than naive copy for some reason
-            Array.Copy(_squares, ret, 64);
-
-            return ret;
+            return _squares;
         }
 
         public ulong GetPieceBitboard(Color c, PieceType pt)
