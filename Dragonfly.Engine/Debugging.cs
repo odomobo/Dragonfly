@@ -123,7 +123,7 @@ namespace Dragonfly.Engine
                 sb.Append($"  {rank + 1}|");
                 for (int file = 0; file < 8; file++)
                 {
-                    var (pieceType, color) = b.GetPieceTypeColor(Board.IxFromFileRank(file, rank));
+                    var (color, pieceType) = b.GetPiece(Board.IxFromFileRank(file, rank));
                     char pieceDisplay = '.';
                     if (pieceType != PieceType.None)
                     {

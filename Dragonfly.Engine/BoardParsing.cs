@@ -13,7 +13,9 @@ namespace Dragonfly.Engine
     {
         public static Board BoardFromFen(string fen)
         {
-            ulong[] pieceBitboard = new ulong[12];
+            Piece[] squares = new Piece[64];
+            for (int i = 0; i < squares.Length; i++)
+                squares[i] = new Piece(Color.White, PieceType.None);
 
             var splitFen = fen.Split(' ', StringSplitOptions.RemoveEmptyEntries).ToList();
             if (splitFen.Count < 1)
@@ -60,8 +62,8 @@ namespace Dragonfly.Engine
 
                     if (TryParsePiece(c, out var pieceType, out var color))
                     {
-                        var value = Board.ValueFromFileRank(file, rank);
-                        pieceBitboard[Board.PieceBitboardIndex(color, pieceType)] |= value;
+                        var ix = Board.IxFromFileRank(file, rank);
+                        squares[ix] = new Piece(color, pieceType);
 
                         file++;
                         continue;
@@ -108,7 +110,7 @@ namespace Dragonfly.Engine
             int halfmoveCounter = int.Parse(strHalfmoveCounter);
             int fullMove = int.Parse(strFullMoves);
             
-            return new Board(pieceBitboard, sideToMove, castlingRights, enPassant, halfmoveCounter, fullMove);
+            return new Board(squares, sideToMove, castlingRights, enPassant, halfmoveCounter, fullMove);
         }
 
         public static string FenStringFromBoard(Board board)
@@ -119,7 +121,7 @@ namespace Dragonfly.Engine
                 int skipped = 0;
                 for (int file = 0; file < 8; file++)
                 {
-                    var (pieceType, color) = board.GetPieceTypeColor(Board.IxFromFileRank(file, rank));
+                    var (color, pieceType) = board.GetPiece(Board.IxFromFileRank(file, rank));
                     if (pieceType == PieceType.None)
                     {
                         skipped++;
@@ -315,28 +317,48 @@ namespace Dragonfly.Engine
                 return LetterFromPieceType(pieceType).ToString();
         }
 
-        public static string NaiveSanStringFromMove(Move m)
+        public static string NaiveSanStringFromMoveBoard(Move move, Board board)
         {
-            string pieceTypeStr = SanPrefixFromPieceType(m.PieceType);
+            var pieceType = board.GetPieceType(move.SourceIx);
+            string pieceTypeStr = SanPrefixFromPieceType(pieceType);
 
             string captureStr = "";
-            if ((m.MoveType & MoveType.Capture) > 0)
+            if ((move.MoveType & MoveType.Capture) > 0)
             {
-                if (m.PieceType == PieceType.Pawn)
-                    captureStr = FileStrFromIx(m.SourceIx);
+                if (pieceType == PieceType.Pawn)
+                    captureStr = FileStrFromIx(move.SourceIx);
 
                 captureStr += "x";
             }
 
-            string dstSquareStr = SquareStrFromIx(m.DstIx);
+            string dstSquareStr = SquareStrFromIx(move.DstIx);
 
             string promotionPieceStr = "";
-            if ((m.MoveType & MoveType.Promotion) > 0)
+            if ((move.MoveType & MoveType.Promotion) > 0)
             {
-                promotionPieceStr = LetterFromPieceType(m.PromotionPiece).ToString();
+                promotionPieceStr = LetterFromPieceType(move.PromotionPiece).ToString();
             }
 
             return $"{pieceTypeStr}{captureStr}{dstSquareStr}{promotionPieceStr}";
+        }
+
+        public static string NaiveSanStringFromMove(Move move)
+        {
+            string sourceSquareStr = SquareStrFromIx(move.SourceIx);
+
+            string captureStr = "";
+            if ((move.MoveType & MoveType.Capture) > 0)
+                captureStr = "x";
+
+            string dstSquareStr = SquareStrFromIx(move.DstIx);
+
+            string promotionPieceStr = "";
+            if ((move.MoveType & MoveType.Promotion) > 0)
+            {
+                promotionPieceStr = LetterFromPieceType(move.PromotionPiece).ToString();
+            }
+
+            return $"{sourceSquareStr}{captureStr}{dstSquareStr}{promotionPieceStr}";
         }
 
         public static string CoordinateStringFromMove(Move m)

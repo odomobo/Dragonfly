@@ -17,14 +17,14 @@ namespace Dragonfly.Engine.MoveGens
         private static readonly int WhiteKingsideDstIx = Board.IxFromFileRank(6, 0);
         private static readonly int WhiteKingsideRookDstIx = Board.IxFromFileRank(5, 0);
         public static readonly ulong WhiteKingsideDst = Board.ValueFromFileRank(6, 0);
-        private static readonly ulong WhiteKingsideAttacks = Board.ValueFromFileRank(5, 0) | Board.ValueFromFileRank(6, 0);
+        private static readonly ulong WhiteKingsideAttacks = Board.ValueFromFileRank(5, 0);
         private static readonly ulong WhiteKingsideEmptySquares = Board.ValueFromFileRank(5, 0) | Board.ValueFromFileRank(6, 0);
 
         private static readonly int WhiteQueensideRookIx = Board.IxFromFileRank(0, 0);
         private static readonly int WhiteQueensideDstIx = Board.IxFromFileRank(2, 0);
         private static readonly int WhiteQueensideRookDstIx = Board.IxFromFileRank(3, 0);
         public static readonly ulong WhiteQueensideDst = Board.ValueFromFileRank(2, 0);
-        private static readonly ulong WhiteQueensideAttacks = Board.ValueFromFileRank(3, 0) | Board.ValueFromFileRank(2, 0);
+        private static readonly ulong WhiteQueensideAttacks = Board.ValueFromFileRank(3, 0);
         private static readonly ulong WhiteQueensideEmptySquares = Board.ValueFromFileRank(3, 0) | Board.ValueFromFileRank(2, 0) | Board.ValueFromFileRank(1, 0);
 
         private static readonly int BlackKingIx = Board.IxFromFileRank(4, 7);
@@ -32,14 +32,14 @@ namespace Dragonfly.Engine.MoveGens
         private static readonly int BlackKingsideDstIx = Board.IxFromFileRank(6, 7);
         private static readonly int BlackKingsideRookDstIx = Board.IxFromFileRank(5, 7);
         public static readonly ulong BlackKingsideDst = Board.ValueFromFileRank(6, 7);
-        private static readonly ulong BlackKingsideAttacks = Board.ValueFromFileRank(5, 7) | Board.ValueFromFileRank(6, 7);
+        private static readonly ulong BlackKingsideAttacks = Board.ValueFromFileRank(5, 7);
         private static readonly ulong BlackKingsideEmptySquares = Board.ValueFromFileRank(5, 7) | Board.ValueFromFileRank(6, 7);
 
         private static readonly int BlackQueensideRookIx = Board.IxFromFileRank(0, 7);
         private static readonly int BlackQueensideDstIx = Board.IxFromFileRank(2, 7);
         private static readonly int BlackQueensideRookDstIx = Board.IxFromFileRank(3, 7);
         public static readonly ulong BlackQueensideDst = Board.ValueFromFileRank(2, 7);
-        private static readonly ulong BlackQueensideAttacks = Board.ValueFromFileRank(3, 7) | Board.ValueFromFileRank(2, 7);
+        private static readonly ulong BlackQueensideAttacks = Board.ValueFromFileRank(3, 7);
         private static readonly ulong BlackQueensideEmptySquares = Board.ValueFromFileRank(3, 7) | Board.ValueFromFileRank(2, 7) | Board.ValueFromFileRank(1, 7);
 
         static CastlingTables()
@@ -120,8 +120,12 @@ namespace Dragonfly.Engine.MoveGens
 
         #region DoMove helpers
 
+        // TODO: these aren't used anymore
         private static readonly ulong[] CastlingRookSrcValues = GenerateCastlingRookSrc();
         private static readonly ulong[] CastlingRookDstValues = GenerateCastlingRookDst();
+
+        private static readonly int[] CastlingRookSrcIxs = GenerateCastlingRookSrcIxs();
+        private static readonly int[] CastlingRookDstIxs = GenerateCastlingRookDstIxs();
 
         private static ulong[] GenerateCastlingRookSrc()
         {
@@ -151,6 +155,36 @@ namespace Dragonfly.Engine.MoveGens
         public static ulong GetCastlingRookDstValue(int castlingDstIx)
         {
             return CastlingRookDstValues[castlingDstIx];
+        }
+
+        private static int[] GenerateCastlingRookSrcIxs()
+        {
+            var ret = new int[64];
+            ret[WhiteKingsideDstIx] = WhiteKingsideRookIx;
+            ret[WhiteQueensideDstIx] = WhiteQueensideRookIx;
+            ret[BlackKingsideDstIx] = BlackKingsideRookIx;
+            ret[BlackQueensideDstIx] = BlackQueensideRookIx;
+            return ret;
+        }
+
+        private static int[] GenerateCastlingRookDstIxs()
+        {
+            var ret = new int[64];
+            ret[WhiteKingsideDstIx] = WhiteKingsideRookDstIx;
+            ret[WhiteQueensideDstIx] = WhiteQueensideRookDstIx;
+            ret[BlackKingsideDstIx] = BlackKingsideRookDstIx;
+            ret[BlackQueensideDstIx] = BlackQueensideRookDstIx;
+            return ret;
+        }
+
+        public static int GetCastlingRookSrcIx(int castlingDstIx)
+        {
+            return CastlingRookSrcIxs[castlingDstIx];
+        }
+
+        public static int GetCastlingRookDstIx(int castlingDstIx)
+        {
+            return CastlingRookDstIxs[castlingDstIx];
         }
 
         #endregion

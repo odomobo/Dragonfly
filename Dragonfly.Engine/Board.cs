@@ -15,6 +15,8 @@ namespace Dragonfly.Engine
     {
         // TODO: could replace this with a struct that acts like a ulong[12]
         private readonly ulong[] _pieceBitboards;
+        // TODO: could replace this with a struct that acts like a piece[64]; could be compacted into 32 bytes (or 4 ulongs)
+        private readonly Piece[] _squares;
         private ulong _occupiedWhite;
         private ulong _occupiedBlack;
         private ulong _occupied;
@@ -34,9 +36,12 @@ namespace Dragonfly.Engine
         public int RepetitionNumber { get; private set; }
 
         // Takes ownership of all arrays passed to it; they should not be changed after the board is created.
-        public Board(ulong[] pieceBitboards, Color sideToMove, ulong castlingRights, ulong enPassant, int fiftyMoveCounter, int fullMove)
+        public Board(Piece[] squares, Color sideToMove, ulong castlingRights, ulong enPassant, int fiftyMoveCounter, int fullMove)
         {
-            _pieceBitboards = pieceBitboards;
+            _squares = squares;
+            _pieceBitboards = new ulong[12];
+            PopulatePieceBitboardsFromSquares(_pieceBitboards, _squares);
+
             _occupiedWhite = CalculateOccupied(Color.White);
             _occupiedBlack = CalculateOccupied(Color.Black);
 
@@ -55,6 +60,22 @@ namespace Dragonfly.Engine
             RepetitionNumber = 1;
 
             ZobristHash = ZobristHashing.CalculateFullHash(this);
+        }
+
+        private static void PopulatePieceBitboardsFromSquares(ulong[] pieceBitboards, Piece[] squares)
+        {
+            for (int i = 0; i < pieceBitboards.Length; i++)
+                pieceBitboards[i] = 0;
+
+            for (int ix = 0; ix < 64; ix++)
+            {
+                var piece = squares[ix];
+                if (piece.PieceType == PieceType.None)
+                    continue;
+                
+                var value = ValueFromIx(ix);
+                pieceBitboards[PieceBitboardIndex(piece.Color, piece.PieceType)] |= value;
+            }
         }
 
         private static int GamePlyFromFullMove(int fullMove, Color sideToMove)
@@ -103,32 +124,40 @@ namespace Dragonfly.Engine
         private Board(Board parent, Move move, NormalQuietMove x)
         {
             _pieceBitboards = parent.CopyPieceBitboards();
+            _squares = parent.CopySquares();
 
-            Debug.Assert((_pieceBitboards[PieceBitboardIndex(parent.SideToMove, move.PieceType)] & ValueFromIx(move.SourceIx)) > 0);
+            var piece = _squares[move.SourceIx];
+            _squares[move.SourceIx] = Piece.None;
+            _squares[move.DstIx] = piece;
+
+            Debug.Assert((_pieceBitboards[PieceBitboardIndex(piece)] & ValueFromIx(move.SourceIx)) > 0);
             Debug.Assert((parent.GetOccupied() & ValueFromIx(move.DstIx)) == 0);
 
-            _pieceBitboards[PieceBitboardIndex(parent.SideToMove, move.PieceType)] &= ~ValueFromIx(move.SourceIx);
-            _pieceBitboards[PieceBitboardIndex(parent.SideToMove, move.PieceType)] |= ValueFromIx(move.DstIx);
+            _pieceBitboards[PieceBitboardIndex(piece)] &= ~ValueFromIx(move.SourceIx);
+            _pieceBitboards[PieceBitboardIndex(piece)] |= ValueFromIx(move.DstIx);
 
             _parent = parent;
 
-            SetBoardData(move, 0, move.PieceType == PieceType.Pawn);
+            SetBoardData(move, 0, piece.PieceType == PieceType.Pawn);
         }
 
         private Board(Board parent, Move move, NormalCaptureMove x)
         {
             _pieceBitboards = parent.CopyPieceBitboards();
+            _squares = parent.CopySquares();
 
-            Debug.Assert((_pieceBitboards[PieceBitboardIndex(parent.SideToMove, move.PieceType)] & ValueFromIx(move.SourceIx)) > 0);
+            var piece = _squares[move.SourceIx];
+            var capturedPiece = _squares[move.DstIx];
+            _squares[move.SourceIx] = Piece.None;
+            _squares[move.DstIx] = piece;
+
+            Debug.Assert((_pieceBitboards[PieceBitboardIndex(piece)] & ValueFromIx(move.SourceIx)) > 0);
             Debug.Assert((parent.GetOccupied(parent.SideToMove.Other()) & ValueFromIx(move.DstIx)) > 0);
+            Debug.Assert(capturedPiece.PieceType != PieceType.None);
 
-            _pieceBitboards[PieceBitboardIndex(parent.SideToMove, move.PieceType)] &= ~ValueFromIx(move.SourceIx);
-            _pieceBitboards[PieceBitboardIndex(parent.SideToMove, move.PieceType)] |= ValueFromIx(move.DstIx);
-
-            for (PieceType pieceType = 0; pieceType < PieceType.Count; pieceType++)
-            {
-                _pieceBitboards[PieceBitboardIndex(parent.SideToMove.Other(), pieceType)] &= ~ValueFromIx(move.DstIx);
-            }
+            _pieceBitboards[PieceBitboardIndex(piece)] &= ~ValueFromIx(move.SourceIx);
+            _pieceBitboards[PieceBitboardIndex(piece)] |= ValueFromIx(move.DstIx);
+            _pieceBitboards[PieceBitboardIndex(capturedPiece)] &= ~ValueFromIx(move.DstIx);
 
             _parent = parent;
 
@@ -138,12 +167,17 @@ namespace Dragonfly.Engine
         private Board(Board parent, Move move, DoublePawnMove x)
         {
             _pieceBitboards = parent.CopyPieceBitboards();
+            _squares = parent.CopySquares();
 
-            Debug.Assert((_pieceBitboards[PieceBitboardIndex(parent.SideToMove, move.PieceType)] & ValueFromIx(move.SourceIx)) > 0);
+            var piece = _squares[move.SourceIx];
+            _squares[move.SourceIx] = Piece.None;
+            _squares[move.DstIx] = piece;
+
+            Debug.Assert((_pieceBitboards[PieceBitboardIndex(piece)] & ValueFromIx(move.SourceIx)) > 0);
             Debug.Assert((parent.GetOccupied() & ValueFromIx(move.DstIx)) == 0);
 
-            _pieceBitboards[PieceBitboardIndex(parent.SideToMove, move.PieceType)] &= ~ValueFromIx(move.SourceIx);
-            _pieceBitboards[PieceBitboardIndex(parent.SideToMove, move.PieceType)] |= ValueFromIx(move.DstIx);
+            _pieceBitboards[PieceBitboardIndex(piece)] &= ~ValueFromIx(move.SourceIx);
+            _pieceBitboards[PieceBitboardIndex(piece)] |= ValueFromIx(move.DstIx);
 
             _parent = parent;
 
@@ -153,17 +187,23 @@ namespace Dragonfly.Engine
         private Board(Board parent, Move move, EnPassantMove x)
         {
             _pieceBitboards = parent.CopyPieceBitboards();
+            _squares = parent.CopySquares();
 
             var (srcFile, srcRank) = FileRankFromIx(move.SourceIx);
             var (dstFile, dstRank) = FileRankFromIx(move.DstIx);
             var capturedPawnIx = IxFromFileRank(dstFile, srcRank);
 
-            Debug.Assert((_pieceBitboards[PieceBitboardIndex(parent.SideToMove, move.PieceType)] & ValueFromIx(move.SourceIx)) > 0);
+            var piece = _squares[move.SourceIx];
+            _squares[move.SourceIx] = Piece.None;
+            _squares[move.DstIx] = piece;
+            _squares[capturedPawnIx] = Piece.None;
+
+            Debug.Assert((_pieceBitboards[PieceBitboardIndex(piece)] & ValueFromIx(move.SourceIx)) > 0);
             Debug.Assert((parent.GetOccupied() & ValueFromIx(move.DstIx)) == 0);
             Debug.Assert((_pieceBitboards[PieceBitboardIndex(parent.SideToMove.Other(), PieceType.Pawn)] & ValueFromIx(capturedPawnIx)) > 0);
 
-            _pieceBitboards[PieceBitboardIndex(parent.SideToMove, move.PieceType)] &= ~ValueFromIx(move.SourceIx);
-            _pieceBitboards[PieceBitboardIndex(parent.SideToMove, move.PieceType)] |= ValueFromIx(move.DstIx);
+            _pieceBitboards[PieceBitboardIndex(piece)] &= ~ValueFromIx(move.SourceIx);
+            _pieceBitboards[PieceBitboardIndex(piece)] |= ValueFromIx(move.DstIx);
             _pieceBitboards[PieceBitboardIndex(parent.SideToMove.Other(), PieceType.Pawn)] &= ~ValueFromIx(capturedPawnIx);
 
             _parent = parent;
@@ -174,11 +214,15 @@ namespace Dragonfly.Engine
         private Board(Board parent, Move move, PromotionQuietMove x)
         {
             _pieceBitboards = parent.CopyPieceBitboards();
+            _squares = parent.CopySquares();
 
-            Debug.Assert((_pieceBitboards[PieceBitboardIndex(parent.SideToMove, move.PieceType)] & ValueFromIx(move.SourceIx)) > 0);
+            _squares[move.SourceIx] = Piece.None;
+            _squares[move.DstIx] = new Piece(parent.SideToMove, move.PromotionPiece);
+
+            Debug.Assert((_pieceBitboards[PieceBitboardIndex(parent.SideToMove, PieceType.Pawn)] & ValueFromIx(move.SourceIx)) > 0);
             Debug.Assert((parent.GetOccupied() & ValueFromIx(move.DstIx)) == 0);
 
-            _pieceBitboards[PieceBitboardIndex(parent.SideToMove, move.PieceType)] &= ~ValueFromIx(move.SourceIx);
+            _pieceBitboards[PieceBitboardIndex(parent.SideToMove, PieceType.Pawn)] &= ~ValueFromIx(move.SourceIx);
             _pieceBitboards[PieceBitboardIndex(parent.SideToMove, move.PromotionPiece)] |= ValueFromIx(move.DstIx);
 
             _parent = parent;
@@ -189,17 +233,18 @@ namespace Dragonfly.Engine
         private Board(Board parent, Move move, PromotionCaptureMove x)
         {
             _pieceBitboards = parent.CopyPieceBitboards();
+            _squares = parent.CopySquares();
 
-            Debug.Assert((_pieceBitboards[PieceBitboardIndex(parent.SideToMove, move.PieceType)] & ValueFromIx(move.SourceIx)) > 0);
+            var capturedPiece = _squares[move.DstIx];
+            _squares[move.SourceIx] = Piece.None;
+            _squares[move.DstIx] = new Piece(parent.SideToMove, move.PromotionPiece);
+
+            Debug.Assert((_pieceBitboards[PieceBitboardIndex(parent.SideToMove, PieceType.Pawn)] & ValueFromIx(move.SourceIx)) > 0);
             Debug.Assert((parent.GetOccupied(parent.SideToMove.Other()) & ValueFromIx(move.DstIx)) > 0);
 
-            _pieceBitboards[PieceBitboardIndex(parent.SideToMove, move.PieceType)] &= ~ValueFromIx(move.SourceIx);
+            _pieceBitboards[PieceBitboardIndex(parent.SideToMove, PieceType.Pawn)] &= ~ValueFromIx(move.SourceIx);
             _pieceBitboards[PieceBitboardIndex(parent.SideToMove, move.PromotionPiece)] |= ValueFromIx(move.DstIx);
-
-            for (PieceType pieceType = 0; pieceType < PieceType.Count; pieceType++)
-            {
-                _pieceBitboards[PieceBitboardIndex(parent.SideToMove.Other(), pieceType)] &= ~ValueFromIx(move.DstIx);
-            }
+            _pieceBitboards[PieceBitboardIndex(capturedPiece)] &= ~ValueFromIx(move.DstIx);
 
             _parent = parent;
 
@@ -209,17 +254,29 @@ namespace Dragonfly.Engine
         private Board(Board parent, Move move, CastlingMove x)
         {
             _pieceBitboards = parent.CopyPieceBitboards();
+            _squares = parent.CopySquares();
 
-            Debug.Assert((_pieceBitboards[PieceBitboardIndex(parent.SideToMove, move.PieceType)] & ValueFromIx(move.SourceIx)) > 0);
+            var rookSrcIx = CastlingTables.GetCastlingRookSrcIx(move.DstIx);
+            var rookDstIx = CastlingTables.GetCastlingRookDstIx(move.DstIx);
+
+            var kingPiece = _squares[move.SourceIx];
+            var rookPiece = _squares[rookSrcIx];
+
+            _squares[move.SourceIx] = Piece.None;
+            _squares[move.DstIx] = kingPiece;
+            _squares[rookSrcIx] = Piece.None;
+            _squares[rookDstIx] = rookPiece;
+
+            Debug.Assert((_pieceBitboards[PieceBitboardIndex(kingPiece)] & ValueFromIx(move.SourceIx)) > 0);
             Debug.Assert((parent.GetOccupied() & ValueFromIx(move.DstIx)) == 0);
             Debug.Assert((parent.GetOccupied() & CastlingTables.GetCastlingEmptySquares(move.DstIx)) == 0);
-            Debug.Assert((_pieceBitboards[PieceBitboardIndex(parent.SideToMove, PieceType.Rook)] & CastlingTables.GetCastlingRookSrcValue(move.DstIx)) > 0);
+            Debug.Assert((_pieceBitboards[PieceBitboardIndex(parent.SideToMove, PieceType.Rook)] & ValueFromIx(rookSrcIx)) > 0);
 
-            _pieceBitboards[PieceBitboardIndex(parent.SideToMove, move.PieceType)] &= ~ValueFromIx(move.SourceIx);
-            _pieceBitboards[PieceBitboardIndex(parent.SideToMove, move.PieceType)] |= ValueFromIx(move.DstIx);
+            _pieceBitboards[PieceBitboardIndex(parent.SideToMove, PieceType.King)] &= ~ValueFromIx(move.SourceIx);
+            _pieceBitboards[PieceBitboardIndex(parent.SideToMove, PieceType.King)] |= ValueFromIx(move.DstIx);
 
-            _pieceBitboards[PieceBitboardIndex(parent.SideToMove, PieceType.Rook)] &= ~CastlingTables.GetCastlingRookSrcValue(move.DstIx);
-            _pieceBitboards[PieceBitboardIndex(parent.SideToMove, PieceType.Rook)] |= CastlingTables.GetCastlingRookDstValue(move.DstIx);
+            _pieceBitboards[PieceBitboardIndex(parent.SideToMove, PieceType.Rook)] &= ~ValueFromIx(rookSrcIx);
+            _pieceBitboards[PieceBitboardIndex(parent.SideToMove, PieceType.Rook)] |= ValueFromIx(rookDstIx);
 
             _parent = parent;
 
@@ -282,6 +339,24 @@ namespace Dragonfly.Engine
             return 1;
         }
 
+        public void AssertBitboardsMatchSquares()
+        {
+            for (int ix = 0; ix < 64; ix++)
+            {
+                var piece = _squares[ix];
+                if (piece.PieceType == PieceType.None)
+                {
+                    if ((GetOccupied() & ValueFromIx(ix)) > 0)
+                        throw new Exception("Bitboards do not match squares");
+                }
+                else
+                {
+                    if ((GetPieceBitboard(piece.Color, piece.PieceType) & ValueFromIx(ix)) == 0)
+                        throw new Exception("Bitboards do not match squares");
+                }
+            }
+        }
+
         #endregion FromMoves
 
         public override string ToString()
@@ -292,8 +367,20 @@ namespace Dragonfly.Engine
         private ulong[] CopyPieceBitboards()
         {
             var ret = new ulong[12];
+
+            // this is cheaper than array.copy for some reason
             for (int i = 0; i < 12; i++)
                 ret[i] = _pieceBitboards[i];
+
+            return ret;
+        }
+
+        private Piece[] CopySquares()
+        {
+            var ret = new Piece[64];
+
+            // this is cheaper than naive copy for some reason
+            Array.Copy(_squares, ret, 64);
 
             return ret;
         }
@@ -354,30 +441,14 @@ namespace Dragonfly.Engine
             return _inCheckBlack.Value;
         }
 
-        public (PieceType pieceType, Color color) GetPieceTypeColor(int ix)
+        public Piece GetPiece(int ix)
         {
-            var value = ValueFromIx(ix);
-            foreach (var color in new[] { Color.White, Color.Black })
-            {
-                if ((value & GetOccupied(color)) == 0)
-                    continue;
-
-                // if we make it here, it's definitely one of these pieces
-                for (PieceType pieceType = 0; pieceType < PieceType.Count; pieceType = pieceType + 1)
-                {
-                    if ((value & GetPieceBitboard(color, pieceType)) > 0)
-                        return (pieceType, color);
-                }
-                throw new Exception();
-            }
-
-            return (PieceType.None, Color.White);
+            return _squares[ix];
         }
 
         public PieceType GetPieceType(int ix)
         {
-            var (pieceType, _) = GetPieceTypeColor(ix);
-            return pieceType;
+            return GetPiece(ix).PieceType;
         }
 
         // Note that this doesn't check if a pawn can be taken en passant
@@ -422,6 +493,11 @@ namespace Dragonfly.Engine
         public static int PieceBitboardIndex(Color color, PieceType pieceType)
         {
             return ((int) color * 6) + (int) pieceType;
+        }
+
+        public static int PieceBitboardIndex(Piece piece)
+        {
+            return PieceBitboardIndex(piece.Color, piece.PieceType);
         }
 
         public static int IxFromFileRank(int file, int rank)

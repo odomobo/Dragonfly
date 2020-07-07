@@ -81,7 +81,7 @@ namespace Dragonfly.Engine
             return hash;
         }
 
-        // This is a very simple approach; a more efficient approach might be to use what we know about the move, instead of just checking every diff
+        // This is a very naive approach; a more efficient approach might be to use what we know about the move, instead of just checking every diff
         public static ulong CalculateHashDiff(Board oldBoard, Board newBoard)
         {
             ulong hash = 0;

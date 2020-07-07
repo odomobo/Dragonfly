@@ -16,17 +16,16 @@ namespace Dragonfly.Engine
 
     public class Move
     {
-        // Note that we could easily compact this to 2 bytes, and then change Move into a readonly struct
+        // Note that we could easily compact this to 4 bytes, and then change Move into a readonly struct
         public readonly MoveType MoveType;
-        public readonly PieceType PieceType;
         public readonly int SourceIx;
         public readonly int DstIx;
         public readonly PieceType PromotionPiece;
 
+        // TODO: remove pieceType fro params
         public Move(MoveType moveType, PieceType pieceType, int sourceIx, int dstIx, PieceType promotionPiece = PieceType.None)
         {
             MoveType = moveType;
-            PieceType = pieceType;
             SourceIx = sourceIx;
             DstIx = dstIx;
             PromotionPiece = promotionPiece;
