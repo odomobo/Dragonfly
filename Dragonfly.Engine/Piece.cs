@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using System.Text;
 
 namespace Dragonfly.Engine
@@ -9,24 +10,30 @@ namespace Dragonfly.Engine
     {
         public static readonly Piece None = new Piece(Color.White, PieceType.None);
 
-        // TODO: should this be a byte?
-        private readonly byte _data;
+        // this is sbyte so piece square array can be small
+        private readonly sbyte _data;
 
         public Color Color => (Color) (_data >> 3);
         public PieceType PieceType => (PieceType) (_data & 0b0111);
         
         public Piece(Color color, PieceType pieceType)
         {
-            _data = (byte) (((int) color << 3) | (int) pieceType);
+            _data = (sbyte) (((int) color << 3) | (int) pieceType);
         }
 
-        private Piece(byte data)
+        private Piece(sbyte data)
         {
             _data = data;
         }
 
         public static explicit operator int(Piece piece) => piece._data;
-        public static explicit operator Piece(int data) => new Piece((byte) data);
+        public static explicit operator Piece(int data) => new Piece((sbyte) data);
+
+        public void Deconstruct(out Color color, out PieceType pieceType)
+        {
+            color = Color;
+            pieceType = PieceType;
+        }
 
         public static bool operator ==(Piece p1, Piece p2)
         {
@@ -35,13 +42,22 @@ namespace Dragonfly.Engine
 
         public static bool operator !=(Piece p1, Piece p2)
         {
-            return !(p1 == p2);
+            return p1._data != p2._data;
         }
 
-        public void Deconstruct(out Color color, out PieceType pieceType)
+        public bool Equals(Piece other)
         {
-            color = Color;
-            pieceType = PieceType;
+            return _data == other._data;
+        }
+
+        public override bool Equals(object? obj)
+        {
+            return obj is Piece other && Equals(other);
+        }
+
+        public override int GetHashCode()
+        {
+            return _data.GetHashCode();
         }
     }
 }
