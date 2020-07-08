@@ -28,6 +28,15 @@ namespace Dragonfly.Engine
         public static explicit operator int(Piece piece) => piece._data;
         public static explicit operator Piece(int data) => new Piece((byte) data);
 
+        public static bool operator ==(Piece p1, Piece p2)
+        {
+            return p1._data == p2._data;
+        }
+
+        public static bool operator !=(Piece p1, Piece p2)
+        {
+            return !(p1 == p2);
+        }
 
         public void Deconstruct(out Color color, out PieceType pieceType)
         {
