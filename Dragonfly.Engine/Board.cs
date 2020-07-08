@@ -127,6 +127,7 @@ namespace Dragonfly.Engine
         {
             _pieceBitboards = parent.CopyPieceBitboards();
             _squares = parent.CopySquares();
+            ZobristHash = parent.ZobristHash;
 
             var pieceType = MovePiece(move.SourceIx, move.DstIx);
             
@@ -139,6 +140,7 @@ namespace Dragonfly.Engine
         {
             _pieceBitboards = parent.CopyPieceBitboards();
             _squares = parent.CopySquares();
+            ZobristHash = parent.ZobristHash;
 
             RemovePiece(move.DstIx);
             MovePiece(move.SourceIx, move.DstIx);
@@ -152,6 +154,7 @@ namespace Dragonfly.Engine
         {
             _pieceBitboards = parent.CopyPieceBitboards();
             _squares = parent.CopySquares();
+            ZobristHash = parent.ZobristHash;
 
             MovePiece(move.SourceIx, move.DstIx, parent.SideToMove, PieceType.Pawn);
 
@@ -164,6 +167,7 @@ namespace Dragonfly.Engine
         {
             _pieceBitboards = parent.CopyPieceBitboards();
             _squares = parent.CopySquares();
+            ZobristHash = parent.ZobristHash;
 
             var (srcFile, srcRank) = FileRankFromIx(move.SourceIx);
             var (dstFile, dstRank) = FileRankFromIx(move.DstIx);
@@ -181,6 +185,7 @@ namespace Dragonfly.Engine
         {
             _pieceBitboards = parent.CopyPieceBitboards();
             _squares = parent.CopySquares();
+            ZobristHash = parent.ZobristHash;
 
             RemovePiece(move.SourceIx, parent.SideToMove, PieceType.Pawn);
             AddPiece(move.DstIx, parent.SideToMove, move.PromotionPiece);
@@ -194,6 +199,7 @@ namespace Dragonfly.Engine
         {
             _pieceBitboards = parent.CopyPieceBitboards();
             _squares = parent.CopySquares();
+            ZobristHash = parent.ZobristHash;
 
             RemovePiece(move.SourceIx, parent.SideToMove, PieceType.Pawn);
             RemovePiece(move.DstIx);
@@ -208,6 +214,7 @@ namespace Dragonfly.Engine
         {
             _pieceBitboards = parent.CopyPieceBitboards();
             _squares = parent.CopySquares();
+            ZobristHash = parent.ZobristHash;
 
             var rookSrcIx = CastlingTables.GetCastlingRookSrcIx(move.DstIx);
             var rookDstIx = CastlingTables.GetCastlingRookDstIx(move.DstIx);
@@ -240,7 +247,7 @@ namespace Dragonfly.Engine
             GamePly = _parent.GamePly + 1;
             _historyPly = _parent._historyPly + 1;
 
-            ZobristHash = _parent.ZobristHash ^ ZobristHashing.CalculateHashDiff(_parent, this);
+            ZobristHash ^= ZobristHashing.OtherHashDiff(_parent, this);
             RepetitionNumber = CalculateRepetitionNumber(this);
         }
 
@@ -250,7 +257,7 @@ namespace Dragonfly.Engine
             _pieceBitboards[PieceBitboardIndex(color, pieceType)] |= ValueFromIx(ix);
             _squares[ix] = new Piece(color, pieceType);
             
-            // TODO: zobrist hash update
+            ZobristHash ^= ZobristHashing.CalculatePieceBitboardHashDiff(ValueFromIx(ix), color, pieceType);
             // TODO: material hash update
             // TODO: pawn hash update
         }
@@ -261,7 +268,7 @@ namespace Dragonfly.Engine
             _pieceBitboards[PieceBitboardIndex(color, pieceType)] &= ~ValueFromIx(ix);
             _squares[ix] = Piece.None;
 
-            // TODO: zobrist hash update
+            ZobristHash ^= ZobristHashing.CalculatePieceBitboardHashDiff(ValueFromIx(ix), color, pieceType);
             // TODO: material hash update
             // TODO: pawn hash update
         }
@@ -275,7 +282,10 @@ namespace Dragonfly.Engine
             _squares[srcIx] = Piece.None;
             _squares[dstIx] = new Piece(color, pieceType);
 
-            // TODO: zobrist hash update
+            ZobristHash ^= ZobristHashing.CalculatePieceBitboardHashDiff(
+                ValueFromIx(srcIx) | ValueFromIx(dstIx),
+                color,
+                pieceType);
             // No material hash update needed
             // TODO: pawn hash update
         }

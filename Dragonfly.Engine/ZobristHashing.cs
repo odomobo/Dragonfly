@@ -81,22 +81,22 @@ namespace Dragonfly.Engine
             return hash;
         }
 
-        // This is a very naive approach; a more efficient approach might be to use what we know about the move, instead of just checking every diff
-        public static ulong CalculateHashDiff(Board oldBoard, Board newBoard)
+        // TODO: rename?
+        public static ulong CalculatePieceBitboardHashDiff(ulong pieces, Color color, PieceType pieceType)
         {
             ulong hash = 0;
-            for (Color color = 0; (int)color < 2; color++)
+            while (Bits.TryPopLsb(ref pieces, out var pieceIx))
             {
-                for (PieceType pieceType = 0; pieceType < PieceType.Count; pieceType++)
-                {
-                    var pieces = oldBoard.GetPieceBitboard(color, pieceType) ^ newBoard.GetPieceBitboard(color, pieceType);
-                    while (Bits.TryPopLsb(ref pieces, out var pieceIx))
-                    {
-                        hash ^= GetPieceHash(color, pieceType, pieceIx);
-                    }
-                }
+                hash ^= GetPieceHash(color, pieceType, pieceIx);
             }
 
+            return hash;
+        }
+
+        // TODO: rename to something better
+        public static ulong OtherHashDiff(Board oldBoard, Board newBoard)
+        {
+            ulong hash = 0;
             var castlingRights = oldBoard.CastlingRights ^ newBoard.CastlingRights;
             while (Bits.TryPopLsb(ref castlingRights, out var castlingRightIx))
             {
