@@ -26,8 +26,7 @@ namespace Dragonfly.Engine
         public int DstIx => (int)_dstIx;
         public PieceType PromotionPiece => (PieceType)_promotionPiece;
 
-        // TODO: remove pieceType for params
-        public Move(MoveType moveType, PieceType pieceType, int sourceIx, int dstIx, PieceType promotionPiece = PieceType.None)
+        public Move(MoveType moveType, int sourceIx, int dstIx, PieceType promotionPiece = PieceType.None)
         {
             _moveType = (byte)moveType;
             _sourceIx = (sbyte)sourceIx;
