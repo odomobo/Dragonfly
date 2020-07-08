@@ -219,7 +219,7 @@ namespace Dragonfly.Engine
                 // if a pseudolegal move generator, then we need to make sure that the move we're attempting is even legal
                 if (!moveGen.OnlyLegalMoves)
                 {
-                    var testingBoard = b.DoMove(tmpMove);
+                    var testingBoard = Board.MakeMove(new Board(), tmpMove, b);
 
                     // if we moved into check, clearly it was an invalid move
                     if (testingBoard.InCheck(testingBoard.SideToMove.Other()))

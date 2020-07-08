@@ -22,7 +22,7 @@ namespace Dragonfly.Engine
         private ulong _occupied;
         private bool? _inCheckWhite;
         private bool? _inCheckBlack;
-        private readonly Board? _parent;
+        private Board? _parent;
 
         public Color SideToMove { get; private set; }
         public ulong EnPassant { get; private set; }
@@ -64,6 +64,9 @@ namespace Dragonfly.Engine
             ZobristHash = ZobristHashing.CalculateFullHash(this);
         }
 
+        public Board()
+        {}
+
         private static void PopulatePieceBitboardsFromSquares(ref BitboardArray pieceBitboards, Piece[] squares)
         {
             for (int i = 0; i < pieceBitboards.Length; i++)
@@ -88,167 +91,110 @@ namespace Dragonfly.Engine
                 return (fullMove - 1) * 2 + 1;
         }
 
-        #region DoMove and its constructors
+        #region MakeMove and its helpers
 
-        // used to select appropriate constructors
-        private struct NormalQuietMove{}
-        private struct NormalCaptureMove{}
-        private struct DoublePawnMove{}
-        private struct EnPassantMove{}
-        private struct PromotionQuietMove{}
-        private struct PromotionCaptureMove{}
-        private struct CastlingMove{}
-
-        public Board DoMove(Move move)
+        public static Board MakeMove(Board shell, Move move, Board parent)
         {
-            var parent = this;
+            // copy data which doesn't depend on performing the move
+            shell._pieceBitboards = parent.CopyPieceBitboards();
+            shell._squares = parent.CopySquares();
+            shell.ZobristHash = parent.ZobristHash;
+            shell._parent = parent;
+            shell._inCheckWhite = null;
+            shell._inCheckBlack = null;
+            shell.SideToMove = parent.SideToMove.Other();
+            shell.EnPassant = 0; // this gets set for double moves
+            shell.FiftyMoveCounter = CalculateFiftyMoveCounter(parent, move);
+            shell.GamePly = parent.GamePly + 1;
+            shell._historyPly = parent._historyPly + 1;
+
             switch (move.MoveType)
             {
                 case MoveType.Normal | MoveType.Quiet:
-                    return new Board(parent, move, new NormalQuietMove());
+                    shell.MakeNormalQuietMove(move);
+                    break;
                 case MoveType.Normal | MoveType.Capture:
-                    return new Board(parent, move, new NormalCaptureMove());
+                    shell.MakeNormalCaptureMove(move);
+                    break;
                 case MoveType.DoubleMove | MoveType.Quiet:
-                    return new Board(parent, move, new DoublePawnMove());
+                    shell.MakeDoublePawnMove(move);
+                    break;
                 case MoveType.EnPassant | MoveType.Capture:
-                    return new Board(parent, move, new EnPassantMove());
+                    shell.MakeEnPassantMove(move);
+                    break;
                 case MoveType.Promotion | MoveType.Quiet:
-                    return new Board(parent, move, new PromotionQuietMove());
+                    shell.MakePromotionQuietMove(move);
+                    break;
                 case MoveType.Promotion | MoveType.Capture:
-                    return new Board(parent, move, new PromotionCaptureMove());
+                    shell.MakePromotionCaptureMove(move);
+                    break;
                 case MoveType.Castling | MoveType.Quiet:
-                    return new Board(parent, move, new CastlingMove());
+                    shell.MakeCastlingMove(move);
+                    break;
                 default:
                     throw new Exception($"Invalid move type: {move.MoveType}");
             }
+
+            shell.CastlingRights = parent.CastlingRights & CastlingTables.GetCastlingUpdateMask(move);
+            shell._occupiedWhite = shell.CalculateOccupied(Color.White);
+            shell._occupiedBlack = shell.CalculateOccupied(Color.Black);
+            shell._occupied = shell._occupiedWhite | shell._occupiedBlack;
+            shell.ZobristHash ^= ZobristHashing.OtherHashDiff(parent, shell);
+            shell.RepetitionNumber = CalculateRepetitionNumber(shell);
+
+            return shell;
         }
 
-        private Board(Board parent, Move move, NormalQuietMove x)
+        private Color SideMoving => SideToMove.Other();
+
+        private void MakeNormalQuietMove(Move move)
         {
-            _pieceBitboards = parent.CopyPieceBitboards();
-            _squares = parent.CopySquares();
-            ZobristHash = parent.ZobristHash;
-
-            var pieceType = MovePiece(move.SourceIx, move.DstIx);
-            
-            _parent = parent;
-
-            SetBoardData(move, 0, pieceType == PieceType.Pawn);
+            MovePiece(move.SourceIx, move.DstIx);
         }
 
-        private Board(Board parent, Move move, NormalCaptureMove x)
+        private void MakeNormalCaptureMove(Move move)
         {
-            _pieceBitboards = parent.CopyPieceBitboards();
-            _squares = parent.CopySquares();
-            ZobristHash = parent.ZobristHash;
-
             RemovePiece(move.DstIx);
             MovePiece(move.SourceIx, move.DstIx);
-
-            _parent = parent;
-
-            SetBoardData(move, 0, true);
         }
 
-        private Board(Board parent, Move move, DoublePawnMove x)
+        private void MakeDoublePawnMove(Move move)
         {
-            _pieceBitboards = parent.CopyPieceBitboards();
-            _squares = parent.CopySquares();
-            ZobristHash = parent.ZobristHash;
+            MovePiece(move.SourceIx, move.DstIx, SideMoving, PieceType.Pawn);
 
-            MovePiece(move.SourceIx, move.DstIx, parent.SideToMove, PieceType.Pawn);
-
-            _parent = parent;
-
-            SetBoardData(move, ValueFromIx((move.SourceIx + move.DstIx) / 2), true);
+            EnPassant = ValueFromIx((move.SourceIx + move.DstIx) / 2);
         }
 
-        private Board(Board parent, Move move, EnPassantMove x)
+        private void MakeEnPassantMove(Move move)
         {
-            _pieceBitboards = parent.CopyPieceBitboards();
-            _squares = parent.CopySquares();
-            ZobristHash = parent.ZobristHash;
-
             var (srcFile, srcRank) = FileRankFromIx(move.SourceIx);
             var (dstFile, dstRank) = FileRankFromIx(move.DstIx);
             var capturedPawnIx = IxFromFileRank(dstFile, srcRank);
 
-            RemovePiece(capturedPawnIx, parent.SideToMove.Other(), PieceType.Pawn);
-            MovePiece(move.SourceIx, move.DstIx, parent.SideToMove, PieceType.Pawn);
-            
-            _parent = parent;
-
-            SetBoardData(move, 0, true);
+            RemovePiece(capturedPawnIx, SideMoving.Other(), PieceType.Pawn);
+            MovePiece(move.SourceIx, move.DstIx, SideMoving, PieceType.Pawn);
         }
 
-        private Board(Board parent, Move move, PromotionQuietMove x)
+        private void MakePromotionQuietMove(Move move)
         {
-            _pieceBitboards = parent.CopyPieceBitboards();
-            _squares = parent.CopySquares();
-            ZobristHash = parent.ZobristHash;
-
-            RemovePiece(move.SourceIx, parent.SideToMove, PieceType.Pawn);
-            AddPiece(move.DstIx, parent.SideToMove, move.PromotionPiece);
-            
-            _parent = parent;
-
-            SetBoardData(move, 0, true);
+            RemovePiece(move.SourceIx, SideMoving, PieceType.Pawn);
+            AddPiece(move.DstIx, SideMoving, move.PromotionPiece);
         }
 
-        private Board(Board parent, Move move, PromotionCaptureMove x)
+        private void MakePromotionCaptureMove(Move move)
         {
-            _pieceBitboards = parent.CopyPieceBitboards();
-            _squares = parent.CopySquares();
-            ZobristHash = parent.ZobristHash;
-
-            RemovePiece(move.SourceIx, parent.SideToMove, PieceType.Pawn);
+            RemovePiece(move.SourceIx, SideMoving, PieceType.Pawn);
             RemovePiece(move.DstIx);
-            AddPiece(move.DstIx, parent.SideToMove, move.PromotionPiece);
-            
-            _parent = parent;
-
-            SetBoardData(move, 0, true);
+            AddPiece(move.DstIx, SideMoving, move.PromotionPiece);
         }
 
-        private Board(Board parent, Move move, CastlingMove x)
+        private void MakeCastlingMove(Move move)
         {
-            _pieceBitboards = parent.CopyPieceBitboards();
-            _squares = parent.CopySquares();
-            ZobristHash = parent.ZobristHash;
-
             var rookSrcIx = CastlingTables.GetCastlingRookSrcIx(move.DstIx);
             var rookDstIx = CastlingTables.GetCastlingRookDstIx(move.DstIx);
 
-            MovePiece(move.SourceIx, move.DstIx, parent.SideToMove, PieceType.King);
-            MovePiece(rookSrcIx, rookDstIx, parent.SideToMove, PieceType.Rook);
-
-            _parent = parent;
-
-            SetBoardData(move, 0, false);
-        }
-
-        /// <summary>
-        /// This should only be called from DoMove board constructors
-        /// </summary>
-        /// <param name="move"></param>
-        /// <param name="enPassant"></param>
-        /// <param name="captureOrPawnMove"></param>
-        private void SetBoardData(Move move, ulong enPassant, bool captureOrPawnMove)
-        {
-            _occupiedWhite = CalculateOccupied(Color.White);
-            _occupiedBlack = CalculateOccupied(Color.Black);
-            _occupied = _occupiedWhite | _occupiedBlack;
-
-            // this can only be called if parent isn't null
-            SideToMove = _parent!.SideToMove.Other();
-            EnPassant = enPassant;
-            CastlingRights = _parent.CastlingRights & CastlingTables.GetCastlingUpdateMask(move);
-            FiftyMoveCounter = CalculateFiftyMoveCounter(_parent, captureOrPawnMove);
-            GamePly = _parent.GamePly + 1;
-            _historyPly = _parent._historyPly + 1;
-
-            ZobristHash ^= ZobristHashing.OtherHashDiff(_parent, this);
-            RepetitionNumber = CalculateRepetitionNumber(this);
+            MovePiece(move.SourceIx, move.DstIx, SideMoving, PieceType.King);
+            MovePiece(rookSrcIx, rookDstIx, SideMoving, PieceType.Rook);
         }
 
         private void AddPiece(int ix, Color color, PieceType pieceType)
@@ -290,31 +236,35 @@ namespace Dragonfly.Engine
             // TODO: pawn hash update
         }
 
-        private PieceType RemovePiece(int ix)
+        private void RemovePiece(int ix)
         {
             var piece = _squares[ix];
             Debug.Assert(piece.PieceType != PieceType.None);
             RemovePiece(ix, piece.Color, piece.PieceType);
-            return piece.PieceType;
         }
 
-        private PieceType MovePiece(int srcIx, int dstIx)
+        private void MovePiece(int srcIx, int dstIx)
         {
             var piece = _squares[srcIx];
             Debug.Assert(piece.PieceType != PieceType.None);
             MovePiece(srcIx, dstIx, piece.Color, piece.PieceType);
-            return piece.PieceType;
         }
 
-        private static int CalculateFiftyMoveCounter(Board parent, bool captureOrPawnMove)
+        private static int CalculateFiftyMoveCounter(Board parent, Move move)
         {
-            int fiftyMoveCounter;
-            if (captureOrPawnMove)
-                fiftyMoveCounter = 0;
+            if (
+                move.MoveType.HasFlag(MoveType.Capture) ||
+                move.MoveType.HasFlag(MoveType.DoubleMove) ||
+                move.MoveType.HasFlag(MoveType.Promotion) ||
+                parent._squares[move.SourceIx].PieceType == PieceType.Pawn
+            )
+            {
+                return 0;
+            }
             else
-                fiftyMoveCounter = parent.FiftyMoveCounter + 1;
-
-            return fiftyMoveCounter;
+            {
+                return parent.FiftyMoveCounter + 1;
+            }
         }
 
         // TODO: default to 2 for repetition count when the board we're calculating for is within search

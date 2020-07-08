@@ -86,7 +86,7 @@ namespace Dragonfly.Engine
 
             foreach (var move in moves)
             {
-                var nextBoard = b.DoMove(move);
+                var nextBoard = Board.MakeMove(new Board(), move, b);
                 
                 // check move legality if using a pseudolegal move generator
                 if (!_moveGen.OnlyLegalMoves && nextBoard.InCheck(nextBoard.SideToMove.Other()))

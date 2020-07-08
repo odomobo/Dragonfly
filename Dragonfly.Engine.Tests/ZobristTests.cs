@@ -37,7 +37,8 @@ namespace Dragonfly.Engine.Tests
 
             foreach (var move in moves)
             {
-                var updatedBoard = board.DoMove(move);
+                var updatedBoard = Board.MakeMove(new Board(), move, board);
+
                 if (!_moveGen.OnlyLegalMoves && updatedBoard.InCheck(updatedBoard.SideToMove.Other()))
                     continue;
                 

@@ -17,7 +17,7 @@ namespace Dragonfly
         {
             PerformanceTesting(OpeningFen, 5, TimeSpan.FromSeconds(10));
             //IncrementalPerft(KiwipeteFen, 7);
-            //DivideTesting("r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1", 4, "a2a4");
+            //DivideTesting("r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1", 5, "a1b1", "h3g2", "a2a3", "g2h1q");
         }
 
         private static void PerformanceTesting(string fen, int perftDepth, TimeSpan timespan)
@@ -74,15 +74,15 @@ namespace Dragonfly
 
             var moveGen = new MoveGen();
             var perft = new Perft(moveGen);
-            GoDivide(moveGen, perft, board, depth--);
-
+            
             foreach (var moveStr in moves)
             {
                 Move move = BoardParsing.GetMoveFromCoordinateString(moveGen, board, moveStr);
-                board = board.DoMove(move);
+                board = Board.MakeMove(new Board(), move, board);
                 Debugging.Dump(board);
-                GoDivide(moveGen, perft, board, depth--);
             }
+
+            GoDivide(moveGen, perft, board, depth - moves.Length);
         }
 
         private static void GoDivide(MoveGen moveGen, Perft perft, Board board, int depth)
@@ -106,7 +106,7 @@ namespace Dragonfly
 
             foreach (var (moveStr, move) in movesDict)
             {
-                var nextBoard = board.DoMove(move);
+                var nextBoard = Board.MakeMove(new Board(), move, board);
 
                 // check move legality if using a pseudolegal move generator
                 if (!moveGen.OnlyLegalMoves && nextBoard.InCheck(nextBoard.SideToMove.Other()))
