@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
-using Dragonfly.Engine.MoveGens;
+using Dragonfly.Engine.CoreTypes;
+using Dragonfly.Engine.MoveGeneration;
+using Dragonfly.Engine.MoveGeneration.Tables;
 
 namespace Dragonfly.Engine
 {
@@ -41,7 +43,7 @@ namespace Dragonfly.Engine
                 sb.Append($"  {rank + 1}|");
                 for (int file = 0; file < 8; file++)
                 {
-                    bool occupied = (Board.ValueFromFileRank(file, rank) & bb) > 0;
+                    bool occupied = (Position.ValueFromFileRank(file, rank) & bb) > 0;
                     sb.Append(occupied ? 'X' : '.');
                     if (file < 7)
                         sb.Append(" ");
@@ -114,7 +116,7 @@ namespace Dragonfly.Engine
          *     A B C D E F G H 
          *
          */
-        private static string BoardToStr(Board b, bool unicode = false)
+        private static string BoardToStr(Position b, bool unicode = false)
         {
             StringBuilder sb = new StringBuilder();
             sb.AppendLine("   +---------------+");
@@ -123,7 +125,7 @@ namespace Dragonfly.Engine
                 sb.Append($"  {rank + 1}|");
                 for (int file = 0; file < 8; file++)
                 {
-                    var (color, pieceType) = b.GetPiece(Board.IxFromFileRank(file, rank));
+                    var (color, pieceType) = b.GetPiece(Position.IxFromFileRank(file, rank));
                     char pieceDisplay = '.';
                     if (pieceType != PieceType.None)
                     {
@@ -147,16 +149,16 @@ namespace Dragonfly.Engine
             return sb.ToString();
         }
 
-        public static void Dump(Board board, bool unicode = false)
+        public static void Dump(Position position, bool unicode = false)
         {
-            Dump(BoardToStr(board, unicode));
+            Dump(BoardToStr(position, unicode));
 
             Dump("");
-            string enPassant = BoardParsing.SquareStrFromValue(board.EnPassant);
-            string castling = BoardParsing.CastlingStrFromValue(board.CastlingRights);
-            Dump($"Side to move: {board.SideToMove}; Move#: {board.FullMove}; Castling: {castling}; En Passant: {enPassant}; 50 move counter: {board.FiftyMoveCounter}");
-            Dump($"Zobrist hash: 0x{board.ZobristHash:X16}");
-            Dump(BoardParsing.FenStringFromBoard(board));
+            string enPassant = BoardParsing.SquareStrFromValue(position.EnPassant);
+            string castling = BoardParsing.CastlingStrFromValue(position.CastlingRights);
+            Dump($"Side to move: {position.SideToMove}; Move#: {position.FullMove}; Castling: {castling}; En Passant: {enPassant}; 50 move counter: {position.FiftyMoveCounter}");
+            Dump($"Zobrist hash: 0x{position.ZobristHash:X16}");
+            Dump(BoardParsing.FenStringFromBoard(position));
         }
 
         public static void DumpMagics()

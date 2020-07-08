@@ -1,8 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
+using Dragonfly.Engine.CoreTypes;
 
-namespace Dragonfly.Engine.MoveGens
+namespace Dragonfly.Engine.MoveGeneration.Tables
 {
     public static class CastlingTables
     {
@@ -12,35 +11,35 @@ namespace Dragonfly.Engine.MoveGens
         private static readonly ulong[] CastlingAttacks;
         private static readonly ulong[] CastlingEmptySquares;
 
-        private static readonly int WhiteKingIx = Board.IxFromFileRank(4, 0);
-        private static readonly int WhiteKingsideRookIx = Board.IxFromFileRank(7, 0);
-        private static readonly int WhiteKingsideDstIx = Board.IxFromFileRank(6, 0);
-        private static readonly int WhiteKingsideRookDstIx = Board.IxFromFileRank(5, 0);
-        public static readonly ulong WhiteKingsideDst = Board.ValueFromFileRank(6, 0);
-        private static readonly ulong WhiteKingsideAttacks = Board.ValueFromFileRank(5, 0);
-        private static readonly ulong WhiteKingsideEmptySquares = Board.ValueFromFileRank(5, 0) | Board.ValueFromFileRank(6, 0);
+        private static readonly int WhiteKingIx = Position.IxFromFileRank(4, 0);
+        private static readonly int WhiteKingsideRookIx = Position.IxFromFileRank(7, 0);
+        private static readonly int WhiteKingsideDstIx = Position.IxFromFileRank(6, 0);
+        private static readonly int WhiteKingsideRookDstIx = Position.IxFromFileRank(5, 0);
+        public static readonly ulong WhiteKingsideDst = Position.ValueFromFileRank(6, 0);
+        private static readonly ulong WhiteKingsideAttacks = Position.ValueFromFileRank(5, 0);
+        private static readonly ulong WhiteKingsideEmptySquares = Position.ValueFromFileRank(5, 0) | Position.ValueFromFileRank(6, 0);
 
-        private static readonly int WhiteQueensideRookIx = Board.IxFromFileRank(0, 0);
-        private static readonly int WhiteQueensideDstIx = Board.IxFromFileRank(2, 0);
-        private static readonly int WhiteQueensideRookDstIx = Board.IxFromFileRank(3, 0);
-        public static readonly ulong WhiteQueensideDst = Board.ValueFromFileRank(2, 0);
-        private static readonly ulong WhiteQueensideAttacks = Board.ValueFromFileRank(3, 0);
-        private static readonly ulong WhiteQueensideEmptySquares = Board.ValueFromFileRank(3, 0) | Board.ValueFromFileRank(2, 0) | Board.ValueFromFileRank(1, 0);
+        private static readonly int WhiteQueensideRookIx = Position.IxFromFileRank(0, 0);
+        private static readonly int WhiteQueensideDstIx = Position.IxFromFileRank(2, 0);
+        private static readonly int WhiteQueensideRookDstIx = Position.IxFromFileRank(3, 0);
+        public static readonly ulong WhiteQueensideDst = Position.ValueFromFileRank(2, 0);
+        private static readonly ulong WhiteQueensideAttacks = Position.ValueFromFileRank(3, 0);
+        private static readonly ulong WhiteQueensideEmptySquares = Position.ValueFromFileRank(3, 0) | Position.ValueFromFileRank(2, 0) | Position.ValueFromFileRank(1, 0);
 
-        private static readonly int BlackKingIx = Board.IxFromFileRank(4, 7);
-        private static readonly int BlackKingsideRookIx = Board.IxFromFileRank(7, 7);
-        private static readonly int BlackKingsideDstIx = Board.IxFromFileRank(6, 7);
-        private static readonly int BlackKingsideRookDstIx = Board.IxFromFileRank(5, 7);
-        public static readonly ulong BlackKingsideDst = Board.ValueFromFileRank(6, 7);
-        private static readonly ulong BlackKingsideAttacks = Board.ValueFromFileRank(5, 7);
-        private static readonly ulong BlackKingsideEmptySquares = Board.ValueFromFileRank(5, 7) | Board.ValueFromFileRank(6, 7);
+        private static readonly int BlackKingIx = Position.IxFromFileRank(4, 7);
+        private static readonly int BlackKingsideRookIx = Position.IxFromFileRank(7, 7);
+        private static readonly int BlackKingsideDstIx = Position.IxFromFileRank(6, 7);
+        private static readonly int BlackKingsideRookDstIx = Position.IxFromFileRank(5, 7);
+        public static readonly ulong BlackKingsideDst = Position.ValueFromFileRank(6, 7);
+        private static readonly ulong BlackKingsideAttacks = Position.ValueFromFileRank(5, 7);
+        private static readonly ulong BlackKingsideEmptySquares = Position.ValueFromFileRank(5, 7) | Position.ValueFromFileRank(6, 7);
 
-        private static readonly int BlackQueensideRookIx = Board.IxFromFileRank(0, 7);
-        private static readonly int BlackQueensideDstIx = Board.IxFromFileRank(2, 7);
-        private static readonly int BlackQueensideRookDstIx = Board.IxFromFileRank(3, 7);
-        public static readonly ulong BlackQueensideDst = Board.ValueFromFileRank(2, 7);
-        private static readonly ulong BlackQueensideAttacks = Board.ValueFromFileRank(3, 7);
-        private static readonly ulong BlackQueensideEmptySquares = Board.ValueFromFileRank(3, 7) | Board.ValueFromFileRank(2, 7) | Board.ValueFromFileRank(1, 7);
+        private static readonly int BlackQueensideRookIx = Position.IxFromFileRank(0, 7);
+        private static readonly int BlackQueensideDstIx = Position.IxFromFileRank(2, 7);
+        private static readonly int BlackQueensideRookDstIx = Position.IxFromFileRank(3, 7);
+        public static readonly ulong BlackQueensideDst = Position.ValueFromFileRank(2, 7);
+        private static readonly ulong BlackQueensideAttacks = Position.ValueFromFileRank(3, 7);
+        private static readonly ulong BlackQueensideEmptySquares = Position.ValueFromFileRank(3, 7) | Position.ValueFromFileRank(2, 7) | Position.ValueFromFileRank(1, 7);
 
         static CastlingTables()
         {
@@ -130,20 +129,20 @@ namespace Dragonfly.Engine.MoveGens
         private static ulong[] GenerateCastlingRookSrc()
         {
             var ret = new ulong[64];
-            ret[WhiteKingsideDstIx] = Board.ValueFromIx(WhiteKingsideRookIx);
-            ret[WhiteQueensideDstIx] = Board.ValueFromIx(WhiteQueensideRookIx);
-            ret[BlackKingsideDstIx] = Board.ValueFromIx(BlackKingsideRookIx);
-            ret[BlackQueensideDstIx] = Board.ValueFromIx(BlackQueensideRookIx);
+            ret[WhiteKingsideDstIx] = Position.ValueFromIx(WhiteKingsideRookIx);
+            ret[WhiteQueensideDstIx] = Position.ValueFromIx(WhiteQueensideRookIx);
+            ret[BlackKingsideDstIx] = Position.ValueFromIx(BlackKingsideRookIx);
+            ret[BlackQueensideDstIx] = Position.ValueFromIx(BlackQueensideRookIx);
             return ret;
         }
 
         private static ulong[] GenerateCastlingRookDst()
         {
             var ret = new ulong[64];
-            ret[WhiteKingsideDstIx] = Board.ValueFromIx(WhiteKingsideRookDstIx);
-            ret[WhiteQueensideDstIx] = Board.ValueFromIx(WhiteQueensideRookDstIx);
-            ret[BlackKingsideDstIx] = Board.ValueFromIx(BlackKingsideRookDstIx);
-            ret[BlackQueensideDstIx] = Board.ValueFromIx(BlackQueensideRookDstIx);
+            ret[WhiteKingsideDstIx] = Position.ValueFromIx(WhiteKingsideRookDstIx);
+            ret[WhiteQueensideDstIx] = Position.ValueFromIx(WhiteQueensideRookDstIx);
+            ret[BlackKingsideDstIx] = Position.ValueFromIx(BlackKingsideRookDstIx);
+            ret[BlackQueensideDstIx] = Position.ValueFromIx(BlackQueensideRookDstIx);
             return ret;
         }
 

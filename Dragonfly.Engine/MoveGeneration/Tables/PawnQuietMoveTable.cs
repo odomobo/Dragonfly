@@ -1,8 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using Dragonfly.Engine.CoreTypes;
 
-namespace Dragonfly.Engine.MoveGens
+namespace Dragonfly.Engine.MoveGeneration.Tables
 {
     public static class PawnQuietMoveTable
     {
@@ -29,14 +27,14 @@ namespace Dragonfly.Engine.MoveGens
         {
             ulong[] captures = new ulong[64];
             int direction = color.GetPawnDirection();
-            foreach (var (srcFile, srcRank) in Board.GetAllFilesRanks())
+            foreach (var (srcFile, srcRank) in Position.GetAllFilesRanks())
             {
                 ulong singularCaptures = 0;
                 int dstRank = srcRank + direction;
-                if (Board.FileRankOnBoard(srcFile, dstRank))
-                    singularCaptures |= Board.ValueFromFileRank(srcFile, dstRank);
+                if (Position.FileRankOnBoard(srcFile, dstRank))
+                    singularCaptures |= Position.ValueFromFileRank(srcFile, dstRank);
 
-                captures[Board.IxFromFileRank(srcFile, srcRank)] = singularCaptures;
+                captures[Position.IxFromFileRank(srcFile, srcRank)] = singularCaptures;
             }
 
             return captures;

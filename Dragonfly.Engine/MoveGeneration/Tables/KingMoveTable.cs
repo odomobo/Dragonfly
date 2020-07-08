@@ -1,8 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using Dragonfly.Engine.CoreTypes;
 
-namespace Dragonfly.Engine.MoveGens
+namespace Dragonfly.Engine.MoveGeneration.Tables
 {
     public static class KingMoveTable
     {
@@ -11,7 +9,7 @@ namespace Dragonfly.Engine.MoveGens
         private static ulong[] GenerateKingMovesLookup()
         {
             var kingMovesLookup = new ulong[64];
-            foreach (var (srcFile, srcRank) in Board.GetAllFilesRanks())
+            foreach (var (srcFile, srcRank) in Position.GetAllFilesRanks())
             {
                 ulong srcBb = 0;
                 for (int dstRank = srcRank - 1; dstRank <= srcRank + 1; dstRank++)
@@ -23,15 +21,15 @@ namespace Dragonfly.Engine.MoveGens
                             continue;
 
                         // can't move off board
-                        if (!Board.FileRankOnBoard(dstFile, dstRank))
+                        if (!Position.FileRankOnBoard(dstFile, dstRank))
                             continue;
 
-                        var dstIx = Board.IxFromFileRank(dstFile, dstRank);
-                        srcBb |= Board.ValueFromIx(dstIx);
+                        var dstIx = Position.IxFromFileRank(dstFile, dstRank);
+                        srcBb |= Position.ValueFromIx(dstIx);
                     }
                 }
 
-                var ix = Board.IxFromFileRank(srcFile, srcRank);
+                var ix = Position.IxFromFileRank(srcFile, srcRank);
                 kingMovesLookup[ix] = srcBb;
             }
 

@@ -1,8 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using Dragonfly.Engine.CoreTypes;
 
-namespace Dragonfly.Engine.MoveGens
+namespace Dragonfly.Engine.MoveGeneration.Tables
 {
     public static class KnightMoveTable
     {
@@ -11,7 +9,7 @@ namespace Dragonfly.Engine.MoveGens
         private static ulong[] GenerateKnightMovesLookup()
         {
             var kingMovesLookup = new ulong[64];
-            foreach (var (srcFile, srcRank) in Board.GetAllFilesRanks())
+            foreach (var (srcFile, srcRank) in Position.GetAllFilesRanks())
             {
                 ulong moves = 0;
 
@@ -21,11 +19,11 @@ namespace Dragonfly.Engine.MoveGens
                     for (int dstFile = srcFile - 1; dstFile <= srcFile + 1; dstFile+=2)
                     {
                         // can't move off board
-                        if (!Board.FileRankOnBoard(dstFile, dstRank))
+                        if (!Position.FileRankOnBoard(dstFile, dstRank))
                             continue;
 
-                        var dstIx = Board.IxFromFileRank(dstFile, dstRank);
-                        moves |= Board.ValueFromIx(dstIx);
+                        var dstIx = Position.IxFromFileRank(dstFile, dstRank);
+                        moves |= Position.ValueFromIx(dstIx);
                     }
                 }
 
@@ -35,15 +33,15 @@ namespace Dragonfly.Engine.MoveGens
                     for (int dstFile = srcFile - 2; dstFile <= srcFile + 2; dstFile += 4)
                     {
                         // can't move off board
-                        if (!Board.FileRankOnBoard(dstFile, dstRank))
+                        if (!Position.FileRankOnBoard(dstFile, dstRank))
                             continue;
 
-                        var dstIx = Board.IxFromFileRank(dstFile, dstRank);
-                        moves |= Board.ValueFromIx(dstIx);
+                        var dstIx = Position.IxFromFileRank(dstFile, dstRank);
+                        moves |= Position.ValueFromIx(dstIx);
                     }
                 }
 
-                var ix = Board.IxFromFileRank(srcFile, srcRank);
+                var ix = Position.IxFromFileRank(srcFile, srcRank);
                 kingMovesLookup[ix] = moves;
             }
 

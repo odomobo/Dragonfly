@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using Dragonfly.Engine.CoreTypes;
 using Dragonfly.Engine.Interfaces;
 
 namespace Dragonfly.Engine
@@ -86,7 +87,7 @@ namespace Dragonfly.Engine
             -50,-10,  0,  0,  0,  0,-10,-50,
         };
 
-        public int Evaluate(Board board)
+        public int Evaluate(Position position)
         {
             throw new NotImplementedException();
         }

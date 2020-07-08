@@ -2,9 +2,11 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Dragonfly.Engine.CoreTypes;
 using Dragonfly.Engine.Interfaces;
+using Dragonfly.Engine.MoveGeneration.Tables;
 
-namespace Dragonfly.Engine.MoveGens
+namespace Dragonfly.Engine.MoveGeneration
 {
     public sealed class MoveGen : IMoveGen
     {
@@ -12,49 +14,49 @@ namespace Dragonfly.Engine.MoveGens
 
         public bool OnlyLegalMoves => false;
 
-        public void Generate(List<Move> moves, Board board)
+        public void Generate(List<Move> moves, Position position)
         {
-            GeneratePawnMoves(moves, board, board.GetPieceBitboard(board.SideToMove, PieceType.Pawn));
-            GenerateKnightMoves(moves, board, board.GetPieceBitboard(board.SideToMove, PieceType.Knight));
+            GeneratePawnMoves(moves, position, position.GetPieceBitboard(position.SideToMove, PieceType.Pawn));
+            GenerateKnightMoves(moves, position, position.GetPieceBitboard(position.SideToMove, PieceType.Knight));
             // we can combine generation of queen with bishop and rook moves because when we store moves in the move list, we don't record the piece type which is moving
             GenerateBishopMoves(
                 moves,
-                board,
+                position,
                 PieceType.Bishop,
-                board.GetPieceBitboard(board.SideToMove, PieceType.Bishop)
+                position.GetPieceBitboard(position.SideToMove, PieceType.Bishop)
             );
             GenerateBishopMoves(
                 moves,
-                board,
+                position,
                 PieceType.Queen,
-                board.GetPieceBitboard(board.SideToMove, PieceType.Queen)
+                position.GetPieceBitboard(position.SideToMove, PieceType.Queen)
             );
             GenerateRookMoves(
                 moves, 
-                board, 
+                position, 
                 PieceType.Rook,
-                board.GetPieceBitboard(board.SideToMove, PieceType.Rook)
+                position.GetPieceBitboard(position.SideToMove, PieceType.Rook)
             );
             GenerateRookMoves(
                 moves,
-                board,
+                position,
                 PieceType.Queen,
-                board.GetPieceBitboard(board.SideToMove, PieceType.Queen)
+                position.GetPieceBitboard(position.SideToMove, PieceType.Queen)
             );
             GenerateKingNormalMoves(
                 moves,
-                board,
-                board.GetPieceBitboard(board.SideToMove, PieceType.King)
+                position,
+                position.GetPieceBitboard(position.SideToMove, PieceType.King)
             );
             GenerateKingCastling(
                 moves,
-                board
+                position
             );
         }
 
-        private void GeneratePawnMoves(List<Move> moves, Board board, ulong sourceSquares)
+        private void GeneratePawnMoves(List<Move> moves, Position position, ulong sourceSquares)
         {
-            var color = board.SideToMove;
+            var color = position.SideToMove;
             ulong promotionSourceSquares = sourceSquares & PawnPromotionSourceTable[(int) color];
             ulong nonPromotionSourceSquares = sourceSquares & ~promotionSourceSquares;
 
@@ -63,14 +65,14 @@ namespace Dragonfly.Engine.MoveGens
             {
                 // TODO: separate out normal moves from double moves. Normal moves use normal lookup table, double moves use magic lookup table
                 var quiets = PawnQuietMoveTable.GetMoves(sourceIx, color);
-                quiets &= ~board.GetOccupied();
+                quiets &= ~position.GetOccupied();
 
-                var doubles = PawnDoubleMoveTable.GetMoves(sourceIx, board.GetOccupied(), color);
+                var doubles = PawnDoubleMoveTable.GetMoves(sourceIx, position.GetOccupied(), color);
                 // note: no need to mask double moves; the move table already takes care of that
 
                 var captures = PawnCaptureMoveTable.GetMoves(sourceIx, color);
-                var normalCaptures = captures & board.GetOccupied(color.Other());
-                var enPassantCaptures = captures & board.EnPassant;
+                var normalCaptures = captures & position.GetOccupied(color.Other());
+                var enPassantCaptures = captures & position.EnPassant;
 
                 //foreach (var dstIx in Bits.Enumerate(quiets))
                 while (Bits.TryPopLsb(ref quiets, out var dstIx))
@@ -101,10 +103,10 @@ namespace Dragonfly.Engine.MoveGens
             while (Bits.TryPopLsb(ref promotionSourceSquares, out var sourceIx))
             {
                 var quiets = PawnQuietMoveTable.GetMoves(sourceIx, color);
-                quiets &= ~board.GetOccupied();
+                quiets &= ~position.GetOccupied();
 
                 var captures = PawnCaptureMoveTable.GetMoves(sourceIx, color);
-                captures &= board.GetOccupied(color.Other());
+                captures &= position.GetOccupied(color.Other());
 
                 foreach (var piece in new[] {PieceType.Queen, PieceType.Knight, PieceType.Rook, PieceType.Bishop})
                 {
@@ -125,72 +127,72 @@ namespace Dragonfly.Engine.MoveGens
             }
         }
 
-        private void GenerateKnightMoves(List<Move> moves, Board board, ulong sourceSquares)
+        private void GenerateKnightMoves(List<Move> moves, Position position, ulong sourceSquares)
         {
             //foreach (var sourceIx in Bits.Enumerate(sourceSquares))
             while (Bits.TryPopLsb(ref sourceSquares, out var sourceIx))
             {
                 var dstSquares = KnightMoveTable.GetMoves(sourceIx);
-                dstSquares &= ~board.GetOccupied(board.SideToMove);
+                dstSquares &= ~position.GetOccupied(position.SideToMove);
 
-                GenerateMoves(moves, MoveType.Normal, PieceType.Knight, sourceIx, dstSquares, board.GetOccupied());
+                GenerateMoves(moves, MoveType.Normal, PieceType.Knight, sourceIx, dstSquares, position.GetOccupied());
             }
         }
 
-        private void GenerateBishopMoves(List<Move> moves, Board board, PieceType pieceType, ulong sourceSquares)
+        private void GenerateBishopMoves(List<Move> moves, Position position, PieceType pieceType, ulong sourceSquares)
         {
             //foreach (var sourceIx in Bits.Enumerate(sourceSquares))
             while (Bits.TryPopLsb(ref sourceSquares, out var sourceIx))
             {
-                var dstSquares = BishopMoveTable.GetMoves(sourceIx, board.GetOccupied());
-                dstSquares &= ~board.GetOccupied(board.SideToMove);
+                var dstSquares = BishopMoveTable.GetMoves(sourceIx, position.GetOccupied());
+                dstSquares &= ~position.GetOccupied(position.SideToMove);
 
-                GenerateMoves(moves, MoveType.Normal, pieceType, sourceIx, dstSquares, board.GetOccupied());
+                GenerateMoves(moves, MoveType.Normal, pieceType, sourceIx, dstSquares, position.GetOccupied());
             }
         }
 
-        private void GenerateRookMoves(List<Move> moves, Board board, PieceType pieceType, ulong sourceSquares)
+        private void GenerateRookMoves(List<Move> moves, Position position, PieceType pieceType, ulong sourceSquares)
         {
             //foreach (var sourceIx in Bits.Enumerate(sourceSquares))
             while (Bits.TryPopLsb(ref sourceSquares, out var sourceIx))
             {
-                var dstSquares = RookMoveTable.GetMoves(sourceIx, board.GetOccupied());
-                dstSquares &= ~board.GetOccupied(board.SideToMove);
+                var dstSquares = RookMoveTable.GetMoves(sourceIx, position.GetOccupied());
+                dstSquares &= ~position.GetOccupied(position.SideToMove);
 
-                GenerateMoves(moves, MoveType.Normal, pieceType, sourceIx, dstSquares, board.GetOccupied());
+                GenerateMoves(moves, MoveType.Normal, pieceType, sourceIx, dstSquares, position.GetOccupied());
             }
         }
 
-        private void GenerateKingNormalMoves(List<Move> moves, Board board, ulong sourceSquares)
+        private void GenerateKingNormalMoves(List<Move> moves, Position position, ulong sourceSquares)
         {
             //foreach (var sourceIx in Bits.Enumerate(sourceSquares))
             while (Bits.TryPopLsb(ref sourceSquares, out var sourceIx))
             {
                 var dstSquares = KingMoveTable.GetMoves(sourceIx);
                 // don't allow king to move on piece of same color
-                dstSquares &= ~board.GetOccupied(board.SideToMove);
+                dstSquares &= ~position.GetOccupied(position.SideToMove);
 
-                GenerateMoves(moves, MoveType.Normal, PieceType.King, sourceIx, dstSquares, board.GetOccupied());
+                GenerateMoves(moves, MoveType.Normal, PieceType.King, sourceIx, dstSquares, position.GetOccupied());
             }
         }
 
-        private void GenerateKingCastling(List<Move> moves, Board board)
+        private void GenerateKingCastling(List<Move> moves, Position position)
         {
-            var castlingDsts = board.CastlingRights & CastlingTables.GetCastlingRightsDstColorMask(board.SideToMove);
+            var castlingDsts = position.CastlingRights & CastlingTables.GetCastlingRightsDstColorMask(position.SideToMove);
             //foreach (var dstIx in Bits.Enumerate(castlingDsts))
             while (Bits.TryPopLsb(ref castlingDsts, out var dstIx))
             {
-                if ((board.GetOccupied() & CastlingTables.GetCastlingEmptySquares(dstIx)) > 0)
+                if ((position.GetOccupied() & CastlingTables.GetCastlingEmptySquares(dstIx)) > 0)
                     continue;
 
                 // TODO: do these incheck validations as part of move validation? not sure...
-                if (board.InCheck(board.SideToMove))
+                if (position.InCheck(position.SideToMove))
                     continue;
 
                 bool attacked = false;
                 foreach (var potentiallyAttackedIx in Bits.Enumerate(CastlingTables.GetCastlingAttacks(dstIx)))
                 {
-                    if (board.IsAttacked(potentiallyAttackedIx, board.SideToMove))
+                    if (position.IsAttacked(potentiallyAttackedIx, position.SideToMove))
                     {
                         attacked = true;
                         break;
@@ -201,7 +203,7 @@ namespace Dragonfly.Engine.MoveGens
                     continue;
 
                 // if we still have castling rights, the inbetween squares aren't occupied, we aren't in check, and we aren't castling through or into check, then we should be good to go!
-                int kingIx = Bits.GetLsb(board.GetPieceBitboard(board.SideToMove, PieceType.King));
+                int kingIx = Bits.GetLsb(position.GetPieceBitboard(position.SideToMove, PieceType.King));
                 moves.Add(new Move(MoveType.Castling|MoveType.Quiet, kingIx, dstIx));
             }
         }
@@ -245,7 +247,7 @@ namespace Dragonfly.Engine.MoveGens
 
                 for (int file = 0; file < 8; file++)
                 {
-                    promotionSources |= Board.ValueFromFileRank(file, promotionRank);
+                    promotionSources |= Position.ValueFromFileRank(file, promotionRank);
                 }
 
                 ret[(int)color] = promotionSources;

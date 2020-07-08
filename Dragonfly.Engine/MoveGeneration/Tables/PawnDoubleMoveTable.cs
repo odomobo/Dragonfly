@@ -1,11 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Drawing;
-using System.Runtime.InteropServices.ComTypes;
-using System.Text;
+﻿using System.Collections.Generic;
+using Dragonfly.Engine.CoreTypes;
 using MersenneTwister;
 
-namespace Dragonfly.Engine.MoveGens
+namespace Dragonfly.Engine.MoveGeneration.Tables
 {
     public static class PawnDoubleMoveTable
     {
@@ -26,7 +23,7 @@ namespace Dragonfly.Engine.MoveGens
             {
                 MagicMoveTableBuilder builder = new MagicMoveTableBuilder(magicFinder);
 
-                foreach (var (file, rank) in Board.GetAllFilesRanks())
+                foreach (var (file, rank) in Position.GetAllFilesRanks())
                 {
                     AddMovesFromSquare(builder, file, rank, color);
                 }
@@ -51,8 +48,8 @@ namespace Dragonfly.Engine.MoveGens
             var inbetweenRank = srcRank + direction;
             if (IsStartingRank(srcRank, color))
             {
-                mask |= Board.ValueFromFileRank(srcFile, inbetweenRank);
-                mask |= Board.ValueFromFileRank(srcFile, dstRank);
+                mask |= Position.ValueFromFileRank(srcFile, inbetweenRank);
+                mask |= Position.ValueFromFileRank(srcFile, dstRank);
             }
 
             int maskBits = Bits.PopCount(mask);
@@ -66,14 +63,14 @@ namespace Dragonfly.Engine.MoveGens
                 // if there are any pieces in the 2 squares we're checking, then 
                 if (IsStartingRank(srcRank, color) && occupancy == 0)
                 {
-                    singularMoves |= Board.ValueFromFileRank(srcFile, dstRank);
+                    singularMoves |= Position.ValueFromFileRank(srcFile, dstRank);
                 }
 
                 occupancies.Add(occupancy);
                 moves.Add(singularMoves);
             }
 
-            var ix = Board.IxFromFileRank(srcFile, srcRank);
+            var ix = Position.IxFromFileRank(srcFile, srcRank);
             var info = new MagicMoveTable.Info
             {
                 Magic = Magics[(int)color].GetOrDefault(ix),
@@ -97,8 +94,8 @@ namespace Dragonfly.Engine.MoveGens
 
             for (int file = 0; file < 8; file++)
             {
-                whiteStarting |= Board.ValueFromFileRank(file, 1);
-                blackStarting |= Board.ValueFromFileRank(file, 6);
+                whiteStarting |= Position.ValueFromFileRank(file, 1);
+                blackStarting |= Position.ValueFromFileRank(file, 6);
             }
 
             var ret = new ulong[2];

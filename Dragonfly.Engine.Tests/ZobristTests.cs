@@ -3,7 +3,8 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Text;
 using System.Text.RegularExpressions;
-using Dragonfly.Engine.MoveGens;
+using Dragonfly.Engine.CoreTypes;
+using Dragonfly.Engine.MoveGeneration;
 using NUnit.Framework;
 
 namespace Dragonfly.Engine.Tests
@@ -26,18 +27,18 @@ namespace Dragonfly.Engine.Tests
             ZobristTestHelper(board, depth);
         }
 
-        private void ZobristTestHelper(Board board, int depth)
+        private void ZobristTestHelper(Position position, int depth)
         {
-            Assert.AreEqual(board.ZobristHash, ZobristHashing.CalculateFullHash(board));
+            Assert.AreEqual(position.ZobristHash, ZobristHashing.CalculateFullHash(position));
             if (depth <= 0)
                 return;
 
             var moves = new List<Move>();
-            _moveGen.Generate(moves, board);
+            _moveGen.Generate(moves, position);
 
             foreach (var move in moves)
             {
-                var updatedBoard = Board.MakeMove(new Board(), move, board);
+                var updatedBoard = Position.MakeMove(new Position(), move, position);
 
                 if (!_moveGen.OnlyLegalMoves && updatedBoard.InCheck(updatedBoard.SideToMove.Other()))
                     continue;

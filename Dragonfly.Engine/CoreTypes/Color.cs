@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace Dragonfly.Engine
+namespace Dragonfly.Engine.CoreTypes
 {
     public enum Color
     {

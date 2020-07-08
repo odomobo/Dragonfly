@@ -1,9 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Runtime.CompilerServices;
 using System.Text;
 
-namespace Dragonfly.Engine
+namespace Dragonfly.Engine.CoreTypes
 {
     // This struct makes strong assumptions about the data layout of Color and PieceType
     public readonly struct Piece

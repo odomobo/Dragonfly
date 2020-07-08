@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text;
+using Dragonfly.Engine.CoreTypes;
 using MersenneTwister;
 
 namespace Dragonfly.Engine
@@ -48,14 +49,14 @@ namespace Dragonfly.Engine
             return CastlingHashes[castlingRightIx];
         }
 
-        public static ulong CalculateFullHash(Board board)
+        public static ulong CalculateFullHash(Position position)
         {
             ulong hash = 0;
             for (Color color = 0; (int)color < 2; color++)
             {
                 for (PieceType pieceType = 0; pieceType < PieceType.Count; pieceType++)
                 {
-                    var pieces = board.GetPieceBitboard(color, pieceType);
+                    var pieces = position.GetPieceBitboard(color, pieceType);
                     while (Bits.TryPopLsb(ref pieces, out var pieceIx))
                     {
                         hash ^= GetPieceHash(color, pieceType, pieceIx);
@@ -63,19 +64,19 @@ namespace Dragonfly.Engine
                 }
             }
 
-            var castlingRights = board.CastlingRights;
+            var castlingRights = position.CastlingRights;
             while (Bits.TryPopLsb(ref castlingRights, out var castlingRightIx))
             {
                 hash ^= GetCastlingHash(castlingRightIx);
             }
 
-            var enPassant = board.EnPassant;
+            var enPassant = position.EnPassant;
             while (Bits.TryPopLsb(ref enPassant, out var enPassantIx))
             {
                 hash ^= GetEnPassantHash(enPassantIx);
             }
 
-            if (board.SideToMove == Color.White)
+            if (position.SideToMove == Color.White)
                 hash ^= WhiteSideHash;
 
             return hash;
@@ -94,22 +95,22 @@ namespace Dragonfly.Engine
         }
 
         // TODO: rename to something better
-        public static ulong OtherHashDiff(Board oldBoard, Board newBoard)
+        public static ulong OtherHashDiff(Position oldPosition, Position newPosition)
         {
             ulong hash = 0;
-            var castlingRights = oldBoard.CastlingRights ^ newBoard.CastlingRights;
+            var castlingRights = oldPosition.CastlingRights ^ newPosition.CastlingRights;
             while (Bits.TryPopLsb(ref castlingRights, out var castlingRightIx))
             {
                 hash ^= GetCastlingHash(castlingRightIx);
             }
 
-            var enPassant = oldBoard.EnPassant ^ newBoard.EnPassant;
+            var enPassant = oldPosition.EnPassant ^ newPosition.EnPassant;
             while (Bits.TryPopLsb(ref enPassant, out var enPassantIx))
             {
                 hash ^= GetEnPassantHash(enPassantIx);
             }
 
-            Debug.Assert(oldBoard.SideToMove != newBoard.SideToMove);
+            Debug.Assert(oldPosition.SideToMove != newPosition.SideToMove);
             hash ^= WhiteSideHash;
 
             return hash;

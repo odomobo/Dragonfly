@@ -8,7 +8,8 @@ using BenchmarkDotNet.Jobs;
 using BenchmarkDotNet.Mathematics;
 using BenchmarkDotNet.Reports;
 using BenchmarkDotNet.Running;
-using Dragonfly.Engine.MoveGens;
+using Dragonfly.Engine.CoreTypes;
+using Dragonfly.Engine.MoveGeneration;
 
 namespace Dragonfly.Engine.Benchmark
 {
@@ -69,9 +70,9 @@ namespace Dragonfly.Engine.Benchmark
         private const string EndgameFen = "5n2/R7/4pk2/8/5PK1/8/8/8 b - - 0 1";
 
         private Perft _perft;
-        private Board _openingBoard;
-        private Board _midgameBoard;
-        private Board _endgameBoard;
+        private Position _openingPosition;
+        private Position _midgamePosition;
+        private Position _endgamePosition;
 
         [GlobalSetup]
         public void Setup()
@@ -79,15 +80,15 @@ namespace Dragonfly.Engine.Benchmark
             var moveGen = new MoveGen();
             _perft = new Perft(moveGen);
 
-            _openingBoard = BoardParsing.BoardFromFen(OpeningFen);
-            _midgameBoard = BoardParsing.BoardFromFen(MidgameFen);
-            _endgameBoard = BoardParsing.BoardFromFen(EndgameFen);
+            _openingPosition = BoardParsing.BoardFromFen(OpeningFen);
+            _midgamePosition = BoardParsing.BoardFromFen(MidgameFen);
+            _endgamePosition = BoardParsing.BoardFromFen(EndgameFen);
         }
 
         [Benchmark]
         public void OpeningD5_4865609()
         {
-            int nodes = _perft.GoPerft(_openingBoard, 5);
+            int nodes = _perft.GoPerft(_openingPosition, 5);
             if (nodes != 4865609)
                 throw new Exception($"Result {nodes} needs to match method name {nameof(OpeningD5_4865609)}");
         }
@@ -95,7 +96,7 @@ namespace Dragonfly.Engine.Benchmark
         [Benchmark]
         public void MidgameD4_1162726()
         {
-            int nodes = _perft.GoPerft(_midgameBoard, 4);
+            int nodes = _perft.GoPerft(_midgamePosition, 4);
             if (nodes != 1162726)
                 throw new Exception($"Result {nodes} needs to match method name {nameof(MidgameD4_1162726)}");
         }
@@ -103,7 +104,7 @@ namespace Dragonfly.Engine.Benchmark
         [Benchmark]
         public void EndgameD6_2024953()
         {
-            int nodes = _perft.GoPerft(_endgameBoard, 6);
+            int nodes = _perft.GoPerft(_endgamePosition, 6);
             if (nodes != 2024953)
                 throw new Exception($"Result {nodes} needs to match method name {nameof(EndgameD6_2024953)}");
         }

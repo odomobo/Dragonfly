@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Dragonfly.Engine
+namespace Dragonfly.Engine.CoreTypes
 {
     [Flags]
     public enum MoveType

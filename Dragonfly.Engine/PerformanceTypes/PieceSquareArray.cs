@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Text;
+using Dragonfly.Engine.CoreTypes;
 
 namespace Dragonfly.Engine.PerformanceTypes
 {

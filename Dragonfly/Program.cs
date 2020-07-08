@@ -2,7 +2,8 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using Dragonfly.Engine;
-using Dragonfly.Engine.MoveGens;
+using Dragonfly.Engine.CoreTypes;
+using Dragonfly.Engine.MoveGeneration;
 
 namespace Dragonfly
 {
@@ -78,14 +79,14 @@ namespace Dragonfly
             foreach (var moveStr in moves)
             {
                 Move move = BoardParsing.GetMoveFromCoordinateString(moveGen, board, moveStr);
-                board = Board.MakeMove(new Board(), move, board);
+                board = Position.MakeMove(new Position(), move, board);
                 Debugging.Dump(board);
             }
 
             GoDivide(moveGen, perft, board, depth - moves.Length);
         }
 
-        private static void GoDivide(MoveGen moveGen, Perft perft, Board board, int depth)
+        private static void GoDivide(MoveGen moveGen, Perft perft, Position position, int depth)
         {
             if (depth <= 0)
             {
@@ -96,7 +97,7 @@ namespace Dragonfly
             var total = 0;
 
             List<Move> moves = new List<Move>();
-            moveGen.Generate(moves, board);
+            moveGen.Generate(moves, position);
 
             var movesDict = new SortedDictionary<string, Move>();
             foreach (var move in moves)
@@ -106,7 +107,7 @@ namespace Dragonfly
 
             foreach (var (moveStr, move) in movesDict)
             {
-                var nextBoard = Board.MakeMove(new Board(), move, board);
+                var nextBoard = Position.MakeMove(new Position(), move, position);
 
                 // check move legality if using a pseudolegal move generator
                 if (!moveGen.OnlyLegalMoves && nextBoard.InCheck(nextBoard.SideToMove.Other()))

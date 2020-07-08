@@ -1,19 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
-using System.Linq;
-using System.Net.NetworkInformation;
-using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices.ComTypes;
-using System.Text;
-using System.Threading;
-using Dragonfly.Engine.MoveGens;
+using Dragonfly.Engine.MoveGeneration.Tables;
 using Dragonfly.Engine.PerformanceTypes;
 
-namespace Dragonfly.Engine
+namespace Dragonfly.Engine.CoreTypes
 {
-    public sealed class Board
+    public sealed class Position
     {
         private BitboardArray _pieceBitboards;
         private PieceSquareArray _squares;
@@ -22,7 +15,7 @@ namespace Dragonfly.Engine
         private ulong _occupied;
         private bool? _inCheckWhite;
         private bool? _inCheckBlack;
-        private Board? _parent;
+        private Position? _parent;
 
         public Color SideToMove { get; private set; }
         public ulong EnPassant { get; private set; }
@@ -36,7 +29,7 @@ namespace Dragonfly.Engine
         public int RepetitionNumber { get; private set; }
 
         // Takes ownership of all arrays passed to it; they should not be changed after the board is created.
-        public Board(Piece[] pieceSquares, Color sideToMove, ulong castlingRights, ulong enPassant, int fiftyMoveCounter, int fullMove)
+        public Position(Piece[] pieceSquares, Color sideToMove, ulong castlingRights, ulong enPassant, int fiftyMoveCounter, int fullMove)
         {
             // safer to go by the length the PieceSquareArray, because the Piece[] will always error on index out of bounds
             for (int i = 0; i < _squares.Length; i++)
@@ -64,7 +57,7 @@ namespace Dragonfly.Engine
             ZobristHash = ZobristHashing.CalculateFullHash(this);
         }
 
-        public Board()
+        public Position()
         {}
 
         private static void PopulatePieceBitboardsFromSquares(ref BitboardArray pieceBitboards, Piece[] squares)
@@ -93,7 +86,7 @@ namespace Dragonfly.Engine
 
         #region MakeMove and its helpers
 
-        public static Board MakeMove(Board shell, Move move, Board parent)
+        public static Position MakeMove(Position shell, Move move, Position parent)
         {
             // copy data which doesn't depend on performing the move
             shell._pieceBitboards = parent.CopyPieceBitboards();
@@ -250,7 +243,7 @@ namespace Dragonfly.Engine
             MovePiece(srcIx, dstIx, piece.Color, piece.PieceType);
         }
 
-        private static int CalculateFiftyMoveCounter(Board parent, Move move)
+        private static int CalculateFiftyMoveCounter(Position parent, Move move)
         {
             if (
                 move.MoveType.HasFlag(MoveType.Capture) ||
@@ -268,21 +261,21 @@ namespace Dragonfly.Engine
         }
 
         // TODO: default to 2 for repetition count when the board we're calculating for is within search
-        private static int CalculateRepetitionNumber(Board board)
+        private static int CalculateRepetitionNumber(Position position)
         {
-            var zobristHash = board.ZobristHash;
+            var zobristHash = position.ZobristHash;
 
             // calculate rep count
-            for (int i = board.FiftyMoveCounter - 2; i >= 0; i -= 2)
+            for (int i = position.FiftyMoveCounter - 2; i >= 0; i -= 2)
             {
-                var tmpBoard = board._parent?._parent;
+                var tmpBoard = position._parent?._parent;
                 if (tmpBoard == null)
                     return 1;
 
-                board = tmpBoard;
+                position = tmpBoard;
 
-                if (board.ZobristHash == zobristHash)
-                    return board.RepetitionNumber + 1;
+                if (position.ZobristHash == zobristHash)
+                    return position.RepetitionNumber + 1;
             }
 
             return 1;
@@ -429,15 +422,11 @@ namespace Dragonfly.Engine
         }
 
         #region Static methods
+        // TODO: should these live elsewhere?
 
         public static int PieceBitboardIndex(Color color, PieceType pieceType)
         {
             return ((int) color * 6) + (int) pieceType;
-        }
-
-        public static int PieceBitboardIndex(Piece piece)
-        {
-            return PieceBitboardIndex(piece.Color, piece.PieceType);
         }
 
         public static int IxFromFileRank(int file, int rank)

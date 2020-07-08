@@ -2,8 +2,9 @@
 using System.Collections.Generic;
 using System.Text;
 using System.Xml;
+using Dragonfly.Engine.CoreTypes;
 using Dragonfly.Engine.Interfaces;
-using Dragonfly.Engine.MoveGens;
+using Dragonfly.Engine.MoveGeneration;
 using Dragonfly.Engine.PerformanceTypes;
 
 namespace Dragonfly.Engine
@@ -61,7 +62,7 @@ namespace Dragonfly.Engine
 
         private readonly IMoveGen _moveGen;
         private readonly PerftTable? _perftTable;
-        private readonly ObjectCacheByDepth<Board> _boardCache = new ObjectCacheByDepth<Board>();
+        private readonly ObjectCacheByDepth<Position> _boardCache = new ObjectCacheByDepth<Position>();
         private readonly ObjectCacheByDepth<List<Move>> _moveListCache = new ObjectCacheByDepth<List<Move>>();
 
         public Perft(IMoveGen moveGen, int? tableSize = null)
@@ -73,7 +74,7 @@ namespace Dragonfly.Engine
                 _perftTable = null;
         }
 
-        public int GoPerft(Board b, int depth)
+        public int GoPerft(Position b, int depth)
         {
             if (depth <= 0)
                 return 1;
@@ -93,7 +94,7 @@ namespace Dragonfly.Engine
             var tmpBoard = _boardCache.Get(depth);
             foreach (var move in moves)
             {
-                var nextBoard = Board.MakeMove(tmpBoard, move, b);
+                var nextBoard = Position.MakeMove(tmpBoard, move, b);
                 
                 // check move legality if using a pseudolegal move generator
                 if (!_moveGen.OnlyLegalMoves && nextBoard.InCheck(nextBoard.SideToMove.Other()))

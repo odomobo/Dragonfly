@@ -1,9 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Collections.Generic;
+using Dragonfly.Engine.CoreTypes;
 using MersenneTwister;
 
-namespace Dragonfly.Engine.MoveGens
+namespace Dragonfly.Engine.MoveGeneration.Tables
 {
     public static class BishopMoveTable
     {
@@ -14,7 +13,7 @@ namespace Dragonfly.Engine.MoveGens
             var magicFinder = new MagicFinder(new MTRandom(0));
             MagicMoveTableBuilder builder = new MagicMoveTableBuilder(magicFinder);
 
-            foreach (var (file, rank) in Board.GetAllFilesRanks())
+            foreach (var (file, rank) in Position.GetAllFilesRanks())
             {
                 AddMovesFromSquare(builder, file, rank);
             }
@@ -44,7 +43,7 @@ namespace Dragonfly.Engine.MoveGens
                 if (!InsideOuterRing(dstFile, dstRank))
                     break;
 
-                mask |= Board.ValueFromFileRank(dstFile, dstRank);
+                mask |= Position.ValueFromFileRank(dstFile, dstRank);
             }
 
             // up/right
@@ -55,7 +54,7 @@ namespace Dragonfly.Engine.MoveGens
                 if (!InsideOuterRing(dstFile, dstRank))
                     break;
 
-                mask |= Board.ValueFromFileRank(dstFile, dstRank);
+                mask |= Position.ValueFromFileRank(dstFile, dstRank);
             }
 
             // down/left
@@ -66,7 +65,7 @@ namespace Dragonfly.Engine.MoveGens
                 if (!InsideOuterRing(dstFile, dstRank))
                     break;
 
-                mask |= Board.ValueFromFileRank(dstFile, dstRank);
+                mask |= Position.ValueFromFileRank(dstFile, dstRank);
             }
 
             // down/right
@@ -77,7 +76,7 @@ namespace Dragonfly.Engine.MoveGens
                 if (!InsideOuterRing(dstFile, dstRank))
                     break;
 
-                mask |= Board.ValueFromFileRank(dstFile, dstRank);
+                mask |= Position.ValueFromFileRank(dstFile, dstRank);
             }
 
             int maskBits = Bits.PopCount(mask);
@@ -95,10 +94,10 @@ namespace Dragonfly.Engine.MoveGens
                 {
                     int dstFile = srcFile - i;
                     int dstRank = srcRank + i;
-                    if (!Board.FileRankOnBoard(dstFile, dstRank))
+                    if (!Position.FileRankOnBoard(dstFile, dstRank))
                         break;
 
-                    ulong move = Board.ValueFromFileRank(dstFile, dstRank);
+                    ulong move = Position.ValueFromFileRank(dstFile, dstRank);
                     singularMoves |= move;
                     if ((occupancy & move) > 0)
                         break;
@@ -109,10 +108,10 @@ namespace Dragonfly.Engine.MoveGens
                 {
                     int dstFile = srcFile + i;
                     int dstRank = srcRank + i;
-                    if (!Board.FileRankOnBoard(dstFile, dstRank))
+                    if (!Position.FileRankOnBoard(dstFile, dstRank))
                         break;
 
-                    ulong move = Board.ValueFromFileRank(dstFile, dstRank);
+                    ulong move = Position.ValueFromFileRank(dstFile, dstRank);
                     singularMoves |= move;
                     if ((occupancy & move) > 0)
                         break;
@@ -123,10 +122,10 @@ namespace Dragonfly.Engine.MoveGens
                 {
                     int dstFile = srcFile - i;
                     int dstRank = srcRank - i;
-                    if (!Board.FileRankOnBoard(dstFile, dstRank))
+                    if (!Position.FileRankOnBoard(dstFile, dstRank))
                         break;
 
-                    ulong move = Board.ValueFromFileRank(dstFile, dstRank);
+                    ulong move = Position.ValueFromFileRank(dstFile, dstRank);
                     singularMoves |= move;
                     if ((occupancy & move) > 0)
                         break;
@@ -137,10 +136,10 @@ namespace Dragonfly.Engine.MoveGens
                 {
                     int dstFile = srcFile + i;
                     int dstRank = srcRank - i;
-                    if (!Board.FileRankOnBoard(dstFile, dstRank))
+                    if (!Position.FileRankOnBoard(dstFile, dstRank))
                         break;
 
-                    ulong move = Board.ValueFromFileRank(dstFile, dstRank);
+                    ulong move = Position.ValueFromFileRank(dstFile, dstRank);
                     singularMoves |= move;
                     if ((occupancy & move) > 0)
                         break;
@@ -150,7 +149,7 @@ namespace Dragonfly.Engine.MoveGens
                 moves.Add(singularMoves);
             }
 
-            var ix = Board.IxFromFileRank(srcFile, srcRank);
+            var ix = Position.IxFromFileRank(srcFile, srcRank);
             var info = new MagicMoveTable.Info
             {
                 Magic = Magics.GetOrDefault(ix),

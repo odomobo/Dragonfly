@@ -3,7 +3,6 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Text;
 using NUnit.Framework;
-using Dragonfly.Engine.MoveGens;
 
 namespace Dragonfly.Engine.Tests
 {

@@ -1,9 +1,7 @@
 using System;
 using System.Collections;
-using System.IO;
-using System.Reflection;
 using System.Text.RegularExpressions;
-using Dragonfly.Engine.MoveGens;
+using Dragonfly.Engine.MoveGeneration;
 using NUnit.Framework;
 
 namespace Dragonfly.Engine.Tests

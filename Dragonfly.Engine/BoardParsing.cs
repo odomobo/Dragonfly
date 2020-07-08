@@ -1,17 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Text;
-using System.Threading;
+using Dragonfly.Engine.CoreTypes;
 using Dragonfly.Engine.Interfaces;
-using Dragonfly.Engine.MoveGens;
+using Dragonfly.Engine.MoveGeneration;
+using Dragonfly.Engine.MoveGeneration.Tables;
 
 namespace Dragonfly.Engine
 {
+    // TODO: rename to something better?
     public static class BoardParsing
     {
-        public static Board BoardFromFen(string fen)
+        public static Position BoardFromFen(string fen)
         {
             Piece[] squares = new Piece[64];
             for (int i = 0; i < squares.Length; i++)
@@ -62,7 +63,7 @@ namespace Dragonfly.Engine
 
                     if (TryParsePiece(c, out var pieceType, out var color))
                     {
-                        var ix = Board.IxFromFileRank(file, rank);
+                        var ix = Position.IxFromFileRank(file, rank);
                         squares[ix] = new Piece(color, pieceType);
 
                         file++;
@@ -103,17 +104,17 @@ namespace Dragonfly.Engine
             else
             {
                 var enPassantIx = IxFromSquareStr(strEnPassant);
-                enPassant= Board.ValueFromIx(enPassantIx);
+                enPassant= Position.ValueFromIx(enPassantIx);
             }
 
             // TODO: move counts
             int halfmoveCounter = int.Parse(strHalfmoveCounter);
             int fullMove = int.Parse(strFullMoves);
             
-            return new Board(squares, sideToMove, castlingRights, enPassant, halfmoveCounter, fullMove);
+            return new Position(squares, sideToMove, castlingRights, enPassant, halfmoveCounter, fullMove);
         }
 
-        public static string FenStringFromBoard(Board board)
+        public static string FenStringFromBoard(Position position)
         {
             var fenBuilder = new StringBuilder();
             for (int rank = 7; rank >= 0; rank--)
@@ -121,7 +122,7 @@ namespace Dragonfly.Engine
                 int skipped = 0;
                 for (int file = 0; file < 8; file++)
                 {
-                    var (color, pieceType) = board.GetPiece(Board.IxFromFileRank(file, rank));
+                    var (color, pieceType) = position.GetPiece(Position.IxFromFileRank(file, rank));
                     if (pieceType == PieceType.None)
                     {
                         skipped++;
@@ -146,9 +147,9 @@ namespace Dragonfly.Engine
                     fenBuilder.Append("/");
             }
 
-            var colorStr = board.SideToMove == Color.White ? "w" : "b";
+            var colorStr = position.SideToMove == Color.White ? "w" : "b";
 
-            return $"{fenBuilder} {colorStr} {CastlingStrFromValue(board.CastlingRights)} {SquareStrFromValue(board.EnPassant)} {board.FiftyMoveCounter} {board.FullMove}";
+            return $"{fenBuilder} {colorStr} {CastlingStrFromValue(position.CastlingRights)} {SquareStrFromValue(position.EnPassant)} {position.FiftyMoveCounter} {position.FullMove}";
         }
 
         public static bool TryParsePiece(char pieceChar, out PieceType pieceType, out Color color)
@@ -193,7 +194,7 @@ namespace Dragonfly.Engine
             return true;
         }
 
-        public static Move GetMoveFromCoordinateString(IMoveGen moveGen, Board b, string coordinateString)
+        public static Move GetMoveFromCoordinateString(IMoveGen moveGen, Position b, string coordinateString)
         {
             if (TryGetMoveFromCoordinateString(moveGen, b, coordinateString, out Move move))
                 return move;
@@ -203,7 +204,7 @@ namespace Dragonfly.Engine
 
         public static bool TryGetMoveFromCoordinateString(
             IMoveGen moveGen,
-            Board b,
+            Position b,
             string coordinateString,
             out Move move)
         {
@@ -219,7 +220,7 @@ namespace Dragonfly.Engine
                 // if a pseudolegal move generator, then we need to make sure that the move we're attempting is even legal
                 if (!moveGen.OnlyLegalMoves)
                 {
-                    var testingBoard = Board.MakeMove(new Board(), tmpMove, b);
+                    var testingBoard = Position.MakeMove(new Position(), tmpMove, b);
 
                     // if we moved into check, clearly it was an invalid move
                     if (testingBoard.InCheck(testingBoard.SideToMove.Other()))
@@ -317,9 +318,9 @@ namespace Dragonfly.Engine
                 return LetterFromPieceType(pieceType).ToString();
         }
 
-        public static string NaiveSanStringFromMoveBoard(Move move, Board board)
+        public static string NaiveSanStringFromMoveBoard(Move move, Position position)
         {
-            var pieceType = board.GetPieceType(move.SourceIx);
+            var pieceType = position.GetPieceType(move.SourceIx);
             string pieceTypeStr = SanPrefixFromPieceType(pieceType);
 
             string captureStr = "";
@@ -372,7 +373,7 @@ namespace Dragonfly.Engine
 
         public static string FileStrFromIx(int ix)
         {
-            var (file, rank) = Board.FileRankFromIx(ix);
+            var (file, rank) = Position.FileRankFromIx(ix);
             return $"{(char)('a' + file)}";
         }
 
@@ -386,7 +387,7 @@ namespace Dragonfly.Engine
 
         public static string SquareStrFromIx(int ix)
         {
-            var (file, rank) = Board.FileRankFromIx(ix);
+            var (file, rank) = Position.FileRankFromIx(ix);
             return $"{(char)('a' + file)}{rank + 1}";
         }
 
@@ -405,7 +406,7 @@ namespace Dragonfly.Engine
             if (file < 0 || file > 7 || rank < 0 || rank > 7)
                 return false;
 
-            ix = Board.IxFromFileRank(file, rank);
+            ix = Position.IxFromFileRank(file, rank);
             return true;
         }
 
