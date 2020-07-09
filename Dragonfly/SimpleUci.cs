@@ -40,6 +40,9 @@ namespace Dragonfly
                     case "uci":
                         Console.WriteLine("uciok");
                         break;
+                    case "isready":
+                        Console.WriteLine("readyok");
+                        break;
                     case "position":
                         SetPosition(options);
                         break;
@@ -56,7 +59,7 @@ namespace Dragonfly
         private void Go()
         {
             var move = _search.Search(_position);
-            Console.WriteLine(BoardParsing.CoordinateStringFromMove(move));
+            Console.WriteLine($"bestmove {BoardParsing.CoordinateStringFromMove(move)}");
         }
 
         private void SetPosition(string optionsStr)
@@ -70,9 +73,15 @@ namespace Dragonfly
             }
             else if (options[0] == "fen")
             {
-                _position = BoardParsing.PositionFromFen(options[1]);
+                string fen = "";
                 options.RemoveAt(0);
-                options.RemoveAt(0);
+                while (options.Count > 0 && options[0] != "moves")
+                {
+                    fen += $"{options[0]} ";
+                    options.RemoveAt(0);
+                }
+
+                _position = BoardParsing.PositionFromFen(fen);
             }
             else
             {

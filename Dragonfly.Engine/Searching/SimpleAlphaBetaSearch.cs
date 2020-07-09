@@ -29,11 +29,6 @@ namespace Dragonfly.Engine.Searching
             // we need to be careful not to use short.MinValue, because we can't safely negate that
             short alpha = -32000;
             short beta = 32000;
-            if (position.SideToMove == Color.Black)
-            {
-                alpha = (short) -alpha;
-                beta = (short) -beta;
-            }
 
             var cachedPositionObject = new Position();
             foreach (var move in moveList)
@@ -43,8 +38,8 @@ namespace Dragonfly.Engine.Searching
                 if (!_moveGen.OnlyLegalMoves && nextPosition.MovedIntoCheck())
                     continue;
 
-                // let's just naively do a depth 3 search (including this search as 1 depth)
-                var nextEval = (short)-InnerSearch(nextPosition, 2, (short) -beta, (short) -alpha);
+                // let's just naively do a depth 2 search (including this search as 1 depth)
+                var nextEval = (short)-InnerSearch(nextPosition, 1, (short) -beta, (short) -alpha);
 
                 if (nextEval > alpha)
                 {
@@ -60,7 +55,13 @@ namespace Dragonfly.Engine.Searching
         {
             // This is pretty bad; we really want to do quiescence search
             if (depth <= 0)
-                return _evaluator.Evaluate(position);
+            {
+                var eval = _evaluator.Evaluate(position);
+                if (position.SideToMove == Color.White)
+                    return eval;
+                else
+                    return (short)-eval;
+            }
 
             var moveList = _moveListCache.Get(depth);
             _moveGen.Generate(moveList, position);
