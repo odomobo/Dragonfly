@@ -27,8 +27,8 @@ namespace Dragonfly.Engine.Searching
             _moveGen.Generate(moveList, position);
 
             // we need to be careful not to use short.MinValue, because we can't safely negate that
-            short alpha = -32000;
-            short beta = 32000;
+            short alpha = -32500;
+            short beta = 32500;
 
             var cachedPositionObject = new Position();
             foreach (var move in moveList)
@@ -38,8 +38,8 @@ namespace Dragonfly.Engine.Searching
                 if (!_moveGen.OnlyLegalMoves && nextPosition.MovedIntoCheck())
                     continue;
 
-                // let's just naively do a depth 2 search (including this search as 1 depth)
-                var nextEval = (short)-InnerSearch(nextPosition, 1, (short) -beta, (short) -alpha);
+                // let's just naively do a depth 4 search (including this search as 1 depth)
+                var nextEval = (short)-InnerSearch(nextPosition, 3, (short) -beta, (short) -alpha);
 
                 if (nextEval > alpha)
                 {
@@ -64,6 +64,8 @@ namespace Dragonfly.Engine.Searching
             }
 
             var moveList = _moveListCache.Get(depth);
+            moveList.Clear();
+
             _moveGen.Generate(moveList, position);
 
             bool anyMoves = false;
@@ -92,7 +94,7 @@ namespace Dragonfly.Engine.Searching
             if (!anyMoves)
             {
                 if (position.InCheck())
-                    return 32000; // TODO: properly represent mate
+                    return (short)(-32000 + position.GamePly); // TODO: use a proper helper function; negative value because we're losing
                 else
                     return 0; // draw
             }

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using Dragonfly.Engine.CoreTypes;
@@ -16,6 +17,8 @@ namespace Dragonfly.Engine.MoveGeneration
 
         public void Generate(List<Move> moves, Position position)
         {
+            Debug.Assert(!moves.Any());
+
             GeneratePawnMoves(moves, position, position.GetPieceBitboard(position.SideToMove, PieceType.Pawn));
             GenerateKnightMoves(moves, position, position.GetPieceBitboard(position.SideToMove, PieceType.Knight));
             // we can combine generation of queen with bishop and rook moves because when we store moves in the move list, we don't record the piece type which is moving

@@ -16,7 +16,7 @@ namespace Dragonfly.Engine
             Debug.Print(s);
             // TODO: should this be prefixed with something to indicate debug?
             // TODO: should this be stdout or stderr?
-            Console.Error.WriteLine(s);
+            //Console.Error.WriteLine(s);
         }
 
         /*
@@ -151,8 +151,18 @@ namespace Dragonfly.Engine
 
         public static void Dump(Position position, bool unicode = false)
         {
-            Dump(BoardToStr(position, unicode));
+            foreach (var color in new[] { Color.White, Color.Black })
+            {
+                for (PieceType pieceType = 0; pieceType < PieceType.Count; pieceType++)
+                {
+                    Dump($"{color} {pieceType}:");
+                    Dump(position.GetPieceBitboard(color, pieceType));
+                }
+            }
 
+            Dump();
+
+            Dump(BoardToStr(position, unicode));
             Dump("");
             string enPassant = BoardParsing.SquareStrFromValue(position.EnPassant);
             string castling = BoardParsing.CastlingStrFromValue(position.CastlingRights);
