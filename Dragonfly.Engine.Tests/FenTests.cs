@@ -12,7 +12,7 @@ namespace Dragonfly.Engine.Tests
         [TestCaseSource(typeof(FenData), nameof(FenData.FenTestCases))]
         public string FenTest(string fen)
         {
-            var board = BoardParsing.BoardFromFen(fen);
+            var board = BoardParsing.PositionFromFen(fen);
             return BoardParsing.FenStringFromBoard(board);
         }
     }

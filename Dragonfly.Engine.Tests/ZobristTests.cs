@@ -23,7 +23,7 @@ namespace Dragonfly.Engine.Tests
         [TestCaseSource(typeof(ZobristData), nameof(ZobristData.ZobristTestCases))]
         public void ZobristTest(string fen, int depth)
         {
-            var board = BoardParsing.BoardFromFen(fen);
+            var board = BoardParsing.PositionFromFen(fen);
             ZobristTestHelper(board, depth);
         }
 
@@ -40,7 +40,7 @@ namespace Dragonfly.Engine.Tests
             {
                 var updatedBoard = Position.MakeMove(new Position(), move, position);
 
-                if (!_moveGen.OnlyLegalMoves && updatedBoard.InCheck(updatedBoard.SideToMove.Other()))
+                if (!_moveGen.OnlyLegalMoves && updatedBoard.MovedIntoCheck())
                     continue;
                 
                 ZobristTestHelper(updatedBoard, depth-1);

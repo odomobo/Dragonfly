@@ -7,6 +7,6 @@ namespace Dragonfly.Engine.Interfaces
 {
     public interface IEvaluator
     {
-        int Evaluate(Position position);
+        short Evaluate(Position position);
     }
 }

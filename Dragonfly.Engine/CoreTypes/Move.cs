@@ -16,6 +16,8 @@ namespace Dragonfly.Engine.CoreTypes
 
     public readonly struct Move
     {
+        public static readonly Move Null = new Move(0, 0, 0);
+
         private readonly byte _moveType;
         private readonly sbyte _sourceIx;
         private readonly sbyte _dstIx;

@@ -80,9 +80,9 @@ namespace Dragonfly.Engine.Benchmark
             var moveGen = new MoveGen();
             _perft = new Perft(moveGen);
 
-            _openingPosition = BoardParsing.BoardFromFen(OpeningFen);
-            _midgamePosition = BoardParsing.BoardFromFen(MidgameFen);
-            _endgamePosition = BoardParsing.BoardFromFen(EndgameFen);
+            _openingPosition = BoardParsing.PositionFromFen(OpeningFen);
+            _midgamePosition = BoardParsing.PositionFromFen(MidgameFen);
+            _endgamePosition = BoardParsing.PositionFromFen(EndgameFen);
         }
 
         [Benchmark]

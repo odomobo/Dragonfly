@@ -8,6 +8,14 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="perfts.epd" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="perfts.epd" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Microsoft.DotNet.ILCompiler" Version="1.0.0-alpha-29104-01" />
   </ItemGroup>
 

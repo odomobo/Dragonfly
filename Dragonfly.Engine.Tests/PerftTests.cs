@@ -22,7 +22,7 @@ namespace Dragonfly.Engine.Tests
         [TestCaseSource(typeof(PerftData), nameof(PerftData.PerftTestCases))]
         public int PerftTest(string fen, int depth)
         {
-            var board = BoardParsing.BoardFromFen(fen);
+            var board = BoardParsing.PositionFromFen(fen);
             return _perft.GoPerft(board, depth);
         }
     }
@@ -43,7 +43,7 @@ namespace Dragonfly.Engine.Tests
         [TestCaseSource(typeof(PerftData), nameof(PerftData.PerftTestCases))]
         public int PerftWithHashingTest(string fen, int depth)
         {
-            var board = BoardParsing.BoardFromFen(fen);
+            var board = BoardParsing.PositionFromFen(fen);
             return _perftWithHashing.GoPerft(board, depth);
         }
     }

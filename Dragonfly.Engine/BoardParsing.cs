@@ -12,7 +12,7 @@ namespace Dragonfly.Engine
     // TODO: rename to something better?
     public static class BoardParsing
     {
-        public static Position BoardFromFen(string fen)
+        public static Position PositionFromFen(string fen)
         {
             Piece[] squares = new Piece[64];
             for (int i = 0; i < squares.Length; i++)
@@ -364,6 +364,10 @@ namespace Dragonfly.Engine
 
         public static string CoordinateStringFromMove(Move m)
         {
+            // Move type 0 means null move
+            if (m.MoveType == 0)
+                return "0000";
+
             string promotionPieceStr = "";
             if ((m.MoveType & MoveType.Promotion) > 0)
                 promotionPieceStr = LetterFromPieceTypeColor(m.PromotionPiece, Color.Black).ToString(); // lowercase

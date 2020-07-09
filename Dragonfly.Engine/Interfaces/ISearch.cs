@@ -7,6 +7,7 @@ namespace Dragonfly.Engine.Interfaces
 {
     public interface ISearch
     {
-        Move Search(Position b);
+        // TODO: how to control depth, or whatever else?
+        Move Search(Position position);
     }
 }

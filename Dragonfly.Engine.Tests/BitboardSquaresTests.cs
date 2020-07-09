@@ -22,7 +22,7 @@ namespace Dragonfly.Engine.Tests
         [TestCaseSource(typeof(ZobristData), nameof(ZobristData.ZobristTestCases))]
         public void BitboardSquaresTest(string fen, int depth)
         {
-            var board = BoardParsing.BoardFromFen(fen);
+            var board = BoardParsing.PositionFromFen(fen);
             BitboardSquaresTestHelper(board, depth);
         }
 
@@ -40,7 +40,7 @@ namespace Dragonfly.Engine.Tests
             {
                 var updatedBoard = Position.MakeMove(tmpPosition, move, position);
 
-                if (!_moveGen.OnlyLegalMoves && updatedBoard.InCheck(updatedBoard.SideToMove.Other()))
+                if (!_moveGen.OnlyLegalMoves && updatedBoard.MovedIntoCheck())
                     continue;
 
                 BitboardSquaresTestHelper(updatedBoard, depth - 1);

@@ -354,6 +354,16 @@ namespace Dragonfly.Engine.CoreTypes
                 return InCheckBlack();
         }
 
+        public bool InCheck()
+        {
+            return InCheck(SideToMove);
+        }
+
+        public bool MovedIntoCheck()
+        {
+            return InCheck(SideToMove.Other());
+        }
+
         private bool InCheckWhite()
         {
             if (!_inCheckWhite.HasValue)

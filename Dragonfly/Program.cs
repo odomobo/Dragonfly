@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using Dragonfly.Engine;
 using Dragonfly.Engine.CoreTypes;
+using Dragonfly.Engine.Evaluation;
 using Dragonfly.Engine.MoveGeneration;
+using Dragonfly.Engine.Searching;
 
 namespace Dragonfly
 {
@@ -16,14 +18,36 @@ namespace Dragonfly
         private const string KiwipeteFen = "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1";
         static void Main(string[] args)
         {
-            PerformanceTesting(OpeningFen, 5, TimeSpan.FromSeconds(10));
+            Uci();
+            //Bench();
+            //GetPerftPositions.DumpEvalsForEachPosition();
+            //PerformanceTesting(OpeningFen, 5, TimeSpan.FromSeconds(10));
             //IncrementalPerft(KiwipeteFen, 7);
             //DivideTesting("r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1", 5, "a1b1", "h3g2", "a2a3", "g2h1q");
         }
 
+        private static void Uci()
+        {
+            var moveGen = new MoveGen();
+            var evaluator = new Evaluator();
+            var search = new SimpleAlphaBetaSearch(moveGen, evaluator);
+
+            var uci = new SimpleUci(moveGen, search);
+            uci.Loop();
+        }
+
+        private static void Bench()
+        {
+            var moveGen = new MoveGen();
+            var evaluator = new Evaluator();
+            var search = new SimpleAlphaBetaSearch(moveGen, evaluator);
+
+            search.Search(BoardParsing.PositionFromFen(OpeningFen));
+        }
+
         private static void PerformanceTesting(string fen, int perftDepth, TimeSpan timespan)
         {
-            var board = BoardParsing.BoardFromFen(fen);
+            var board = BoardParsing.PositionFromFen(fen);
             Debugging.Dump(board);
 
             var moveGen = new MoveGen();
@@ -50,7 +74,7 @@ namespace Dragonfly
 
         private static void IncrementalPerft(string fen, int maxDepth)
         {
-            var board = BoardParsing.BoardFromFen(fen);
+            var board = BoardParsing.PositionFromFen(fen);
             Debugging.Dump(board);
 
             var moveGen = new MoveGen();
@@ -70,7 +94,7 @@ namespace Dragonfly
 
         private static void DivideTesting(string fen, int depth, params string[] moves)
         {
-            var board = BoardParsing.BoardFromFen(fen);
+            var board = BoardParsing.PositionFromFen(fen);
             Debugging.Dump(board);
 
             var moveGen = new MoveGen();
