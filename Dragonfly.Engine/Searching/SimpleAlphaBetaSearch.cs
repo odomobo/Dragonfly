@@ -53,6 +53,10 @@ namespace Dragonfly.Engine.Searching
 
         private short InnerSearch(Position position, int depth, short alpha, short beta)
         {
+            // Note: we don't return draw on 50 move counter; if the engine doesn't know how to make progress in 50 moves, telling the engine it's about to draw can only induce mistakes.
+            if (position.RepetitionNumber >= 3)
+                return 0; // draw
+
             // This is pretty bad; we really want to do quiescence search
             if (depth <= 0)
             {
