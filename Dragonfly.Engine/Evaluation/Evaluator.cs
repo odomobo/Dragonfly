@@ -8,9 +8,9 @@ namespace Dragonfly.Engine.Evaluation
 {
     public sealed class Evaluator : IEvaluator
     {
-        private static readonly short Tempo = 20;
+        private static readonly Score Tempo = 20;
 
-        private static readonly short[] MidgamePieceSquareTables =
+        private static readonly Score[] MidgamePieceSquareTables =
         {
             // Pawn
               0,  0,  0,  0,  0,  0,  0,  0,
@@ -70,7 +70,7 @@ namespace Dragonfly.Engine.Evaluation
 
         // taken from vice's king endgame evaluation; a castled king has a value of -10, and a mostly-castled king has a value of 0
         // TODO: need to use this
-        private static readonly short[] KingEndGame = {
+        private static readonly Score[] KingEndGame = {
             -50,-10,  0,  0,  0,  0,-10,-50,
             -10,  0, 10, 10, 10, 10,  0,-10,
               0, 10, 20, 20, 20, 20, 10,  0,
@@ -82,7 +82,7 @@ namespace Dragonfly.Engine.Evaluation
         };
 
         // this needs to match the values of PieceType
-        private static readonly short[] MaterialValues =
+        private static readonly Score[] MaterialValues =
         {
             100, // pawn
             320, // knight
@@ -93,10 +93,10 @@ namespace Dragonfly.Engine.Evaluation
         };
 
         // incredibly naive evaluator; only measures material, pst, and tempo. Doesn't have endgame eval
-        public short Evaluate(Position position)
+        public Score Evaluate(Position position)
         {
-            Span<short> midgamePstValues = stackalloc short[2];
-            Span<short> materialValues = stackalloc short[2];
+            Span<Score> midgamePstValues = stackalloc Score[2];
+            Span<Score> materialValues = stackalloc Score[2];
 
             for (Color color = 0; color < (Color) 2; color++)
             {
@@ -104,7 +104,7 @@ namespace Dragonfly.Engine.Evaluation
                 {
                     var piecePositions = position.GetPieceBitboard(color, pieceType);
 
-                    materialValues[(int) color] += (short)(MaterialValues[(int) pieceType] * Bits.PopCount(piecePositions));
+                    materialValues[(int) color] += (MaterialValues[(int) pieceType] * Bits.PopCount(piecePositions));
                     while (Bits.TryPopLsb(ref piecePositions, out int pieceIx))
                     {
                         midgamePstValues[(int) color] += MidgamePieceSquareTables[GetPstIndex(color, pieceType, pieceIx)];
@@ -122,7 +122,7 @@ namespace Dragonfly.Engine.Evaluation
             else
                 ret -= Tempo;
 
-            return (short) ret;
+            return ret;
         }
 
         public static int GetPstIndex(Color color, PieceType pieceType, int boardIndex)

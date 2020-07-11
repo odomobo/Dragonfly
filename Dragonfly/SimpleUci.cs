@@ -6,6 +6,7 @@ using Dragonfly.Engine;
 using Dragonfly.Engine.CoreTypes;
 using Dragonfly.Engine.Interfaces;
 using Dragonfly.Engine.MoveGeneration;
+using Dragonfly.Engine.TimeStrategies;
 
 namespace Dragonfly
 {
@@ -58,8 +59,35 @@ namespace Dragonfly
 
         private void Go()
         {
-            var move = _search.Search(_position);
+            var timeStrategy = new DepthStrategy(4);
+
+            var (move, statistics) = _search.Search(_position, timeStrategy);
+            PrintInfo(statistics);
+            // TODO: print statistics
             Console.WriteLine($"bestmove {BoardParsing.CoordinateStringFromMove(move)}");
+        }
+
+        private static void PrintInfo(Statistics statistics)
+        {
+            var timeMs = (DateTime.Now - statistics.StartTime).Milliseconds;
+            var nps = (statistics.Nodes / timeMs) / 1000;
+            Console.WriteLine(
+                $"info depth {statistics.CurrentDepth} " +
+                $"seldepth {statistics.MaxPly} " +
+                $"time {timeMs} " +
+                $"nodes {statistics.Nodes} " +
+                $"nps {nps} " +
+                // TODO: add things like best move, score, etc
+                "string " + // below this are nonstandard info values; I think without string, some GUIs would have a problem with this
+                $"internalCutNodes {statistics.InternalCutNodes} " +
+                $"internalPvNodes {statistics.InternalPVNodes} " +
+                $"internalAllNodes {statistics.InternalAllNodes} " +
+                $"qsearchCutNodes {statistics.QSearchCutNodes} " +
+                $"qsearchPvNodes {statistics.QSearchPVNodes} " +
+                $"qsearchAllNodes {statistics.QSearchAllNodes} " +
+                $"evaluations {statistics.Evaluations} " +
+                $"terminalNodes {statistics.TerminalNodes}"
+            );
         }
 
         private void SetPosition(string optionsStr)

@@ -10,61 +10,92 @@ namespace Dragonfly.Engine.Searching
     public sealed class SimpleAlphaBetaSearch : ISearch
     {
         private readonly IMoveGen _moveGen;
-        private readonly IEvaluator _evaluator;
+        private readonly IEvaluator _evaluator; // TODO: do we need this?
+        private readonly IQSearch _qSearch;
+        private ITimeStrategy _timeStrategy;
+        private Statistics _statistics;
+        private int _enteredCount; // this is used to only call _timeStrategy occasionally, instead on every entry of InnerSearch()
         private readonly ObjectCacheByDepth<Position> _positionCache = new ObjectCacheByDepth<Position>();
         private readonly ObjectCacheByDepth<List<Move>> _moveListCache = new ObjectCacheByDepth<List<Move>>();
 
-        public SimpleAlphaBetaSearch(IMoveGen moveGen, IEvaluator evaluator)
+        public SimpleAlphaBetaSearch(IMoveGen moveGen, IEvaluator evaluator, IQSearch qSearch)
         {
             _moveGen = moveGen;
             _evaluator = evaluator;
+            _qSearch = qSearch;
         }
 
-        public Move Search(Position position)
+        public (Move move, Statistics statistics) Search(Position position, ITimeStrategy timeStrategy)
         {
-            Move bestMove = Move.Null;
-            var moveList = new List<Move>();
-            _moveGen.Generate(moveList, position);
-
-            // we need to be careful not to use short.MinValue, because we can't safely negate that
-            short alpha = -32500;
-            short beta = 32500;
-
-            var cachedPositionObject = new Position();
-            foreach (var move in moveList)
+            // This is non-reentrant, so let's make sure nobody accidentally calls us twice
+            lock (this)
             {
-                var nextPosition = Position.MakeMove(cachedPositionObject, move, position);
+                // setup
+                _timeStrategy = timeStrategy;
+                _enteredCount = 0;
+                _statistics = new Statistics();
+                _statistics.StartTime = DateTime.Now;
+                _qSearch.StartSearch(_timeStrategy, _statistics);
 
-                if (!_moveGen.OnlyLegalMoves && nextPosition.MovedIntoCheck())
-                    continue;
+                Move bestMove = Move.Null;
+                var moveList = new List<Move>();
+                _moveGen.Generate(moveList, position);
 
-                // let's just naively do a depth 4 search (including this search as 1 depth)
-                var nextEval = (short)-InnerSearch(nextPosition, 3, (short) -beta, (short) -alpha);
+                Score alpha = Score.MinValue;
+                Score beta = Score.MaxValue;
 
-                if (nextEval > alpha)
+                // TODO: instead of looping here, why don't we only loop in InnerSearch and get the best value from the PV table?
+                // That would simplify things a lot.
+                // However, if we have aspiration windows and we get a beta cutoff, how do we retrieve the best move? Or is that even required?
+                // The PV table would probably need to handle that case.
+                for (int depth = 1;; depth++)
                 {
-                    alpha = nextEval;
-                    bestMove = move;
+                    var cachedPositionObject = new Position();
+                    foreach (var move in moveList)
+                    {
+                        var nextPosition = Position.MakeMove(cachedPositionObject, move, position);
+
+                        if (!_moveGen.OnlyLegalMoves && nextPosition.MovedIntoCheck())
+                            continue;
+
+                        _statistics.CurrentDepth = depth;
+                        var nextEval = -InnerSearch(nextPosition, depth-1, -beta, -alpha, 1);
+
+                        if (timeStrategy.ShouldStop(_statistics))
+                            return (bestMove, _statistics);
+
+                        if (nextEval > alpha)
+                        {
+                            alpha = nextEval;
+                            bestMove = move;
+                        }
+                    }
                 }
             }
-
-            return bestMove;
         }
 
-        private short InnerSearch(Position position, int depth, short alpha, short beta)
+        // TODO: name actualDepth and depth appropriately
+        private Score InnerSearch(Position position, int depth, Score alpha, Score beta, int ply)
         {
+            // do it every 64? hmm..
+            if (_enteredCount % 64 == 0 && _timeStrategy.ShouldStop(_statistics))
+                return 0; // dummy value won't be used
+
+            // It's important we increment _after_ checking, because if we're stopping, we don't want entered count to be increasing
+            _enteredCount++;
+
             // Note: we don't return draw on 50 move counter; if the engine doesn't know how to make progress in 50 moves, telling the engine it's about to draw can only induce mistakes.
             if (position.RepetitionNumber >= 3)
+            {
+                _statistics.TerminalNodes++;
+                // TODO: contempt
                 return 0; // draw
+            }
 
-            // This is pretty bad; we really want to do quiescence search
             if (depth <= 0)
             {
-                var eval = _evaluator.Evaluate(position);
-                if (position.SideToMove == Color.White)
-                    return eval;
-                else
-                    return (short)-eval;
+                // Note: don't increase ply, as it's evaluating this position (same as current ply)
+                return _qSearch.Search(position, ply);
             }
 
             var moveList = _moveListCache.Get(depth);
@@ -73,6 +104,7 @@ namespace Dragonfly.Engine.Searching
             _moveGen.Generate(moveList, position);
 
             bool anyMoves = false;
+            bool raisedAlpha = false;
 
             var cachedPositionObject = _positionCache.Get(depth);
             foreach (var move in moveList)
@@ -84,12 +116,18 @@ namespace Dragonfly.Engine.Searching
 
                 anyMoves = true;
 
-                short nextEval = (short)-InnerSearch(nextPosition, depth - 1, (short)-beta, (short)-alpha);
-                if (nextEval > beta)
+                var nextEval = -InnerSearch(nextPosition, depth - 1, -beta, -alpha, ply+1);
+                if (nextEval >= beta)
+                {
+                    _statistics.InternalCutNodes++;
+                    // TODO: move ordering stats
+
                     return nextEval; // fail soft, but shouldn't matter for this naive implementation
+                }
 
                 if (nextEval > alpha)
                 {
+                    raisedAlpha = true;
                     // TODO eventually: we need to store this into triangular pv table somehow
                     alpha = nextEval;
                 }
@@ -97,10 +135,22 @@ namespace Dragonfly.Engine.Searching
 
             if (!anyMoves)
             {
+                _statistics.TerminalNodes++;
+
                 if (position.InCheck())
-                    return (short)(-32000 + position.GamePly); // TODO: use a proper helper function; negative value because we're losing
+                    return Score.GetMateScore(position.SideToMove, position.GamePly);
                 else
-                    return 0; // draw
+                    return 0; // draw; TODO: contempt
+            }
+
+            if (raisedAlpha)
+            {
+                // TODO: eventually commit to triangular pv table
+                _statistics.InternalPVNodes++;
+            }
+            else
+            {
+                _statistics.InternalAllNodes++;
             }
 
             return alpha;

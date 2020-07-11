@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using Dragonfly.Engine;
 using Dragonfly.Engine.CoreTypes;
 using Dragonfly.Engine.Evaluation;
 using Dragonfly.Engine.MoveGeneration;
 using Dragonfly.Engine.Searching;
+using Dragonfly.Engine.TimeStrategies;
 
 namespace Dragonfly
 {
@@ -16,6 +18,7 @@ namespace Dragonfly
         private const string MidgameFen = "r1b2rk1/4nppp/p3p3/2qpP3/8/2N2N2/PP3PPP/2RQ1RK1 b - - 3 14";
         private const string EndgameFen = "5n2/R7/4pk2/8/5PK1/8/8/8 b - - 0 1";
         private const string KiwipeteFen = "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1";
+
         static void Main(string[] args)
         {
             Uci();
@@ -30,7 +33,8 @@ namespace Dragonfly
         {
             var moveGen = new MoveGen();
             var evaluator = new Evaluator();
-            var search = new SimpleAlphaBetaSearch(moveGen, evaluator);
+            var qSearch = new NaiveQSearch(evaluator);
+            var search = new SimpleAlphaBetaSearch(moveGen, evaluator, qSearch);
 
             var uci = new SimpleUci(moveGen, search);
             uci.Loop();
@@ -40,9 +44,11 @@ namespace Dragonfly
         {
             var moveGen = new MoveGen();
             var evaluator = new Evaluator();
-            var search = new SimpleAlphaBetaSearch(moveGen, evaluator);
+            var qSearch = new NaiveQSearch(evaluator);
+            var search = new SimpleAlphaBetaSearch(moveGen, evaluator, qSearch);
+            var depthStrategy = new DepthStrategy(4);
 
-            search.Search(BoardParsing.PositionFromFen(OpeningFen));
+            search.Search(BoardParsing.PositionFromFen(OpeningFen), depthStrategy);
         }
 
         private static void PerformanceTesting(string fen, int perftDepth, TimeSpan timespan)

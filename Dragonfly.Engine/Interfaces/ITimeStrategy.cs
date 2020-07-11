@@ -4,9 +4,12 @@ using System.Text;
 
 namespace Dragonfly.Engine.Interfaces
 {
-    interface ITimeStrategy
+    public interface ITimeStrategy
     {
         void Start();
-        bool ShouldStop();
+
+        void ForceStop();
+
+        bool ShouldStop(Statistics statistics);
     }
 }
