@@ -6,6 +6,7 @@ using Dragonfly.Engine.Interfaces;
 
 namespace Dragonfly.Engine.Searching
 {
+    // This doesn't actually perform qsearch; it shouldn't be used, as it will make very stupid decisions
     public class NaiveQSearch : IQSearch
     {
         private readonly IEvaluator _evaluator;
@@ -23,11 +24,11 @@ namespace Dragonfly.Engine.Searching
             _statistics = statistics;
         }
 
-        public Score Search(Position position, int ply)
+        public Score Search(Position position, Score alpha, Score beta, int ply)
         {
-            _statistics.Evaluations++;
             _statistics.MaxPly = Math.Max(_statistics.MaxPly, ply);
-
+            _statistics.Evaluations++;
+            
             var eval = _evaluator.Evaluate(position);
             if (position.SideToMove == Color.White)
                 return eval;

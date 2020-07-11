@@ -13,5 +13,11 @@ namespace Dragonfly.Engine
             else
                 return default;
         }
+
+        public static void QuickRemoveAt<T>(this List<T> list, int index)
+        {
+            list[index] = list[^1];
+            list.RemoveAt(list.Count-1);
+        }
     }
 }

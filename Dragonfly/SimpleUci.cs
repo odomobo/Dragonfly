@@ -59,7 +59,7 @@ namespace Dragonfly
 
         private void Go()
         {
-            var timeStrategy = new DepthStrategy(4);
+            var timeStrategy = new TimePerMoveStrategy(TimeSpan.FromSeconds(1));
 
             var (move, statistics) = _search.Search(_position, timeStrategy);
             PrintInfo(statistics);
@@ -69,12 +69,12 @@ namespace Dragonfly
 
         private static void PrintInfo(Statistics statistics)
         {
-            var timeMs = (DateTime.Now - statistics.StartTime).Milliseconds;
-            var nps = (statistics.Nodes / timeMs) / 1000;
+            var timeMs = (DateTime.Now - statistics.StartTime).TotalMilliseconds;
+            var nps = (int)((statistics.Nodes / (double)timeMs) * 1000);
             Console.WriteLine(
                 $"info depth {statistics.CurrentDepth} " +
                 $"seldepth {statistics.MaxPly} " +
-                $"time {timeMs} " +
+                $"time {(int)timeMs} " +
                 $"nodes {statistics.Nodes} " +
                 $"nps {nps} " +
                 // TODO: add things like best move, score, etc

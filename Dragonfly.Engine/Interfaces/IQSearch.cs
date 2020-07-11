@@ -11,6 +11,6 @@ namespace Dragonfly.Engine.Interfaces
         // TODO: better name?
         void StartSearch(ITimeStrategy timeStrategy, Statistics statistics);
 
-        Score Search(Position position, int ply);
+        Score Search(Position position, Score alpha, Score beta, int ply);
     }
 }

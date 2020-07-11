@@ -33,7 +33,7 @@ namespace Dragonfly
         {
             var moveGen = new MoveGen();
             var evaluator = new Evaluator();
-            var qSearch = new NaiveQSearch(evaluator);
+            var qSearch = new SimpleQSearch(evaluator, moveGen);
             var search = new SimpleAlphaBetaSearch(moveGen, evaluator, qSearch);
 
             var uci = new SimpleUci(moveGen, search);
@@ -44,11 +44,11 @@ namespace Dragonfly
         {
             var moveGen = new MoveGen();
             var evaluator = new Evaluator();
-            var qSearch = new NaiveQSearch(evaluator);
+            var qSearch = new SimpleQSearch(evaluator, moveGen);
             var search = new SimpleAlphaBetaSearch(moveGen, evaluator, qSearch);
-            var depthStrategy = new DepthStrategy(4);
+            var timeStrategy = new TimePerMoveStrategy(TimeSpan.FromSeconds(10));
 
-            search.Search(BoardParsing.PositionFromFen(OpeningFen), depthStrategy);
+            search.Search(BoardParsing.PositionFromFen(OpeningFen), timeStrategy);
         }
 
         private static void PerformanceTesting(string fen, int perftDepth, TimeSpan timespan)

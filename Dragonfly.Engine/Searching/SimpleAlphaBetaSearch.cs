@@ -41,15 +41,16 @@ namespace Dragonfly.Engine.Searching
                 var moveList = new List<Move>();
                 _moveGen.Generate(moveList, position);
 
-                Score alpha = Score.MinValue;
-                Score beta = Score.MaxValue;
-
                 // TODO: instead of looping here, why don't we only loop in InnerSearch and get the best value from the PV table?
                 // That would simplify things a lot.
                 // However, if we have aspiration windows and we get a beta cutoff, how do we retrieve the best move? Or is that even required?
                 // The PV table would probably need to handle that case.
+                var tmpBestMove = Move.Null;
                 for (int depth = 1;; depth++)
                 {
+                    Score alpha = Score.MinValue;
+                    Score beta = Score.MaxValue;
+
                     var cachedPositionObject = new Position();
                     foreach (var move in moveList)
                     {
@@ -67,9 +68,13 @@ namespace Dragonfly.Engine.Searching
                         if (nextEval > alpha)
                         {
                             alpha = nextEval;
-                            bestMove = move;
+                            tmpBestMove = move;
                         }
                     }
+
+                    // only committing best move after a full search
+                    // TODO: this will go away once we're no longer doing a search at this level
+                    bestMove = tmpBestMove;
                 }
             }
         }
@@ -95,10 +100,11 @@ namespace Dragonfly.Engine.Searching
             if (depth <= 0)
             {
                 // Note: don't increase ply, as it's evaluating this position (same as current ply)
-                return _qSearch.Search(position, ply);
+                // We don't need to count this, as qsearch does its own node counting
+                return _qSearch.Search(position, alpha, beta, ply);
             }
 
-            var moveList = _moveListCache.Get(depth);
+            var moveList = _moveListCache.Get(ply);
             moveList.Clear();
 
             _moveGen.Generate(moveList, position);
@@ -106,7 +112,7 @@ namespace Dragonfly.Engine.Searching
             bool anyMoves = false;
             bool raisedAlpha = false;
 
-            var cachedPositionObject = _positionCache.Get(depth);
+            var cachedPositionObject = _positionCache.Get(ply);
             foreach (var move in moveList)
             {
                 var nextPosition = Position.MakeMove(cachedPositionObject, move, position);
@@ -116,20 +122,20 @@ namespace Dragonfly.Engine.Searching
 
                 anyMoves = true;
 
-                var nextEval = -InnerSearch(nextPosition, depth - 1, -beta, -alpha, ply+1);
-                if (nextEval >= beta)
+                var eval = -InnerSearch(nextPosition, depth - 1, -beta, -alpha, ply+1);
+                if (eval >= beta)
                 {
                     _statistics.InternalCutNodes++;
                     // TODO: move ordering stats
 
-                    return nextEval; // fail soft, but shouldn't matter for this naive implementation
+                    return eval; // fail soft, but shouldn't matter for this naive implementation
                 }
 
-                if (nextEval > alpha)
+                if (eval > alpha)
                 {
                     raisedAlpha = true;
                     // TODO eventually: we need to store this into triangular pv table somehow
-                    alpha = nextEval;
+                    alpha = eval;
                 }
             }
 
