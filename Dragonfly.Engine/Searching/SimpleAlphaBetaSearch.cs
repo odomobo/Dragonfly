@@ -129,6 +129,7 @@ namespace Dragonfly.Engine.Searching
 
                 anyMoves = true;
                 _pvTable.Add(move, ply);
+                _statistics.InternalMovesEvaluated++;
 
                 var eval = -InnerSearch(nextPosition, depth - 1, -beta, -alpha, ply+1);
                 if (eval >= beta)

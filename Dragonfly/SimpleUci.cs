@@ -85,11 +85,15 @@ namespace Dragonfly
                 $"internalCutNodes {statistics.InternalCutNodes} " +
                 $"internalPvNodes {statistics.InternalPVNodes} " +
                 $"internalAllNodes {statistics.InternalAllNodes} " +
+                $"internalMovesEvaluated {statistics.InternalMovesEvaluated} " +
+                $"internalBranchingFactor {statistics.InternalBranchingFactor:F2} " +
                 $"qsearchCutNodes {statistics.QSearchCutNodes} " +
                 $"qsearchPvNodes {statistics.QSearchPVNodes} " +
                 $"qsearchAllNodes {statistics.QSearchAllNodes} " +
+                $"qsearchMovesEvaluated {statistics.QSearchMovesEvaluated} " +
+                $"qsearchBranchingFactor {statistics.QSearchBranchingFactor:F2} " +
                 $"evaluations {statistics.Evaluations} " +
-                $"terminalNodes {statistics.TerminalNodes}"
+                $"terminalNodes {statistics.TerminalNodes} "
             );
         }
 
