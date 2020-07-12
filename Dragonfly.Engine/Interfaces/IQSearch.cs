@@ -9,7 +9,7 @@ namespace Dragonfly.Engine.Interfaces
     {
         // sets the objects needed for this search
         // TODO: better name?
-        void StartSearch(ITimeStrategy timeStrategy, Statistics statistics);
+        void StartSearch(ITimeStrategy timeStrategy, IPVTable pvTable, Statistics statistics);
 
         Score Search(Position position, Score alpha, Score beta, int ply);
     }

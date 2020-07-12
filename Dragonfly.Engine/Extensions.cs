@@ -19,5 +19,10 @@ namespace Dragonfly.Engine
             list[index] = list[^1];
             list.RemoveAt(list.Count-1);
         }
+
+        public static void RemoveLast<T>(this List<T> list)
+        {
+            list.RemoveAt(list.Count-1);
+        }
     }
 }

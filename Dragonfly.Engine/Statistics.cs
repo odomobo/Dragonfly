@@ -1,12 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using Dragonfly.Engine.CoreTypes;
+using Dragonfly.Engine.Interfaces;
+using Dragonfly.Engine.PVTable;
 
 namespace Dragonfly.Engine
 {
     public sealed class Statistics
     {
         public DateTime StartTime;
+        public List<Move> BestLine = new List<Move>();
 
         public int Nodes => InternalCutNodes + InternalPVNodes + InternalAllNodes +
                             QSearchCutNodes + QSearchPVNodes + QSearchAllNodes +

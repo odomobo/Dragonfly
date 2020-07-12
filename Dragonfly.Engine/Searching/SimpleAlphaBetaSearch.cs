@@ -4,6 +4,7 @@ using System.Text;
 using Dragonfly.Engine.CoreTypes;
 using Dragonfly.Engine.Interfaces;
 using Dragonfly.Engine.PerformanceTypes;
+using Dragonfly.Engine.PVTable;
 
 namespace Dragonfly.Engine.Searching
 {
@@ -12,6 +13,7 @@ namespace Dragonfly.Engine.Searching
         private readonly IMoveGen _moveGen;
         private readonly IEvaluator _evaluator; // TODO: do we need this?
         private readonly IQSearch _qSearch;
+        private IPVTable _pvTable;
         private ITimeStrategy _timeStrategy;
         private Statistics _statistics;
         private int _enteredCount; // this is used to only call _timeStrategy occasionally, instead on every entry of InnerSearch()
@@ -35,7 +37,8 @@ namespace Dragonfly.Engine.Searching
                 _enteredCount = 0;
                 _statistics = new Statistics();
                 _statistics.StartTime = DateTime.Now;
-                _qSearch.StartSearch(_timeStrategy, _statistics);
+                _pvTable = new TriangularPVTable(); // TODO: should we be passing this in instead?
+                _qSearch.StartSearch(_timeStrategy, _pvTable, _statistics);
 
                 Move bestMove = Move.Null;
                 var moveList = new List<Move>();
@@ -59,6 +62,8 @@ namespace Dragonfly.Engine.Searching
                         if (!_moveGen.OnlyLegalMoves && nextPosition.MovedIntoCheck())
                             continue;
 
+                        _pvTable.Add(move, 0);
+
                         _statistics.CurrentDepth = depth;
                         var nextEval = -InnerSearch(nextPosition, depth-1, -beta, -alpha, 1);
 
@@ -69,12 +74,14 @@ namespace Dragonfly.Engine.Searching
                         {
                             alpha = nextEval;
                             tmpBestMove = move;
+                            _pvTable.Commit(0);
                         }
                     }
 
                     // only committing best move after a full search
                     // TODO: this will go away once we're no longer doing a search at this level
                     bestMove = tmpBestMove;
+                    _statistics.BestLine = _pvTable.GetBestLine();
                 }
             }
         }
@@ -121,6 +128,7 @@ namespace Dragonfly.Engine.Searching
                     continue;
 
                 anyMoves = true;
+                _pvTable.Add(move, ply);
 
                 var eval = -InnerSearch(nextPosition, depth - 1, -beta, -alpha, ply+1);
                 if (eval >= beta)
@@ -134,8 +142,8 @@ namespace Dragonfly.Engine.Searching
                 if (eval > alpha)
                 {
                     raisedAlpha = true;
-                    // TODO eventually: we need to store this into triangular pv table somehow
                     alpha = eval;
+                    _pvTable.Commit(ply);
                 }
             }
 

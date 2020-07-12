@@ -71,12 +71,15 @@ namespace Dragonfly
         {
             var timeMs = (DateTime.Now - statistics.StartTime).TotalMilliseconds;
             var nps = (int)((statistics.Nodes / (double)timeMs) * 1000);
+            var pvMoves = statistics.BestLine.Select(BoardParsing.CoordinateStringFromMove);
+            var pvString = string.Join(' ', pvMoves);
             Console.WriteLine(
                 $"info depth {statistics.CurrentDepth} " +
                 $"seldepth {statistics.MaxPly} " +
                 $"time {(int)timeMs} " +
                 $"nodes {statistics.Nodes} " +
                 $"nps {nps} " +
+                $"pv {pvString} " +
                 // TODO: add things like best move, score, etc
                 "string " + // below this are nonstandard info values; I think without string, some GUIs would have a problem with this
                 $"internalCutNodes {statistics.InternalCutNodes} " +

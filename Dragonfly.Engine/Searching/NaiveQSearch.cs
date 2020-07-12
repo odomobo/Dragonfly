@@ -18,7 +18,7 @@ namespace Dragonfly.Engine.Searching
             _evaluator = evaluator;
         }
 
-        public void StartSearch(ITimeStrategy timeStrategy, Statistics statistics)
+        public void StartSearch(ITimeStrategy timeStrategy, IPVTable pvTable, Statistics statistics)
         {
             _timeStrategy = timeStrategy;
             _statistics = statistics;

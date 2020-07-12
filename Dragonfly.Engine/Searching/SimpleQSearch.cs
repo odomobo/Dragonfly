@@ -22,7 +22,7 @@ namespace Dragonfly.Engine.Searching
             _moveGen = moveGen;
         }
 
-        public void StartSearch(ITimeStrategy timeStrategy, Statistics statistics)
+        public void StartSearch(ITimeStrategy timeStrategy, IPVTable pvTable, Statistics statistics)
         {
             _timeStrategy = timeStrategy;
             _statistics = statistics;
