@@ -23,17 +23,23 @@ namespace Dragonfly.Engine
         public int InternalPVNodes;
         public int InternalAllNodes;
         public int InternalMovesEvaluated; // this helps us determine average branching factor
+        public int InternalCutMoveMisses; // how many moves were evaluated before the cut move
 
         public double InternalBranchingFactor =>
             (double) InternalMovesEvaluated / (InternalCutNodes + InternalPVNodes + InternalAllNodes);
+
+        public double InternalAverageCutMoveMisses => (double) InternalCutMoveMisses / InternalCutNodes;
 
         public int QSearchCutNodes;
         public int QSearchPVNodes;
         public int QSearchAllNodes;
         public int QSearchMovesEvaluated; // this helps us determine average branching factor
+        public int QSearchCutMoveMisses; // how many moves were evaluated before the cut move
 
         public double QSearchBranchingFactor =>
             (double)QSearchMovesEvaluated / (QSearchCutNodes + QSearchPVNodes + QSearchAllNodes);
+
+        public double QSearchAverageCutMoveMisses => (double) QSearchCutMoveMisses / QSearchCutNodes;
 
         // Terminal nodes represent a game-over state.
         public int TerminalNodes;

@@ -91,6 +91,7 @@ namespace Dragonfly.Engine.Searching
                 // TODO: we should use SEE to determine which moves to keep!
             }
 
+            int moveNumber = 0;
             var cachedPositionObject = _positionCache.Get(ply);
             foreach (var move in moves)
             {
@@ -99,11 +100,14 @@ namespace Dragonfly.Engine.Searching
                 if (!moveGenIsStrictlyLegal && nextPosition.MovedIntoCheck())
                     continue;
 
+                moveNumber++;
+
                 var eval = -InnerSearch(nextPosition, depth + 1, -beta, -alpha, ply + 1);
 
                 if (eval >= beta)
                 {
                     _statistics.QSearchCutNodes++;
+                    _statistics.QSearchCutMoveMisses += moveNumber - 1; // don't include the current move in the move misses calculation
                     return eval;
                 }
 

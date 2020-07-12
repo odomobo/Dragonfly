@@ -119,6 +119,7 @@ namespace Dragonfly.Engine.Searching
             bool anyMoves = false;
             bool raisedAlpha = false;
 
+            int moveNumber = 0;
             var cachedPositionObject = _positionCache.Get(ply);
             foreach (var move in moveList)
             {
@@ -126,6 +127,8 @@ namespace Dragonfly.Engine.Searching
 
                 if (!_moveGen.OnlyLegalMoves && nextPosition.MovedIntoCheck())
                     continue;
+
+                moveNumber++;
 
                 anyMoves = true;
                 _pvTable.Add(move, ply);
@@ -135,7 +138,7 @@ namespace Dragonfly.Engine.Searching
                 if (eval >= beta)
                 {
                     _statistics.InternalCutNodes++;
-                    // TODO: move ordering stats
+                    _statistics.InternalCutMoveMisses += moveNumber - 1; // don't include the current move in the move misses calculation
 
                     return eval; // fail soft, but shouldn't matter for this naive implementation
                 }

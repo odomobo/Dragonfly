@@ -87,11 +87,13 @@ namespace Dragonfly
                 $"internalAllNodes {statistics.InternalAllNodes} " +
                 $"internalMovesEvaluated {statistics.InternalMovesEvaluated} " +
                 $"internalBranchingFactor {statistics.InternalBranchingFactor:F2} " +
+                $"internalAverageCutMoveMisses {statistics.InternalAverageCutMoveMisses:F2} " +
                 $"qsearchCutNodes {statistics.QSearchCutNodes} " +
                 $"qsearchPvNodes {statistics.QSearchPVNodes} " +
                 $"qsearchAllNodes {statistics.QSearchAllNodes} " +
                 $"qsearchMovesEvaluated {statistics.QSearchMovesEvaluated} " +
                 $"qsearchBranchingFactor {statistics.QSearchBranchingFactor:F2} " +
+                $"qsearchAverageCutMoveMisses {statistics.QSearchAverageCutMoveMisses:F2} " +
                 $"evaluations {statistics.Evaluations} " +
                 $"terminalNodes {statistics.TerminalNodes} "
             );
