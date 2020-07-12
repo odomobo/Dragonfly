@@ -37,6 +37,7 @@ namespace Dragonfly.Engine.Searching
                 _enteredCount = 0;
                 _statistics = new Statistics();
                 _statistics.StartTime = DateTime.Now;
+                _statistics.SideCalculating = position.SideToMove;
                 _pvTable = new TriangularPVTable(); // TODO: should we be passing this in instead?
                 _qSearch.StartSearch(_timeStrategy, _pvTable, _statistics);
 
@@ -82,6 +83,10 @@ namespace Dragonfly.Engine.Searching
                     // TODO: this will go away once we're no longer doing a search at this level
                     bestMove = tmpBestMove;
                     _statistics.BestLine = _pvTable.GetBestLine();
+                    if (position.SideToMove == Color.White)
+                        _statistics.CurrentScore = alpha;
+                    else
+                        _statistics.CurrentScore = -alpha;
                 }
             }
         }
@@ -156,7 +161,7 @@ namespace Dragonfly.Engine.Searching
                 _statistics.TerminalNodes++;
 
                 if (position.InCheck())
-                    return Score.GetMateScore(position.SideToMove, position.GamePly);
+                    return Score.GetMateScore(position.GamePly);
                 else
                     return 0; // draw; TODO: contempt
             }

@@ -10,7 +10,9 @@ namespace Dragonfly.Engine
     public sealed class Statistics
     {
         public DateTime StartTime;
+        public Color SideCalculating;
         public List<Move> BestLine = new List<Move>();
+        public Score CurrentScore;
 
         public int Nodes => InternalCutNodes + InternalPVNodes + InternalAllNodes +
                             QSearchCutNodes + QSearchPVNodes + QSearchAllNodes +

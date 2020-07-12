@@ -15,7 +15,7 @@ namespace Dragonfly.Engine.CoreTypes
         private ulong _occupied;
         private bool? _inCheckWhite;
         private bool? _inCheckBlack;
-        private Position? _parent;
+        public Position? Parent { get; private set; }
 
         public Color SideToMove { get; private set; }
         public ulong EnPassant { get; private set; }
@@ -42,7 +42,7 @@ namespace Dragonfly.Engine.CoreTypes
 
             _occupied = _occupiedWhite | _occupiedBlack;
 
-            _parent = null;
+            Parent = null;
 
             SideToMove = sideToMove;
             CastlingRights = castlingRights;
@@ -92,7 +92,7 @@ namespace Dragonfly.Engine.CoreTypes
             shell._pieceBitboards = parent.CopyPieceBitboards();
             shell._squares = parent.CopySquares();
             shell.ZobristHash = parent.ZobristHash;
-            shell._parent = parent;
+            shell.Parent = parent;
             shell._inCheckWhite = null;
             shell._inCheckBlack = null;
             shell.SideToMove = parent.SideToMove.Other();
@@ -268,7 +268,7 @@ namespace Dragonfly.Engine.CoreTypes
             // calculate rep count
             for (int i = position.FiftyMoveCounter - 2; i >= 0; i -= 2)
             {
-                var tmpBoard = position._parent?._parent;
+                var tmpBoard = position.Parent?.Parent;
                 if (tmpBoard == null)
                     return 1;
 

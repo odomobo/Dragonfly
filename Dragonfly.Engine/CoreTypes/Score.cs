@@ -24,13 +24,19 @@ namespace Dragonfly.Engine.CoreTypes
             return _value;
         }
 
-        // Score for the side being mated
+        // Score for the side being mated; relative to the side being mated
+        public static Score GetMateScore(int gamePly)
+        {
+            return -32000 + gamePly;
+        }
+
+        // Score for the side being mated; absolute
         public static Score GetMateScore(Color color, int gamePly)
         {
             if (color == Color.White)
-                return -32000 + gamePly;
+                return GetMateScore(gamePly);
             else
-                return 32000 - gamePly;
+                return -GetMateScore(gamePly);
         }
 
         public bool IsMateScore()

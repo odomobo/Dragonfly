@@ -46,8 +46,6 @@ namespace Dragonfly.Engine.Searching
 
             if (standPatEval >= beta)
             {
-                //_statistics.QSearchCutNodes++;
-                // TODO: this shouldn't be considered a cut node... maybe 
                 return standPatEval;
             }
 
