@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using Dragonfly.Engine.CoreTypes;
 using Dragonfly.Engine.Interfaces;
+using Dragonfly.Engine.MoveOrdering;
 using Dragonfly.Engine.PerformanceTypes;
 
 namespace Dragonfly.Engine.Searching
@@ -11,15 +12,19 @@ namespace Dragonfly.Engine.Searching
     {
         private readonly IEvaluator _evaluator;
         private readonly IMoveGen _moveGen; // Note: eventually we also want a qsearch movegen
+        private readonly CompositeMoveOrderer _quiescenceMoveOrderer;
+        private readonly CompositeMoveOrderer _checkEvasionsMoveOrderer;
         private ITimeStrategy _timeStrategy; // Note: we don't actually need this
         private Statistics _statistics;
         private readonly ObjectCacheByDepth<Position> _positionCache = new ObjectCacheByDepth<Position>();
         private readonly ObjectCacheByDepth<List<Move>> _moveListCache = new ObjectCacheByDepth<List<Move>>();
 
-        public SimpleQSearch(IEvaluator evaluator, IMoveGen moveGen)
+        public SimpleQSearch(IEvaluator evaluator, IMoveGen moveGen, CompositeMoveOrderer quiescenceMoveOrderer, CompositeMoveOrderer checkEvasionsMoveOrderer)
         {
             _evaluator = evaluator;
             _moveGen = moveGen;
+            _quiescenceMoveOrderer = quiescenceMoveOrderer;
+            _checkEvasionsMoveOrderer = checkEvasionsMoveOrderer;
         }
 
         public void StartSearch(ITimeStrategy timeStrategy, IPVTable pvTable, Statistics statistics)
@@ -66,11 +71,13 @@ namespace Dragonfly.Engine.Searching
             moves.Clear();
 
             bool moveGenIsStrictlyLegal;
+            IEnumerable<Move> moveEnumerator;
             if (position.InCheck())
             {
                 // if we're in check, we need to try all moves
                 _moveGen.Generate(moves, position);
                 moveGenIsStrictlyLegal = _moveGen.OnlyLegalMoves;
+                moveEnumerator = _checkEvasionsMoveOrderer.Order(moves, position);
             }
             else
             {
@@ -87,11 +94,13 @@ namespace Dragonfly.Engine.Searching
                 }
 
                 // TODO: we should use SEE to determine which moves to keep!
+
+                moveEnumerator = _quiescenceMoveOrderer.Order(moves, position);
             }
 
             int moveNumber = 0;
             var cachedPositionObject = _positionCache.Get(ply);
-            foreach (var move in moves)
+            foreach (var move in moveEnumerator)
             {
                 var nextPosition = Position.MakeMove(cachedPositionObject, move, position);
                 
@@ -120,7 +129,7 @@ namespace Dragonfly.Engine.Searching
 
             if (raisedAlpha)
             {
-                // TODO: eventually commit to triangular pv table
+                // TODO: eventually commit to triangular pv table? Maybe?
                 _statistics.QSearchPVNodes++;
             }
             else

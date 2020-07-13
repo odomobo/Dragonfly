@@ -2,10 +2,13 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
+using System.Security.Cryptography;
 using Dragonfly.Engine;
 using Dragonfly.Engine.CoreTypes;
 using Dragonfly.Engine.Evaluation;
+using Dragonfly.Engine.Interfaces;
 using Dragonfly.Engine.MoveGeneration;
+using Dragonfly.Engine.MoveOrdering;
 using Dragonfly.Engine.Searching;
 using Dragonfly.Engine.TimeStrategies;
 
@@ -33,7 +36,8 @@ namespace Dragonfly
         {
             var moveGen = new MoveGen();
             var evaluator = new Evaluator();
-            var qSearch = new SimpleQSearch(evaluator, moveGen);
+            var promotionMvvLvaMoveOrderer = new CompositeMoveOrderer(new IMoveOrderer[] {new PromotionsOrderer(), new MvvLvaOrderer()});
+            var qSearch = new SimpleQSearch(evaluator, moveGen, promotionMvvLvaMoveOrderer, CompositeMoveOrderer.NullMoveOrderer);
             var search = new SimpleAlphaBetaSearch(moveGen, evaluator, qSearch);
 
             var uci = new SimpleUci(moveGen, search);
@@ -44,11 +48,12 @@ namespace Dragonfly
         {
             var moveGen = new MoveGen();
             var evaluator = new Evaluator();
-            var qSearch = new SimpleQSearch(evaluator, moveGen);
+            var promotionMvvLvaMoveOrderer = new CompositeMoveOrderer(new IMoveOrderer[] { new PromotionsOrderer(), new MvvLvaOrderer() });
+            var qSearch = new SimpleQSearch(evaluator, moveGen, promotionMvvLvaMoveOrderer, CompositeMoveOrderer.NullMoveOrderer);
             var search = new SimpleAlphaBetaSearch(moveGen, evaluator, qSearch);
             var timeStrategy = new TimePerMoveStrategy(TimeSpan.FromSeconds(10));
 
-            search.Search(BoardParsing.PositionFromFen(OpeningFen), timeStrategy);
+            search.Search(BoardParsing.PositionFromFen(MidgameFen), timeStrategy);
         }
 
         private static void PerformanceTesting(string fen, int perftDepth, TimeSpan timespan)
