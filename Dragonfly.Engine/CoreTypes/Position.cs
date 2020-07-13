@@ -31,6 +31,8 @@ namespace Dragonfly.Engine.CoreTypes
         // Takes ownership of all arrays passed to it; they should not be changed after the board is created.
         public Position(Piece[] pieceSquares, Color sideToMove, ulong castlingRights, ulong enPassant, int fiftyMoveCounter, int fullMove)
         {
+            _pieceBitboards = new BitboardArray();
+            _squares = new PieceSquareArray();
             // safer to go by the length the PieceSquareArray, because the Piece[] will always error on index out of bounds
             for (int i = 0; i < _squares.Length; i++)
                 _squares[i] = pieceSquares[i];
@@ -58,7 +60,10 @@ namespace Dragonfly.Engine.CoreTypes
         }
 
         public Position()
-        {}
+        {
+            _pieceBitboards = new BitboardArray();
+            _squares = new PieceSquareArray();
+        }
 
         private static void PopulatePieceBitboardsFromSquares(ref BitboardArray pieceBitboards, Piece[] squares)
         {
@@ -89,8 +94,8 @@ namespace Dragonfly.Engine.CoreTypes
         public static Position MakeMove(Position shell, Move move, Position parent)
         {
             // copy data which doesn't depend on performing the move
-            shell._pieceBitboards = parent.CopyPieceBitboards();
-            shell._squares = parent.CopySquares();
+            parent.CopyPieceBitboards(ref shell._pieceBitboards);
+            parent.CopySquares(ref shell._squares);
             shell.ZobristHash = parent.ZobristHash;
             shell.Parent = parent;
             shell._inCheckWhite = null;
@@ -307,15 +312,15 @@ namespace Dragonfly.Engine.CoreTypes
         }
 
         // would need to copy the contents if this were an array
-        private BitboardArray CopyPieceBitboards()
+        private void CopyPieceBitboards(ref BitboardArray ret)
         {
-            return _pieceBitboards;
+            ret = _pieceBitboards;
         }
 
         // would need to copy the contents if this were an array
-        private PieceSquareArray CopySquares()
+        private void CopySquares(ref PieceSquareArray ret)
         {
-            return _squares;
+            ret = _squares;
         }
 
         public ulong GetPieceBitboard(Color c, PieceType pt)
@@ -362,6 +367,20 @@ namespace Dragonfly.Engine.CoreTypes
         public bool MovedIntoCheck()
         {
             return InCheck(SideToMove.Other());
+        }
+
+        public bool IsValid()
+        {
+            if (Bits.PopCount(GetPieceBitboard(Color.White, PieceType.King)) != 1)
+                return false;
+
+            if (Bits.PopCount(GetPieceBitboard(Color.Black, PieceType.King)) != 1)
+                return false;
+
+            if (MovedIntoCheck())
+                return false;
+
+            return true;
         }
 
         private bool InCheckWhite()

@@ -1,14 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
-using System.Reflection;
-using System.Text;
 using System.Threading;
 using Dragonfly.Engine;
 using Dragonfly.Engine.CoreTypes;
 using Dragonfly.Engine.Interfaces;
-using Dragonfly.Engine.MoveGeneration;
 using Dragonfly.Engine.TimeStrategies;
 
 namespace Dragonfly
@@ -40,7 +36,6 @@ namespace Dragonfly
                 var command = splitLine[0];
                 var options = splitLine.Length > 1 ? splitLine[1] : string.Empty;
 
-                // TODO: synchonize
                 switch (command)
                 {
                     case "quit":
@@ -108,7 +103,6 @@ namespace Dragonfly
         {
             var (move, statistics) = _search.Search(_position, _timeStrategy);
             PrintInfo(statistics);
-            // TODO: print statistics
             Console.WriteLine($"bestmove {BoardParsing.CoordinateStringFromMove(move)}");
         }
 
@@ -287,6 +281,9 @@ namespace Dragonfly
             {
                 throw new Exception($"Invalid option: {options[0]}");
             }
+
+            if (!_position.IsValid())
+                throw new Exception("Invalid position");
 
             if (options.Any() && options[0] == "moves")
             {

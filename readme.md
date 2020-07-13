@@ -1,12 +1,8 @@
-## Progress
+## More things to implement
 
-* UCI: all
-  * 25%
-  
-TODO UCI:
+* move ordering
+* periodic info messages
+* MCTS (or UCT, whatever the appropriate algo is)
+* mvv-lva
+* IID
 
-* separate search thread
-* interrupt search thread + stop
-* ucinewgame ?
-* debug?
-* setoption + uci options

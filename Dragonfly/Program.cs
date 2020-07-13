@@ -140,7 +140,7 @@ namespace Dragonfly
                 var nextBoard = Position.MakeMove(new Position(), move, position);
 
                 // check move legality if using a pseudolegal move generator
-                if (!moveGen.OnlyLegalMoves && nextBoard.InCheck(nextBoard.SideToMove.Other()))
+                if (!moveGen.OnlyLegalMoves && nextBoard.MovedIntoCheck())
                     continue;
 
                 Console.Write($"{moveStr}: ");

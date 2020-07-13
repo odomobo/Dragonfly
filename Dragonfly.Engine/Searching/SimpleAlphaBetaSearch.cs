@@ -87,6 +87,10 @@ namespace Dragonfly.Engine.Searching
                         _statistics.CurrentScore = alpha;
                     else
                         _statistics.CurrentScore = -alpha;
+
+                    // if we don't do this, we'll never return from an endgame position
+                    if (timeStrategy.ShouldStop(_statistics))
+                        return (bestMove, _statistics);
                 }
             }
         }

@@ -223,7 +223,7 @@ namespace Dragonfly.Engine
                     var testingBoard = Position.MakeMove(new Position(), tmpMove, b);
 
                     // if we moved into check, clearly it was an invalid move
-                    if (testingBoard.InCheck(testingBoard.SideToMove.Other()))
+                    if (testingBoard.MovedIntoCheck())
                         continue;
                 }
 
