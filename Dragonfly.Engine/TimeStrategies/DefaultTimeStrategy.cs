@@ -7,21 +7,21 @@ namespace Dragonfly.Engine.TimeStrategies
 {
     public sealed class DefaultTimeStrategy : ITimeStrategy
     {
-        private bool _stopping;
+        private readonly SynchronizedFlag _stopping = new SynchronizedFlag();
 
         public void Start()
         {
-            _stopping = false;
+            _stopping.Clear();
         }
 
         public void ForceStop()
         {
-            _stopping = true;
+            _stopping.Set();
         }
 
         public bool ShouldStop(Statistics statistics)
         {
-            return _stopping;
+            return _stopping.IsSet();
         }
     }
 }

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using Dragonfly.Engine;
@@ -14,25 +15,30 @@ namespace Dragonfly
         private const string InitialFen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 
         private Position _position;
-        private IMoveGen _moveGen;
+        private IMoveGenerator _moveGenerator;
         private ISearch _search;
         private ITimeStrategy _timeStrategy;
+        private TextReader _input;
+        private TextWriter _output;
         private Thread? _searchThread;
 
-        public SimpleUci(IMoveGen moveGen, ISearch search)
+        public SimpleUci(IMoveGenerator moveGenerator, ISearch search, TextReader input, TextWriter output)
         {
             _position = BoardParsing.PositionFromFen(InitialFen);
-            _moveGen = moveGen;
+            _moveGenerator = moveGenerator;
             _search = search;
             _timeStrategy = new DefaultTimeStrategy();
+            _input = input;
+            _output = output;
         }
 
         public void Loop()
         {
             while (true)
             {
-                var line = Console.ReadLine();
-                var splitLine = line.Split(" ", 2, StringSplitOptions.RemoveEmptyEntries);
+                var line = _input.ReadLine();
+                // TODO handle line being null? maybe?
+                var splitLine = line!.Split(" ", 2, StringSplitOptions.RemoveEmptyEntries);
                 var command = splitLine[0];
                 var options = splitLine.Length > 1 ? splitLine[1] : string.Empty;
 
@@ -50,7 +56,7 @@ namespace Dragonfly
                         break;
                     case "isready":
                         WaitForSearch();
-                        Console.WriteLine("readyok");
+                        _output.WriteLine("readyok");
                         break;
                     case "position":
                         WaitForSearch();
@@ -63,7 +69,7 @@ namespace Dragonfly
                         _searchThread.Start();
                         break;
                     default:
-                        Console.WriteLine($"Unknown command: {command}");
+                        _output.WriteLine($"Unknown command: {command}");
                         break;
                 }
             }
@@ -88,22 +94,22 @@ namespace Dragonfly
             _searchThread = null;
         }
 
-        private static void HandleUci()
+        private void HandleUci()
         {
             // Note: this should ideally match what is in the project properties
-            Console.WriteLine("id name Dragonfly 0.1.0.0");
-            Console.WriteLine("id author odomobo");
+            _output.WriteLine("id name Dragonfly 0.1.0.0");
+            _output.WriteLine("id author odomobo");
 
             // TODO: options
 
-            Console.WriteLine("uciok");
+            _output.WriteLine("uciok");
         }
 
         private void Go()
         {
             var (move, statistics) = _search.Search(_position, _timeStrategy, PrintInfo);
             PrintInfo(statistics);
-            Console.WriteLine($"bestmove {BoardParsing.CoordinateStringFromMove(move)}");
+            _output.WriteLine($"bestmove {BoardParsing.CoordinateStringFromMove(move)}");
         }
 
         #region Go options
@@ -223,13 +229,13 @@ namespace Dragonfly
 
         #endregion Go options
 
-        private static void PrintInfo(Statistics statistics)
+        private void PrintInfo(Statistics statistics)
         {
             var timeMs = (DateTime.Now - statistics.StartTime).TotalMilliseconds;
             var nps = (int)((statistics.Nodes / (double)timeMs) * 1000);
             var pvMoves = statistics.BestLine.Select(BoardParsing.CoordinateStringFromMove);
             var pvString = string.Join(' ', pvMoves);
-            Console.WriteLine(
+            _output.WriteLine(
                 $"info depth {statistics.CurrentDepth} " +
                 $"seldepth {statistics.MaxPly} " +
                 $"time {(int)timeMs} " +
@@ -291,7 +297,7 @@ namespace Dragonfly
 
                 foreach (var moveStr in options)
                 {
-                    Move move = BoardParsing.GetMoveFromCoordinateString(_moveGen, _position, moveStr);
+                    Move move = BoardParsing.GetMoveFromCoordinateString(_moveGenerator, _position, moveStr);
                     _position = Position.MakeMove(new Position(), move, _position);
                 }
             }

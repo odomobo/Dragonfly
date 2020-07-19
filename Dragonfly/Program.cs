@@ -14,7 +14,7 @@ using Dragonfly.Engine.TimeStrategies;
 
 namespace Dragonfly
 {
-    class Program
+    static class Program
     {
         // TODO: where should this live?
         private const string OpeningFen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
@@ -24,6 +24,7 @@ namespace Dragonfly
 
         static void Main(string[] args)
         {
+            // TODO: refactor test code out of here and into its own binary? maybe
             Uci();
             //Bench();
             //GetPerftPositions.DumpEvalsForEachPosition();
@@ -34,19 +35,19 @@ namespace Dragonfly
 
         private static void Uci()
         {
-            var moveGen = new MoveGen();
+            var moveGen = new MoveGenerator();
             var evaluator = new Evaluator();
             var promotionMvvLvaMoveOrderer = new CompositeMoveOrderer(new IMoveOrderer[] {new PromotionsOrderer(), new MvvLvaOrderer()});
             var qSearch = new SimpleQSearch(evaluator, moveGen, promotionMvvLvaMoveOrderer, CompositeMoveOrderer.NullMoveOrderer);
             var search = new SimpleAlphaBetaSearch(moveGen, evaluator, qSearch);
 
-            var uci = new SimpleUci(moveGen, search);
+            var uci = new SimpleUci(moveGen, search, Console.In, Console.Out);
             uci.Loop();
         }
 
         private static void Bench()
         {
-            var moveGen = new MoveGen();
+            var moveGen = new MoveGenerator();
             var evaluator = new Evaluator();
             var promotionMvvLvaMoveOrderer = new CompositeMoveOrderer(new IMoveOrderer[] { new PromotionsOrderer(), new MvvLvaOrderer() });
             var qSearch = new SimpleQSearch(evaluator, moveGen, promotionMvvLvaMoveOrderer, CompositeMoveOrderer.NullMoveOrderer);
@@ -61,7 +62,7 @@ namespace Dragonfly
             var board = BoardParsing.PositionFromFen(fen);
             Debugging.Dump(board);
 
-            var moveGen = new MoveGen();
+            var moveGen = new MoveGenerator();
             var perft = new Perft(moveGen);
             Stopwatch overallStopwatch = new Stopwatch();
             overallStopwatch.Start();
@@ -88,7 +89,7 @@ namespace Dragonfly
             var board = BoardParsing.PositionFromFen(fen);
             Debugging.Dump(board);
 
-            var moveGen = new MoveGen();
+            var moveGen = new MoveGenerator();
             var perft = new Perft(moveGen);
             for (int i = 1; i <= maxDepth; i++)
             {
@@ -108,7 +109,7 @@ namespace Dragonfly
             var board = BoardParsing.PositionFromFen(fen);
             Debugging.Dump(board);
 
-            var moveGen = new MoveGen();
+            var moveGen = new MoveGenerator();
             var perft = new Perft(moveGen);
             
             foreach (var moveStr in moves)
@@ -121,7 +122,7 @@ namespace Dragonfly
             GoDivide(moveGen, perft, board, depth - moves.Length);
         }
 
-        private static void GoDivide(MoveGen moveGen, Perft perft, Position position, int depth)
+        private static void GoDivide(MoveGenerator moveGenerator, Perft perft, Position position, int depth)
         {
             if (depth <= 0)
             {
@@ -132,7 +133,7 @@ namespace Dragonfly
             var total = 0;
 
             List<Move> moves = new List<Move>();
-            moveGen.Generate(moves, position);
+            moveGenerator.Generate(moves, position);
 
             var movesDict = new SortedDictionary<string, Move>();
             foreach (var move in moves)
@@ -145,7 +146,7 @@ namespace Dragonfly
                 var nextBoard = Position.MakeMove(new Position(), move, position);
 
                 // check move legality if using a pseudolegal move generator
-                if (!moveGen.OnlyLegalMoves && nextBoard.MovedIntoCheck())
+                if (!moveGenerator.OnlyLegalMoves && nextBoard.MovedIntoCheck())
                     continue;
 
                 Console.Write($"{moveStr}: ");

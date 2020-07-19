@@ -13,7 +13,7 @@ namespace Dragonfly.Engine.Searching
         private const int MaxDepth = 10;
 
         private readonly IEvaluator _evaluator;
-        private readonly IMoveGen _moveGen; // Note: eventually we also want a qsearch movegen
+        private readonly IMoveGenerator _moveGenerator; // Note: eventually we also want a qsearch movegen
         private readonly CompositeMoveOrderer _quiescenceMoveOrderer;
         private readonly CompositeMoveOrderer _checkEvasionsMoveOrderer;
         private ITimeStrategy _timeStrategy; // Note: we don't actually need this
@@ -21,10 +21,10 @@ namespace Dragonfly.Engine.Searching
         private readonly ObjectCacheByDepth<Position> _positionCache = new ObjectCacheByDepth<Position>();
         private readonly ObjectCacheByDepth<List<Move>> _moveListCache = new ObjectCacheByDepth<List<Move>>();
 
-        public SimpleQSearch(IEvaluator evaluator, IMoveGen moveGen, CompositeMoveOrderer quiescenceMoveOrderer, CompositeMoveOrderer checkEvasionsMoveOrderer)
+        public SimpleQSearch(IEvaluator evaluator, IMoveGenerator moveGenerator, CompositeMoveOrderer quiescenceMoveOrderer, CompositeMoveOrderer checkEvasionsMoveOrderer)
         {
             _evaluator = evaluator;
-            _moveGen = moveGen;
+            _moveGenerator = moveGenerator;
             _quiescenceMoveOrderer = quiescenceMoveOrderer;
             _checkEvasionsMoveOrderer = checkEvasionsMoveOrderer;
         }
@@ -78,15 +78,15 @@ namespace Dragonfly.Engine.Searching
             if (position.InCheck())
             {
                 // if we're in check, we need to try all moves
-                _moveGen.Generate(moves, position);
-                moveGenIsStrictlyLegal = _moveGen.OnlyLegalMoves;
+                _moveGenerator.Generate(moves, position);
+                moveGenIsStrictlyLegal = _moveGenerator.OnlyLegalMoves;
                 moveEnumerator = _checkEvasionsMoveOrderer.Order(moves, position);
             }
             else
             {
                 // if not in check, then only look at captures and promotions
-                _moveGen.Generate(moves, position);
-                moveGenIsStrictlyLegal = _moveGen.OnlyLegalMoves;
+                _moveGenerator.Generate(moves, position);
+                moveGenIsStrictlyLegal = _moveGenerator.OnlyLegalMoves;
 
                 // since we don't have a qsearch movegen, we need to remove the non-applicable moves
                 for (int i = moves.Count - 1; i >= 0; i--)

@@ -24,7 +24,7 @@ namespace Dragonfly.Engine.Searching
             }
         }
 
-        private readonly IMoveGen _moveGen;
+        private readonly IMoveGenerator _moveGenerator;
         private readonly IEvaluator _evaluator; // TODO: do we need this?
         private readonly IQSearch _qSearch;
         private readonly CompositeMoveOrderer _moveOrderer;
@@ -36,9 +36,9 @@ namespace Dragonfly.Engine.Searching
         private readonly ObjectCacheByDepth<List<Move>> _moveListCache = new ObjectCacheByDepth<List<Move>>();
         private readonly ObjectCacheByDepth<List<ScoredMove>> _iidScoredMoveListCache = new ObjectCacheByDepth<List<ScoredMove>>();
 
-        public IidAlphaBetaSearch(IMoveGen moveGen, IEvaluator evaluator, IQSearch qSearch, CompositeMoveOrderer moveOrderer)
+        public IidAlphaBetaSearch(IMoveGenerator moveGenerator, IEvaluator evaluator, IQSearch qSearch, CompositeMoveOrderer moveOrderer)
         {
-            _moveGen = moveGen;
+            _moveGenerator = moveGenerator;
             _evaluator = evaluator;
             _qSearch = qSearch;
             _moveOrderer = moveOrderer;
@@ -46,90 +46,86 @@ namespace Dragonfly.Engine.Searching
 
         public (Move move, Statistics statistics) Search(Position position, ITimeStrategy timeStrategy, Statistics.PrintInfoDelegate printInfoDelegate)
         {
-            // This is non-reentrant, so let's make sure nobody accidentally calls us twice
-            lock (this)
+            // setup
+            _timeStrategy = timeStrategy;
+            _enteredCount = 0;
+            _statistics = new Statistics();
+            _statistics.StartTime = DateTime.Now;
+            _statistics.SideCalculating = position.SideToMove;
+            _pvTable = new TriangularPVTable(); // TODO: should we be passing this in instead?
+            _qSearch.StartSearch(_timeStrategy, _pvTable, _statistics);
+
+            Move bestMove = Move.Null;
+            var moveList = new List<Move>();
+            _moveGenerator.Generate(moveList, position);
+
+            var cachedPositionObject = new Position();
+
+            if (!_moveGenerator.OnlyLegalMoves)
             {
-                // setup
-                _timeStrategy = timeStrategy;
-                _enteredCount = 0;
-                _statistics = new Statistics();
-                _statistics.StartTime = DateTime.Now;
-                _statistics.SideCalculating = position.SideToMove;
-                _pvTable = new TriangularPVTable(); // TODO: should we be passing this in instead?
-                _qSearch.StartSearch(_timeStrategy, _pvTable, _statistics);
-
-                Move bestMove = Move.Null;
-                var moveList = new List<Move>();
-                _moveGen.Generate(moveList, position);
-
-                var cachedPositionObject = new Position();
-
-                if (!_moveGen.OnlyLegalMoves)
+                // remove all illegal moves
+                for (int i = moveList.Count - 1; i >= 0; i--)
                 {
-                    // remove all illegal moves
-                    for (int i = moveList.Count - 1; i >= 0; i--)
-                    {
-                        var move = moveList[i];
-                        var testingPosition = Position.MakeMove(cachedPositionObject, move, position);
-                        if (testingPosition.MovedIntoCheck())
-                            moveList.QuickRemoveAt(i);
-                    }
+                    var move = moveList[i];
+                    var testingPosition = Position.MakeMove(cachedPositionObject, move, position);
+                    if (testingPosition.MovedIntoCheck())
+                        moveList.QuickRemoveAt(i);
                 }
+            }
 
-                var scoredMoveList = new List<ScoredMove>();
-                foreach (var move in moveList)
+            var scoredMoveList = new List<ScoredMove>();
+            foreach (var move in moveList)
+            {
+                scoredMoveList.Add(new ScoredMove(move, 0));
+            }
+
+            // TODO: instead of looping here, why don't we only loop in InnerSearch and get the best value from the PV table?
+            // That would simplify things a lot.
+            // However, if we have aspiration windows and we get a beta cutoff, how do we retrieve the best move? Or is that even required?
+            // The PV table would probably need to handle that case.
+            for (int depth = 1;; depth++)
+            {
+                Score alpha = Score.MinValue;
+                Score beta = Score.MaxValue;
+
+                for (int i = 0; i < scoredMoveList.Count; i++)
                 {
-                    scoredMoveList.Add(new ScoredMove(move, 0));
-                }
+                    var move = scoredMoveList[i].Move;
 
-                // TODO: instead of looping here, why don't we only loop in InnerSearch and get the best value from the PV table?
-                // That would simplify things a lot.
-                // However, if we have aspiration windows and we get a beta cutoff, how do we retrieve the best move? Or is that even required?
-                // The PV table would probably need to handle that case.
-                for (int depth = 1;; depth++)
-                {
-                    Score alpha = Score.MinValue;
-                    Score beta = Score.MaxValue;
+                    var nextPosition = Position.MakeMove(cachedPositionObject, move, position);
+                    _pvTable.Add(move, 0);
 
-                    for (int i = 0; i < scoredMoveList.Count; i++)
-                    {
-                        var move = scoredMoveList[i].Move;
+                    _statistics.CurrentDepth = depth;
+                    var nextEval = -InnerSearch(nextPosition, depth-1, false, -beta, -alpha, 1);
+                    if (nextEval == alpha)
+                        nextEval -= 1;
 
-                        var nextPosition = Position.MakeMove(cachedPositionObject, move, position);
-                        _pvTable.Add(move, 0);
+                    scoredMoveList[i] = new ScoredMove(move, nextEval);
 
-                        _statistics.CurrentDepth = depth;
-                        var nextEval = -InnerSearch(nextPosition, depth-1, false, -beta, -alpha, 1);
-                        if (nextEval == alpha)
-                            nextEval -= 1;
-
-                        scoredMoveList[i] = new ScoredMove(move, nextEval);
-
-                        if (timeStrategy.ShouldStop(_statistics))
-                            return (bestMove, _statistics);
-
-                        if (nextEval > alpha)
-                        {
-                            alpha = nextEval;
-                            bestMove = move; // this is safe, because we search the best move from last pass first in the next pass
-                            _pvTable.Commit(0);
-                            _statistics.BestLine = _pvTable.GetBestLine();
-                            if (position.SideToMove == Color.White)
-                                _statistics.CurrentScore = alpha;
-                            else
-                                _statistics.CurrentScore = -alpha;
-
-                            printInfoDelegate(_statistics);
-                        }
-                    }
-
-                    // if we don't do this, we'll never return from an endgame position
                     if (timeStrategy.ShouldStop(_statistics))
                         return (bestMove, _statistics);
 
-                    // sort the moves for next pass
-                    scoredMoveList.Sort((m1, m2) => (int)(m2.Score - m1.Score));
+                    if (nextEval > alpha)
+                    {
+                        alpha = nextEval;
+                        bestMove = move; // this is safe, because we search the best move from last pass first in the next pass
+                        _pvTable.Commit(0);
+                        _statistics.BestLine = _pvTable.GetBestLine();
+                        if (position.SideToMove == Color.White)
+                            _statistics.CurrentScore = alpha;
+                        else
+                            _statistics.CurrentScore = -alpha;
+
+                        printInfoDelegate(_statistics);
+                    }
                 }
+
+                // if we don't do this, we'll never return from an endgame position
+                if (timeStrategy.ShouldStop(_statistics))
+                    return (bestMove, _statistics);
+
+                // sort the moves for next pass
+                scoredMoveList.Sort((m1, m2) => (int)(m2.Score - m1.Score));
             }
         }
 
@@ -204,10 +200,10 @@ namespace Dragonfly.Engine.Searching
             var moveList = _moveListCache.Get(ply);
             moveList.Clear();
 
-            _moveGen.Generate(moveList, position);
+            _moveGenerator.Generate(moveList, position);
             var cachedPositionObject = _positionCache.Get(ply);
 
-            if (!_moveGen.OnlyLegalMoves)
+            if (!_moveGenerator.OnlyLegalMoves)
             {
                 // remove all illegal moves
                 for (int i = moveList.Count - 1; i >= 0; i--)

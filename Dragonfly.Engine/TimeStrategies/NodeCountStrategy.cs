@@ -8,7 +8,7 @@ namespace Dragonfly.Engine.TimeStrategies
     public sealed class NodeCountStrategy : ITimeStrategy
     {
         private readonly int _nodeCount;
-        private bool _stopping;
+        private readonly SynchronizedFlag _stopping = new SynchronizedFlag();
 
         public NodeCountStrategy(int nodeCount)
         {
@@ -17,22 +17,22 @@ namespace Dragonfly.Engine.TimeStrategies
 
         public void Start()
         {
-            _stopping = false;
+            _stopping.Clear();
         }
 
         public void ForceStop()
         {
-            _stopping = true;
+            _stopping.Set();
         }
 
         public bool ShouldStop(Statistics statistics)
         {
-            if (_stopping)
+            if (_stopping.IsSet())
                 return true;
 
             if (statistics.Nodes >= _nodeCount)
             {
-                _stopping = true;
+                _stopping.Set();
                 return true;
             }
 

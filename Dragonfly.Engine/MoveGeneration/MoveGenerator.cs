@@ -9,7 +9,7 @@ using Dragonfly.Engine.MoveGeneration.Tables;
 
 namespace Dragonfly.Engine.MoveGeneration
 {
-    public sealed class MoveGen : IMoveGen
+    public sealed class MoveGenerator : IMoveGenerator
     {
         private static readonly ulong[] PawnPromotionSourceTable = GeneratePawnPromotionSourceTable();
 

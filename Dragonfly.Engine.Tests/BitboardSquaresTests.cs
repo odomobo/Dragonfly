@@ -10,12 +10,12 @@ namespace Dragonfly.Engine.Tests
     [TestFixture]
     class BitboardSquaresTests
     {
-        private MoveGen _moveGen;
+        private MoveGenerator _moveGenerator;
 
         [SetUp]
         public void Setup()
         {
-            _moveGen = new MoveGen();
+            _moveGenerator = new MoveGenerator();
         }
 
         // TODO: different data source??? Maybe rename them?
@@ -33,14 +33,14 @@ namespace Dragonfly.Engine.Tests
                 return;
 
             var moves = new List<Move>();
-            _moveGen.Generate(moves, position);
+            _moveGenerator.Generate(moves, position);
 
             var tmpPosition = new Position();
             foreach (var move in moves)
             {
                 var updatedBoard = Position.MakeMove(tmpPosition, move, position);
 
-                if (!_moveGen.OnlyLegalMoves && updatedBoard.MovedIntoCheck())
+                if (!_moveGenerator.OnlyLegalMoves && updatedBoard.MovedIntoCheck())
                     continue;
 
                 BitboardSquaresTestHelper(updatedBoard, depth - 1);

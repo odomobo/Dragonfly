@@ -9,14 +9,14 @@ namespace Dragonfly.Engine.Tests
     [TestFixture]
     public class PerftTests
     {
-        private MoveGen _moveGen;
+        private MoveGenerator _moveGenerator;
         private Perft _perft;
 
         [SetUp]
         public void Setup()
         {
-            _moveGen = new MoveGen();
-            _perft = new Perft(_moveGen);
+            _moveGenerator = new MoveGenerator();
+            _perft = new Perft(_moveGenerator);
         }
 
         [TestCaseSource(typeof(PerftData), nameof(PerftData.PerftTestCases))]
@@ -30,14 +30,14 @@ namespace Dragonfly.Engine.Tests
     [TestFixture]
     public class PerftHashingTests
     {
-        private MoveGen _moveGen;
+        private MoveGenerator _moveGenerator;
         private Perft _perftWithHashing;
 
         [SetUp]
         public void Setup()
         {
-            _moveGen = new MoveGen();
-            _perftWithHashing = new Perft(_moveGen, 1_000_000);
+            _moveGenerator = new MoveGenerator();
+            _perftWithHashing = new Perft(_moveGenerator, 1_000_000);
         }
 
         [TestCaseSource(typeof(PerftData), nameof(PerftData.PerftTestCases))]

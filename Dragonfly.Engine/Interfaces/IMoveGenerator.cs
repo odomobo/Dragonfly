@@ -5,7 +5,7 @@ using Dragonfly.Engine.CoreTypes;
 
 namespace Dragonfly.Engine.Interfaces
 {
-    public interface IMoveGen
+    public interface IMoveGenerator
     {
         bool OnlyLegalMoves { get; }
         void Generate(List<Move> moves, Position position);

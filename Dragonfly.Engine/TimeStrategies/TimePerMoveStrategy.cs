@@ -8,7 +8,7 @@ namespace Dragonfly.Engine.TimeStrategies
     public sealed class TimePerMoveStrategy : ITimeStrategy
     {
         private readonly TimeSpan _timeSpan;
-        private bool _stopping;
+        private readonly SynchronizedFlag _stopping = new SynchronizedFlag();
 
         public TimePerMoveStrategy(TimeSpan timeSpan)
         {
@@ -17,22 +17,22 @@ namespace Dragonfly.Engine.TimeStrategies
 
         public void Start()
         {
-            _stopping = false;
+            _stopping.Clear();
         }
 
         public void ForceStop()
         {
-            _stopping = true;
+            _stopping.Set();
         }
 
         public bool ShouldStop(Statistics statistics)
         {
-            if (_stopping)
+            if (_stopping.IsSet())
                 return true;
 
             if ((DateTime.Now - statistics.StartTime) >= _timeSpan)
             {
-                _stopping = true;
+                _stopping.Set();
                 return true;
             }
 

@@ -9,7 +9,7 @@ namespace Dragonfly.Engine.TimeStrategies
     public sealed class CompositeTimeStrategy : ITimeStrategy
     {
         private readonly List<ITimeStrategy> _timeStrategies;
-        private bool _stopping;
+        private readonly SynchronizedFlag _stopping = new SynchronizedFlag();
 
         public CompositeTimeStrategy(IEnumerable<ITimeStrategy> timeStrategies)
         {
@@ -18,25 +18,25 @@ namespace Dragonfly.Engine.TimeStrategies
 
         public void Start()
         {
-            _stopping = false;
+            _stopping.Clear();
             foreach (var timeStrategy in _timeStrategies)
                 timeStrategy.Start();
         }
 
         public void ForceStop()
         {
-            _stopping = true;
+            _stopping.Set();
         }
 
         public bool ShouldStop(Statistics statistics)
         {
-            if (_stopping)
+            if (_stopping.IsSet())
                 return true;
 
-            foreach (var timeStrategy in _timeStrategies)
+            if (_timeStrategies.Any(ts => ts.ShouldStop(statistics)))
             {
-                if (timeStrategy.ShouldStop(statistics))
-                    return true;
+                _stopping.Set();
+                return true;
             }
 
             return false;

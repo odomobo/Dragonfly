@@ -12,12 +12,12 @@ namespace Dragonfly.Engine.Tests
     [TestFixture]
     class ZobristTests
     {
-        private MoveGen _moveGen;
+        private MoveGenerator _moveGenerator;
 
         [SetUp]
         public void Setup()
         {
-            _moveGen = new MoveGen();
+            _moveGenerator = new MoveGenerator();
         }
 
         [TestCaseSource(typeof(ZobristData), nameof(ZobristData.ZobristTestCases))]
@@ -34,13 +34,13 @@ namespace Dragonfly.Engine.Tests
                 return;
 
             var moves = new List<Move>();
-            _moveGen.Generate(moves, position);
+            _moveGenerator.Generate(moves, position);
 
             foreach (var move in moves)
             {
                 var updatedBoard = Position.MakeMove(new Position(), move, position);
 
-                if (!_moveGen.OnlyLegalMoves && updatedBoard.MovedIntoCheck())
+                if (!_moveGenerator.OnlyLegalMoves && updatedBoard.MovedIntoCheck())
                     continue;
                 
                 ZobristTestHelper(updatedBoard, depth-1);

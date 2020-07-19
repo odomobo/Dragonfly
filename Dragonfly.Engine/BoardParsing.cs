@@ -194,22 +194,22 @@ namespace Dragonfly.Engine
             return true;
         }
 
-        public static Move GetMoveFromCoordinateString(IMoveGen moveGen, Position b, string coordinateString)
+        public static Move GetMoveFromCoordinateString(IMoveGenerator moveGenerator, Position b, string coordinateString)
         {
-            if (TryGetMoveFromCoordinateString(moveGen, b, coordinateString, out Move move))
+            if (TryGetMoveFromCoordinateString(moveGenerator, b, coordinateString, out Move move))
                 return move;
             else
                 throw new Exception($"Could not find move: \"{coordinateString}\"");
         }
 
         public static bool TryGetMoveFromCoordinateString(
-            IMoveGen moveGen,
+            IMoveGenerator moveGenerator,
             Position b,
             string coordinateString,
             out Move move)
         {
             List<Move> moves = new List<Move>();
-            moveGen.Generate(moves, b);
+            moveGenerator.Generate(moves, b);
 
             foreach (var tmpMove in moves)
             {
@@ -218,7 +218,7 @@ namespace Dragonfly.Engine
                     continue;
 
                 // if a pseudolegal move generator, then we need to make sure that the move we're attempting is even legal
-                if (!moveGen.OnlyLegalMoves)
+                if (!moveGenerator.OnlyLegalMoves)
                 {
                     var testingBoard = Position.MakeMove(new Position(), tmpMove, b);
 

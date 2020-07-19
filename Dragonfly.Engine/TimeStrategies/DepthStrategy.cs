@@ -8,7 +8,7 @@ namespace Dragonfly.Engine.TimeStrategies
     public sealed class DepthStrategy : ITimeStrategy
     {
         private readonly int _depth;
-        private bool _stopping;
+        private readonly SynchronizedFlag _stopping = new SynchronizedFlag();
 
         public DepthStrategy(int depth)
         {
@@ -17,23 +17,23 @@ namespace Dragonfly.Engine.TimeStrategies
 
         public void Start()
         {
-            _stopping = false;
+            _stopping.Clear();
         }
 
         public void ForceStop()
         {
-            _stopping = true;
+            _stopping.Set();
         }
 
         public bool ShouldStop(Statistics statistics)
         {
-            if (_stopping)
+            if (_stopping.IsSet())
                 return true;
 
             // we basically start the next iteration, and then break out of it instantly; this is probably the simplest way to do it
             if (statistics.CurrentDepth > _depth)
             {
-                _stopping = true;
+                _stopping.Set();
                 return true;
             }
 

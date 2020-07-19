@@ -77,7 +77,7 @@ namespace Dragonfly.Engine.Benchmark
         [GlobalSetup]
         public void Setup()
         {
-            var moveGen = new MoveGen();
+            var moveGen = new MoveGenerator();
             _perft = new Perft(moveGen);
 
             _openingPosition = BoardParsing.PositionFromFen(OpeningFen);

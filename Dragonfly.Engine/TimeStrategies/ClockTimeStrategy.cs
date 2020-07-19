@@ -12,14 +12,15 @@ namespace Dragonfly.Engine.TimeStrategies
         private readonly TimeSpan? _otherTimeRemaining;
         private readonly TimeSpan? _otherIncrement;
         private readonly int? _movesToNextTimeControl;
-        private bool _stopping;
+        private readonly SynchronizedFlag _stopping = new SynchronizedFlag();
 
         public ClockTimeStrategy(
             TimeSpan ourTimeRemaining,
             TimeSpan? ourIncrement,
             TimeSpan? otherTimeRemaining,
             TimeSpan? otherIncrement,
-            int? movesToNextTimeControl)
+            int? movesToNextTimeControl
+        )
         {
             _ourTimeRemaining = ourTimeRemaining;
             _ourIncrement = ourIncrement;
@@ -30,17 +31,17 @@ namespace Dragonfly.Engine.TimeStrategies
 
         public void Start()
         {
-            _stopping = false;
+            _stopping.Clear();
         }
 
         public void ForceStop()
         {
-            _stopping = true;
+            _stopping.Set();
         }
 
         public bool ShouldStop(Statistics statistics)
         {
-            if (_stopping)
+            if (_stopping.IsSet())
                 return true;
 
             // TODO: make this more sophisticated:
@@ -52,7 +53,7 @@ namespace Dragonfly.Engine.TimeStrategies
             var timeElapsed = DateTime.Now - statistics.StartTime;
             if (timeElapsed > timeToSpend)
             {
-                _stopping = true;
+                _stopping.Set();
                 return true;
             }
 
