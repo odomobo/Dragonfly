@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using Dragonfly.Engine.CoreTypes;
@@ -50,7 +51,7 @@ namespace Dragonfly.Engine.Searching
             _timeStrategy = timeStrategy;
             _enteredCount = 0;
             _statistics = new Statistics();
-            _statistics.StartTime = DateTime.Now;
+            _statistics.Timer.Start();
             _statistics.SideCalculating = position.SideToMove;
             _pvTable = new TriangularPVTable(); // TODO: should we be passing this in instead?
             _qSearch.StartSearch(_timeStrategy, _pvTable, _statistics);
@@ -103,7 +104,10 @@ namespace Dragonfly.Engine.Searching
                     scoredMoveList[i] = new ScoredMove(move, nextEval);
 
                     if (timeStrategy.ShouldStop(_statistics))
+                    {
+                        _statistics.Timer.Stop();
                         return (bestMove, _statistics);
+                    }
 
                     if (nextEval > alpha)
                     {
@@ -120,9 +124,12 @@ namespace Dragonfly.Engine.Searching
                     }
                 }
 
-                // if we don't do this, we'll never return from an endgame position
+                // if we don't do this, we'll never return from a terminal position (with no moves)
                 if (timeStrategy.ShouldStop(_statistics))
+                {
+                    _statistics.Timer.Stop();
                     return (bestMove, _statistics);
+                }
 
                 // sort the moves for next pass
                 scoredMoveList.Sort((m1, m2) => (int)(m2.Score - m1.Score));

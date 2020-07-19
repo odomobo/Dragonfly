@@ -33,7 +33,7 @@ namespace Dragonfly.Engine.Searching
             _timeStrategy = timeStrategy;
             _enteredCount = 0;
             _statistics = new Statistics();
-            _statistics.StartTime = DateTime.Now;
+            _statistics.Timer.Start();
             _statistics.SideCalculating = position.SideToMove;
             _pvTable = new TriangularPVTable(); // TODO: should we be passing this in instead?
             _qSearch.StartSearch(_timeStrategy, _pvTable, _statistics);
@@ -66,7 +66,10 @@ namespace Dragonfly.Engine.Searching
                     var nextEval = -InnerSearch(nextPosition, depth-1, -beta, -alpha, 1);
 
                     if (timeStrategy.ShouldStop(_statistics))
+                    {
+                        _statistics.Timer.Stop();
                         return (bestMove, _statistics);
+                    }
 
                     if (nextEval > alpha)
                     {
@@ -85,9 +88,12 @@ namespace Dragonfly.Engine.Searching
                 else
                     _statistics.CurrentScore = -alpha;
 
-                // if we don't do this, we'll never return from an endgame position
+                // if we don't do this, we'll never return from a terminal position (with no moves)
                 if (timeStrategy.ShouldStop(_statistics))
+                {
+                    _statistics.Timer.Stop();
                     return (bestMove, _statistics);
+                }
 
                 // if we didn't return, let's print some info!
                 printInfoDelegate(_statistics);

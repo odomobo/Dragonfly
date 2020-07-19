@@ -201,7 +201,8 @@ namespace Dragonfly
 
         private void PrintInfo(Statistics statistics)
         {
-            var timeMs = (DateTime.Now - statistics.StartTime).TotalMilliseconds;
+            var time = statistics.Timer.Elapsed;
+            var timeMs = time.TotalMilliseconds;
             var nps = (int)((statistics.Nodes / (double)timeMs) * 1000);
             var pvMoves = statistics.BestLine.Select(BoardParsing.CoordinateStringFromMove);
             var pvString = string.Join(' ', pvMoves);

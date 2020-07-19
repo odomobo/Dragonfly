@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Text;
 using Dragonfly.Engine.CoreTypes;
 using Dragonfly.Engine.Interfaces;
@@ -13,7 +14,7 @@ namespace Dragonfly.Engine
         public delegate void PrintInfoDelegate(Statistics statistics);
         public delegate void PrintBestMoveDelegate(Move bestMove);
 
-        public DateTime StartTime;
+        public Stopwatch Timer = new Stopwatch();
         public Color SideCalculating;
         public List<Move> BestLine = new List<Move>();
         public Score CurrentScore;

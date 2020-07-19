@@ -30,7 +30,7 @@ namespace Dragonfly.Engine.TimeStrategies
             if (_stopping.IsSet())
                 return true;
 
-            if ((DateTime.Now - statistics.StartTime) >= _timeSpan)
+            if (statistics.Timer.Elapsed >= _timeSpan)
             {
                 _stopping.Set();
                 return true;

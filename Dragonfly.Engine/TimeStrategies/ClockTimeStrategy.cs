@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Threading;
 using Dragonfly.Engine.Interfaces;
 
 namespace Dragonfly.Engine.TimeStrategies
@@ -50,7 +51,7 @@ namespace Dragonfly.Engine.TimeStrategies
             // - next time control, to spend more time if we have another time control
             // - pay attention to search panicking, to allow more time when panicking
             var timeToSpend = _ourTimeRemaining / 30;
-            var timeElapsed = DateTime.Now - statistics.StartTime;
+            var timeElapsed = statistics.Timer.Elapsed;
             if (timeElapsed > timeToSpend)
             {
                 _stopping.Set();
