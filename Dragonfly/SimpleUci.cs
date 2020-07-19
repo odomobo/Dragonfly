@@ -20,7 +20,7 @@ namespace Dragonfly
         private ITimeStrategy _timeStrategy;
         private TextReader _input;
         private TextWriter _output;
-        private Thread? _searchThread;
+        private readonly SearchWorkerThread _searchWorkerThread;
 
         public SimpleUci(IMoveGenerator moveGenerator, ISearch search, TextReader input, TextWriter output)
         {
@@ -30,6 +30,7 @@ namespace Dragonfly
             _timeStrategy = new DefaultTimeStrategy();
             _input = input;
             _output = output;
+            _searchWorkerThread = new SearchWorkerThread();
         }
 
         public void Loop()
@@ -44,54 +45,30 @@ namespace Dragonfly
 
                 switch (command)
                 {
-                    case "quit":
-                        InterruptSearch();
-                        return;
-                    case "stop":
-                        InterruptSearch();
-                        break;
                     case "uci":
-                        WaitForSearch();
                         HandleUci();
                         break;
                     case "isready":
-                        WaitForSearch();
                         _output.WriteLine("readyok");
                         break;
                     case "position":
-                        WaitForSearch();
                         SetPosition(options);
                         break;
                     case "go":
-                        WaitForSearch();
                         _timeStrategy = TimeStrategyFromGoOptionsDict(OptionsDictFromGoOptions(options));
-                        _searchThread = new Thread(Go);
-                        _searchThread.Start();
+                        _searchWorkerThread.StartSearch(_search, _position, _timeStrategy, PrintInfo, PrintBestMove);
                         break;
+                    case "stop":
+                        _searchWorkerThread.StopSearch();
+                        break;
+                    case "quit":
+                        _searchWorkerThread.Exit();
+                        return;
                     default:
                         _output.WriteLine($"Unknown command: {command}");
                         break;
                 }
             }
-        }
-
-        private void InterruptSearch()
-        {
-            if (_searchThread == null)
-                return;
-
-            _timeStrategy.ForceStop();
-            _searchThread.Join();
-            _searchThread = null;
-        }
-
-        private void WaitForSearch()
-        {
-            if (_searchThread == null)
-                return;
-
-            _searchThread.Join();
-            _searchThread = null;
         }
 
         private void HandleUci()
@@ -103,13 +80,6 @@ namespace Dragonfly
             // TODO: options
 
             _output.WriteLine("uciok");
-        }
-
-        private void Go()
-        {
-            var (move, statistics) = _search.Search(_position, _timeStrategy, PrintInfo);
-            PrintInfo(statistics);
-            _output.WriteLine($"bestmove {BoardParsing.CoordinateStringFromMove(move)}");
         }
 
         #region Go options
@@ -260,6 +230,11 @@ namespace Dragonfly
                 $"evaluations {statistics.Evaluations} " +
                 $"terminalNodes {statistics.TerminalNodes} "
             );
+        }
+
+        private void PrintBestMove(Move bestMove)
+        {
+            _output.WriteLine($"bestmove {BoardParsing.CoordinateStringFromMove(bestMove)}");
         }
 
         private void SetPosition(string optionsStr)

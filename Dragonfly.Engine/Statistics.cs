@@ -9,7 +9,9 @@ namespace Dragonfly.Engine
 {
     public sealed class Statistics
     {
+        // TODO where should these delegates live?
         public delegate void PrintInfoDelegate(Statistics statistics);
+        public delegate void PrintBestMoveDelegate(Move bestMove);
 
         public DateTime StartTime;
         public Color SideCalculating;
