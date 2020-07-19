@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Runtime.CompilerServices;
 using System.Security.Cryptography;
 using Dragonfly.Engine;
@@ -41,7 +42,7 @@ namespace Dragonfly
             var qSearch = new SimpleQSearch(evaluator, moveGen, promotionMvvLvaMoveOrderer, CompositeMoveOrderer.NullMoveOrderer);
             var search = new SimpleAlphaBetaSearch(moveGen, evaluator, qSearch);
 
-            var uci = new SimpleUci(moveGen, search, Console.In, Console.Out);
+            var uci = new SimpleUci(moveGen, search, Console.In, TextWriter.Synchronized(Console.Out));
             uci.Loop();
         }
 

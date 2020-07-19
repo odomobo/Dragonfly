@@ -16,7 +16,7 @@ namespace Dragonfly.Engine
         {
             Piece[] squares = new Piece[64];
             for (int i = 0; i < squares.Length; i++)
-                squares[i] = new Piece(Color.White, PieceType.None);
+                squares[i] = Piece.None;
 
             var splitFen = fen.Split(' ', StringSplitOptions.RemoveEmptyEntries).ToList();
             if (splitFen.Count < 1)
@@ -86,14 +86,13 @@ namespace Dragonfly.Engine
                 throw new Exception("Bad FEN string"); // TODO: better error type & message
 
             ulong castlingRights = 0;
-            var castlingHash = new HashSet<char>(strCastling);
-            if (castlingHash.Contains('K'))
+            if (strCastling.Contains('K'))
                 castlingRights |= CastlingTables.WhiteKingsideDst;
-            if (castlingHash.Contains('Q'))
+            if (strCastling.Contains('Q'))
                 castlingRights |= CastlingTables.WhiteQueensideDst;
-            if (castlingHash.Contains('k'))
+            if (strCastling.Contains('k'))
                 castlingRights |= CastlingTables.BlackKingsideDst;
-            if (castlingHash.Contains('q'))
+            if (strCastling.Contains('q'))
                 castlingRights |= CastlingTables.BlackQueensideDst;
 
             ulong enPassant;
@@ -107,7 +106,6 @@ namespace Dragonfly.Engine
                 enPassant= Position.ValueFromIx(enPassantIx);
             }
 
-            // TODO: move counts
             int halfmoveCounter = int.Parse(strHalfmoveCounter);
             int fullMove = int.Parse(strFullMoves);
             
@@ -119,6 +117,9 @@ namespace Dragonfly.Engine
             var fenBuilder = new StringBuilder();
             for (int rank = 7; rank >= 0; rank--)
             {
+                if (rank < 7)
+                    fenBuilder.Append("/");
+
                 int skipped = 0;
                 for (int file = 0; file < 8; file++)
                 {
@@ -142,9 +143,6 @@ namespace Dragonfly.Engine
                 // count any final skipped moves
                 if (skipped > 0)
                     fenBuilder.Append(skipped);
-
-                if (rank > 0)
-                    fenBuilder.Append("/");
             }
 
             var colorStr = position.SideToMove == Color.White ? "w" : "b";
@@ -154,14 +152,14 @@ namespace Dragonfly.Engine
 
         public static bool TryParsePiece(char pieceChar, out PieceType pieceType, out Color color)
         {
-            if (pieceChar >= 'a' && pieceChar <= 'z')
+            if (char.IsLower(pieceChar))
             {
                 color = Color.Black;
             }
             else
             {
                 // lowercase
-                pieceChar = (char)(pieceChar - 'A' + 'a');
+                pieceChar = char.ToLowerInvariant(pieceChar);
                 color = Color.White;
             }
 
