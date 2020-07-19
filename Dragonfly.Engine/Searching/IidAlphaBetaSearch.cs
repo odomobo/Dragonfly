@@ -86,6 +86,8 @@ namespace Dragonfly.Engine.Searching
             // The PV table would probably need to handle that case.
             for (int depth = 1;; depth++)
             {
+                _statistics.NormalNonLeafNodes++;
+
                 Score alpha = Score.MinValue;
                 Score beta = Score.MaxValue;
 
@@ -139,6 +141,9 @@ namespace Dragonfly.Engine.Searching
         // all moves need to be legal
         private void SortWithIid(Position position, List<Move> moves, int depth, Score alpha, Score beta, int ply)
         {
+            // SortWithIid is considered a root node; it's not a leaf of the parent caller, it's more of a helper
+            _statistics.NormalNonLeafNodes++;
+
             var cachedPositionObject = _positionCache.Get(ply);
             // create .5 pawn buffer in alpha and beta
             alpha -= 50;
@@ -160,12 +165,12 @@ namespace Dragonfly.Engine.Searching
             {
                 var nextPosition = Position.MakeMove(cachedPositionObject, move, position);
 
-                var score = -InnerSearch(nextPosition, depth - 2, true, -beta, -alpha, ply+1);
-                // TODO: leave a buffer for better ordering?
-                if (score > alpha)
-                    alpha = score;
-                else if (score == alpha)
-                    score -= 1; // artificially lower alpha cutoffs so they don't look like PVs
+                var score = -InnerSearch(nextPosition, (depth/2) - 1, true, -beta, -alpha, ply+1);
+                // leave a buffer for better ordering
+                if (score-50 > alpha)
+                    alpha = score-50;
+                //else if (score == alpha)
+                //    score -= 1; // artificially lower alpha cutoffs so they don't look like PVs
 
                 scoredMoves.Add(new ScoredMove(move, score));
             }
@@ -188,6 +193,9 @@ namespace Dragonfly.Engine.Searching
 
             // It's important we increment _after_ checking, because if we're stopping, we don't want entered count to be increasing
             _enteredCount++;
+
+            // by nature of this being called, we know this is a non-root node
+            _statistics.NormalNonRootNodes++;
 
             // Note: we don't return draw on 50 move counter; if the engine doesn't know how to make progress in 50 moves, telling the engine it's about to draw can only induce mistakes.
             if (position.RepetitionNumber >= 3)
@@ -247,16 +255,15 @@ namespace Dragonfly.Engine.Searching
                 if (!isIid)
                     _pvTable.Add(move, ply);
 
-                bool lateMove = moveNumber > 50; // TODO: disabled; enable this
+                bool lateMove = moveNumber > 5; // TODO: disabled; enable this
 
-                _statistics.InternalMovesEvaluated++;
-
-                int reduction = lateMove && (depth > 1) ? 1 : 0;
+                int reduction = lateMove ? 1 : 0;
                 var eval = -InnerSearch(nextPosition, depth - 1 - reduction, isIid, -beta, -alpha, ply+1);
                 if (eval >= beta)
                 {
-                    _statistics.InternalCutNodes++;
-                    _statistics.InternalCutMoveMisses += moveNumber - 1; // don't include the current move in the move misses calculation
+                    _statistics.NormalNonLeafNodes++;
+                    _statistics.NormalCutNodes++;
+                    _statistics.NormalCutMoveMisses += moveNumber - 1; // don't include the current move in the move misses calculation
 
                     return eval; // fail soft, but shouldn't matter for this naive implementation
                 }
@@ -270,13 +277,14 @@ namespace Dragonfly.Engine.Searching
                 }
             }
 
+            _statistics.NormalNonLeafNodes++;
             if (raisedAlpha)
             {
-                _statistics.InternalPVNodes++;
+                _statistics.NormalPVNodes++;
             }
             else
             {
-                _statistics.InternalAllNodes++;
+                _statistics.NormalAllNodes++;
             }
 
             return alpha;

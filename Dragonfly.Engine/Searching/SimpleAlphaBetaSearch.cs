@@ -49,6 +49,8 @@ namespace Dragonfly.Engine.Searching
             var tmpBestMove = Move.Null;
             for (int depth = 1;; depth++)
             {
+                _statistics.NormalNonLeafNodes++;
+
                 Score alpha = Score.MinValue;
                 Score beta = Score.MaxValue;
 
@@ -109,6 +111,9 @@ namespace Dragonfly.Engine.Searching
             // It's important we increment _after_ checking, because if we're stopping, we don't want entered count to be increasing
             _enteredCount++;
 
+            // by nature of this being called, we know this is a non-root node
+            _statistics.NormalNonRootNodes++;
+
             // Note: we don't return draw on 50 move counter; if the engine doesn't know how to make progress in 50 moves, telling the engine it's about to draw can only induce mistakes.
             if (position.RepetitionNumber >= 3)
             {
@@ -145,13 +150,13 @@ namespace Dragonfly.Engine.Searching
 
                 anyMoves = true;
                 _pvTable.Add(move, ply);
-                _statistics.InternalMovesEvaluated++;
-
+                
                 var eval = -InnerSearch(nextPosition, depth - 1, -beta, -alpha, ply+1);
                 if (eval >= beta)
                 {
-                    _statistics.InternalCutNodes++;
-                    _statistics.InternalCutMoveMisses += moveNumber - 1; // don't include the current move in the move misses calculation
+                    _statistics.NormalNonLeafNodes++;
+                    _statistics.NormalCutNodes++;
+                    _statistics.NormalCutMoveMisses += moveNumber - 1; // don't include the current move in the move misses calculation
 
                     return eval; // fail soft, but shouldn't matter for this naive implementation
                 }
@@ -174,13 +179,14 @@ namespace Dragonfly.Engine.Searching
                     return 0; // draw; TODO: contempt
             }
 
+            _statistics.NormalNonLeafNodes++;
             if (raisedAlpha)
             {
-                _statistics.InternalPVNodes++;
+                _statistics.NormalPVNodes++;
             }
             else
             {
-                _statistics.InternalAllNodes++;
+                _statistics.NormalAllNodes++;
             }
 
             return alpha;

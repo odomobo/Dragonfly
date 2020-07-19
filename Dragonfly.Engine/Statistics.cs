@@ -19,32 +19,38 @@ namespace Dragonfly.Engine
         public List<Move> BestLine = new List<Move>();
         public Score CurrentScore;
 
-        public int Nodes => InternalCutNodes + InternalPVNodes + InternalAllNodes +
+        public int Nodes => NormalCutNodes + NormalPVNodes + NormalAllNodes +
                             QSearchCutNodes + QSearchPVNodes + QSearchAllNodes +
                             Evaluations;
 
         // If not differentiating between internal and qsearch nodes, should only use internal node counts.
         // If not differentiating between cut/pv/all nodes, should only use PV value.
 
-        public int InternalCutNodes;
-        public int InternalPVNodes;
-        public int InternalAllNodes;
-        public int InternalMovesEvaluated; // this helps us determine average branching factor
-        public int InternalCutMoveMisses; // how many moves were evaluated before the cut move
+        public int NormalCutNodes;
+        public int NormalPVNodes;
+        public int NormalAllNodes;
+        public int NormalCutMoveMisses; // how many moves were evaluated before the cut move
 
-        public double InternalBranchingFactor =>
-            (double) InternalMovesEvaluated / (InternalCutNodes + InternalPVNodes + InternalAllNodes);
+        // Branching factor is the number of direct child nodes traversed for a particular node.
+        // Average branching factor is the the mean branching factor, given all evaluated non-leaf positions.
+        // Or: sum(branching factor for position i) / all positions i
+        // Simplified, it becomes: sum(non-root positions) / sum(non-leaf positions)
+        public int NormalNonRootNodes;
+        public int NormalNonLeafNodes;
+        public double NormalBranchingFactor =>
+            (double) NormalNonRootNodes / NormalNonLeafNodes;
 
-        public double InternalAverageCutMoveMisses => (double) InternalCutMoveMisses / InternalCutNodes;
+        public double NormalAverageCutMoveMisses => (double) NormalCutMoveMisses / NormalCutNodes;
 
         public int QSearchCutNodes;
         public int QSearchPVNodes;
         public int QSearchAllNodes;
-        public int QSearchMovesEvaluated; // this helps us determine average branching factor
         public int QSearchCutMoveMisses; // how many moves were evaluated before the cut move
 
+        public int QSearchNonRootNodes;
+        public int QSearchNonLeafNodes;
         public double QSearchBranchingFactor =>
-            (double)QSearchMovesEvaluated / (QSearchCutNodes + QSearchPVNodes + QSearchAllNodes);
+            (double) QSearchNonRootNodes / QSearchNonLeafNodes;
 
         public double QSearchAverageCutMoveMisses => (double) QSearchCutMoveMisses / QSearchCutNodes;
 

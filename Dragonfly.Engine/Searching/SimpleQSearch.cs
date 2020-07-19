@@ -42,7 +42,7 @@ namespace Dragonfly.Engine.Searching
 
         public Score InnerSearch(Position position, int depth, Score alpha, Score beta, int ply)
         {
-            _statistics.QSearchMovesEvaluated++;
+            _statistics.QSearchNonRootNodes++;
 
             _statistics.MaxPly = Math.Max(_statistics.MaxPly, ply);
             _statistics.Evaluations++;

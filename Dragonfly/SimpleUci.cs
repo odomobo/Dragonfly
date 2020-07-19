@@ -216,16 +216,14 @@ namespace Dragonfly
                 $"pv {pvString} " +
                 // TODO: add things like best move
                 "string " + // below this are nonstandard info values; I think without string, some GUIs would have a problem with this
-                $"internalCutNodes {statistics.InternalCutNodes} " +
-                $"internalPvNodes {statistics.InternalPVNodes} " +
-                $"internalAllNodes {statistics.InternalAllNodes} " +
-                $"internalMovesEvaluated {statistics.InternalMovesEvaluated} " +
-                $"internalBranchingFactor {statistics.InternalBranchingFactor:F2} " +
-                $"internalAverageCutMoveMisses {statistics.InternalAverageCutMoveMisses:F2} " +
+                $"normalCutNodes {statistics.NormalCutNodes} " +
+                $"normalPvNodes {statistics.NormalPVNodes} " +
+                $"normalAllNodes {statistics.NormalAllNodes} " +
+                $"normalBranchingFactor {statistics.NormalBranchingFactor:F2} " +
+                $"normalAverageCutMoveMisses {statistics.NormalAverageCutMoveMisses:F2} " +
                 $"qsearchCutNodes {statistics.QSearchCutNodes} " +
                 $"qsearchPvNodes {statistics.QSearchPVNodes} " +
                 $"qsearchAllNodes {statistics.QSearchAllNodes} " +
-                $"qsearchMovesEvaluated {statistics.QSearchMovesEvaluated} " +
                 $"qsearchBranchingFactor {statistics.QSearchBranchingFactor:F2} " +
                 $"qsearchAverageCutMoveMisses {statistics.QSearchAverageCutMoveMisses:F2} " +
                 $"evaluations {statistics.Evaluations} " +

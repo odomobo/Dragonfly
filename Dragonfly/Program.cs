@@ -40,7 +40,8 @@ namespace Dragonfly
             var evaluator = new Evaluator();
             var promotionMvvLvaMoveOrderer = new CompositeMoveOrderer(new IMoveOrderer[] {new PromotionsOrderer(), new MvvLvaOrderer()});
             var qSearch = new SimpleQSearch(evaluator, moveGen, promotionMvvLvaMoveOrderer, CompositeMoveOrderer.NullMoveOrderer);
-            var search = new SimpleAlphaBetaSearch(moveGen, evaluator, qSearch);
+            //var search = new SimpleAlphaBetaSearch(moveGen, evaluator, qSearch);
+            var search = new IidAlphaBetaSearch(moveGen, evaluator, qSearch, promotionMvvLvaMoveOrderer);
 
             var uci = new SimpleUci(moveGen, search, Console.In, TextWriter.Synchronized(Console.Out));
             uci.Loop();
