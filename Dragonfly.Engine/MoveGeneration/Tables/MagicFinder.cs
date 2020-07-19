@@ -29,7 +29,6 @@ namespace Dragonfly.Engine.MoveGeneration.Tables
             int maskBits = Bits.PopCount(mask);
             var tableSize = 1 << maskBits;
 
-            // TODO: use 1 << maskSize instead
             var used = new bool[tableSize];
             for (int iteration = 0; iteration < MaxIterations; iteration++)
             {

@@ -22,8 +22,8 @@ namespace Dragonfly.Engine.Tests
         [TestCaseSource(typeof(ZobristData), nameof(ZobristData.ZobristTestCases))]
         public void BitboardSquaresTest(string fen, int depth)
         {
-            var board = BoardParsing.PositionFromFen(fen);
-            BitboardSquaresTestHelper(board, depth);
+            var position = BoardParsing.PositionFromFen(fen);
+            BitboardSquaresTestHelper(position, depth);
         }
 
         private void BitboardSquaresTestHelper(Position position, int depth)

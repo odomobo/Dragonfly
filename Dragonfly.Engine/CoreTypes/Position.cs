@@ -28,7 +28,7 @@ namespace Dragonfly.Engine.CoreTypes
         public ulong ZobristHash { get; private set; }
         public int RepetitionNumber { get; private set; }
 
-        // Takes ownership of all arrays passed to it; they should not be changed after the board is created.
+        // Takes ownership of all arrays passed to it; they should not be changed after the position is created.
         public Position(Piece[] pieceSquares, Color sideToMove, ulong castlingRights, ulong enPassant, int fiftyMoveCounter, int fullMove)
         {
             _pieceBitboards = new BitboardArray();
@@ -265,7 +265,7 @@ namespace Dragonfly.Engine.CoreTypes
             }
         }
 
-        // TODO: default to 2 for repetition count when the board we're calculating for is within search
+        // TODO: default to 2 for repetition count when the position we're calculating for is within search
         private static int CalculateRepetitionNumber(Position position)
         {
             var zobristHash = position.ZobristHash;
@@ -450,13 +450,13 @@ namespace Dragonfly.Engine.CoreTypes
             return false;
         }
 
+        private static int PieceBitboardIndex(Color color, PieceType pieceType)
+        {
+            return ((int)color * 6) + (int)pieceType;
+        }
+
         #region Static methods
         // TODO: should these live elsewhere?
-
-        public static int PieceBitboardIndex(Color color, PieceType pieceType)
-        {
-            return ((int) color * 6) + (int) pieceType;
-        }
 
         public static int IxFromFileRank(int file, int rank)
         {

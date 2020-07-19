@@ -112,7 +112,6 @@ namespace Dragonfly.Engine.Evaluation
                 }
             }
 
-            // TODO: save the evaluation info to some kind of structure so we can dump it... maybe optionally?
             // How to do this efficiently without making a bunch of objects, and allowing each evaluator to have its own parameters?
             var ret = midgamePstValues[(int) Color.White] + materialValues[(int) Color.White]
                       - midgamePstValues[(int) Color.Black] - materialValues[(int) Color.Black];

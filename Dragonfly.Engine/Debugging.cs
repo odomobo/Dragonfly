@@ -14,9 +14,7 @@ namespace Dragonfly.Engine
         public static void Dump(string s = "")
         {
             Debug.Print(s);
-            // TODO: should this be prefixed with something to indicate debug?
-            // TODO: should this be stdout or stderr?
-            //Console.Error.WriteLine(s);
+            Console.Error.WriteLine(s);
         }
 
         /*

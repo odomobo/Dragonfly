@@ -60,8 +60,8 @@ namespace Dragonfly
 
         private static void PerformanceTesting(string fen, int perftDepth, TimeSpan timespan)
         {
-            var board = BoardParsing.PositionFromFen(fen);
-            Debugging.Dump(board);
+            var position = BoardParsing.PositionFromFen(fen);
+            Debugging.Dump(position);
 
             var moveGen = new MoveGenerator();
             var perft = new Perft(moveGen);
@@ -74,7 +74,7 @@ namespace Dragonfly
 
                 Stopwatch sw = new Stopwatch();
                 sw.Start();
-                int perftResults = perft.GoPerft(board, perftNum);
+                int perftResults = perft.GoPerft(position, perftNum);
                 sw.Stop();
                 double knps = ((double) perftResults) / sw.ElapsedMilliseconds; // it just works out
                 Console.WriteLine($"{perftResults} ({knps:F2} knps)");
@@ -82,13 +82,13 @@ namespace Dragonfly
                     break;
             }
 
-            //perft.GoPerft(board, perftDepth);
+            //perft.GoPerft(position, perftDepth);
         }
 
         private static void IncrementalPerft(string fen, int maxDepth)
         {
-            var board = BoardParsing.PositionFromFen(fen);
-            Debugging.Dump(board);
+            var position = BoardParsing.PositionFromFen(fen);
+            Debugging.Dump(position);
 
             var moveGen = new MoveGenerator();
             var perft = new Perft(moveGen);
@@ -98,7 +98,7 @@ namespace Dragonfly
 
                 Stopwatch sw = new Stopwatch();
                 sw.Start();
-                int perftResults = perft.GoPerft(board, i);
+                int perftResults = perft.GoPerft(position, i);
                 sw.Stop();
                 double knps = ((double) perftResults) / sw.ElapsedMilliseconds; // it just works out
                 Console.WriteLine($"{perftResults} ({knps:F2} knps)");
@@ -107,20 +107,20 @@ namespace Dragonfly
 
         private static void DivideTesting(string fen, int depth, params string[] moves)
         {
-            var board = BoardParsing.PositionFromFen(fen);
-            Debugging.Dump(board);
+            var position = BoardParsing.PositionFromFen(fen);
+            Debugging.Dump(position);
 
             var moveGen = new MoveGenerator();
             var perft = new Perft(moveGen);
             
             foreach (var moveStr in moves)
             {
-                Move move = BoardParsing.GetMoveFromCoordinateString(moveGen, board, moveStr);
-                board = Position.MakeMove(new Position(), move, board);
-                Debugging.Dump(board);
+                Move move = BoardParsing.GetMoveFromCoordinateString(moveGen, position, moveStr);
+                position = Position.MakeMove(new Position(), move, position);
+                Debugging.Dump(position);
             }
 
-            GoDivide(moveGen, perft, board, depth - moves.Length);
+            GoDivide(moveGen, perft, position, depth - moves.Length);
         }
 
         private static void GoDivide(MoveGenerator moveGenerator, Perft perft, Position position, int depth)

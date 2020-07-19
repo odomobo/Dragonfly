@@ -63,7 +63,6 @@ namespace Dragonfly.Engine.MoveGeneration
             ulong promotionSourceSquares = sourceSquares & PawnPromotionSourceTable[(int) color];
             ulong nonPromotionSourceSquares = sourceSquares & ~promotionSourceSquares;
 
-            //foreach (var sourceIx in Bits.Enumerate(nonPromotionSourceSquares))
             while (Bits.TryPopLsb(ref nonPromotionSourceSquares, out var sourceIx))
             {
                 // TODO: separate out normal moves from double moves. Normal moves use normal lookup table, double moves use magic lookup table
@@ -77,32 +76,27 @@ namespace Dragonfly.Engine.MoveGeneration
                 var normalCaptures = captures & position.GetOccupied(color.Other());
                 var enPassantCaptures = captures & position.EnPassant;
 
-                //foreach (var dstIx in Bits.Enumerate(quiets))
                 while (Bits.TryPopLsb(ref quiets, out var dstIx))
                 {
                     moves.Add(new Move(MoveType.Normal|MoveType.Quiet, sourceIx, dstIx));
                 }
 
-                //foreach (var dstIx in Bits.Enumerate(doubles))
                 while (Bits.TryPopLsb(ref doubles, out var dstIx))
                 {
                     moves.Add(new Move(MoveType.DoubleMove|MoveType.Quiet, sourceIx, dstIx));
                 }
 
-                //foreach (var dstIx in Bits.Enumerate(normalCaptures))
                 while (Bits.TryPopLsb(ref normalCaptures, out var dstIx))
                 {
                     moves.Add(new Move(MoveType.Normal|MoveType.Capture, sourceIx, dstIx));
                 }
 
-                //foreach (var dstIx in Bits.Enumerate(enPassantCaptures))
                 while (Bits.TryPopLsb(ref enPassantCaptures, out var dstIx))
                 {
                     moves.Add(new Move(MoveType.EnPassant|MoveType.Capture, sourceIx, dstIx));
                 }
             }
 
-            //foreach (var sourceIx in Bits.Enumerate(promotionSourceSquares))
             while (Bits.TryPopLsb(ref promotionSourceSquares, out var sourceIx))
             {
                 var quiets = PawnQuietMoveTable.GetMoves(sourceIx, color);
@@ -114,14 +108,12 @@ namespace Dragonfly.Engine.MoveGeneration
                 foreach (var piece in new[] {PieceType.Queen, PieceType.Knight, PieceType.Rook, PieceType.Bishop})
                 {
                     var quietsTmp = quiets;
-                    //foreach (var dstIx in Bits.Enumerate(quiets))
                     while (Bits.TryPopLsb(ref quietsTmp, out var dstIx))
                     {
                         moves.Add(new Move(MoveType.Promotion|MoveType.Quiet, sourceIx, dstIx, piece));
                     }
 
                     var capturesTmp = captures;
-                    //foreach (var dstIx in Bits.Enumerate(captures))
                     while (Bits.TryPopLsb(ref capturesTmp, out var dstIx))
                     {
                         moves.Add(new Move(MoveType.Promotion|MoveType.Capture, sourceIx, dstIx, piece));
@@ -132,7 +124,6 @@ namespace Dragonfly.Engine.MoveGeneration
 
         private void GenerateKnightMoves(List<Move> moves, Position position, ulong sourceSquares)
         {
-            //foreach (var sourceIx in Bits.Enumerate(sourceSquares))
             while (Bits.TryPopLsb(ref sourceSquares, out var sourceIx))
             {
                 var dstSquares = KnightMoveTable.GetMoves(sourceIx);
@@ -144,7 +135,6 @@ namespace Dragonfly.Engine.MoveGeneration
 
         private void GenerateBishopMoves(List<Move> moves, Position position, PieceType pieceType, ulong sourceSquares)
         {
-            //foreach (var sourceIx in Bits.Enumerate(sourceSquares))
             while (Bits.TryPopLsb(ref sourceSquares, out var sourceIx))
             {
                 var dstSquares = BishopMoveTable.GetMoves(sourceIx, position.GetOccupied());
@@ -156,7 +146,6 @@ namespace Dragonfly.Engine.MoveGeneration
 
         private void GenerateRookMoves(List<Move> moves, Position position, PieceType pieceType, ulong sourceSquares)
         {
-            //foreach (var sourceIx in Bits.Enumerate(sourceSquares))
             while (Bits.TryPopLsb(ref sourceSquares, out var sourceIx))
             {
                 var dstSquares = RookMoveTable.GetMoves(sourceIx, position.GetOccupied());
@@ -168,7 +157,6 @@ namespace Dragonfly.Engine.MoveGeneration
 
         private void GenerateKingNormalMoves(List<Move> moves, Position position, ulong sourceSquares)
         {
-            //foreach (var sourceIx in Bits.Enumerate(sourceSquares))
             while (Bits.TryPopLsb(ref sourceSquares, out var sourceIx))
             {
                 var dstSquares = KingMoveTable.GetMoves(sourceIx);
@@ -182,13 +170,11 @@ namespace Dragonfly.Engine.MoveGeneration
         private void GenerateKingCastling(List<Move> moves, Position position)
         {
             var castlingDsts = position.CastlingRights & CastlingTables.GetCastlingRightsDstColorMask(position.SideToMove);
-            //foreach (var dstIx in Bits.Enumerate(castlingDsts))
             while (Bits.TryPopLsb(ref castlingDsts, out var dstIx))
             {
                 if ((position.GetOccupied() & CastlingTables.GetCastlingEmptySquares(dstIx)) > 0)
                     continue;
 
-                // TODO: do these incheck validations as part of move validation? not sure...
                 if (position.InCheck(position.SideToMove))
                     continue;
 
@@ -222,13 +208,11 @@ namespace Dragonfly.Engine.MoveGeneration
         {
             var (quiets, captures) = SeparateQuietsCaptures(dstSquares, occupancy);
 
-            //foreach (var dstIx in Bits.Enumerate(quiets))
             while (Bits.TryPopLsb(ref quiets, out var dstIx))
             {
                 moves.Add(new Move(moveType|MoveType.Quiet, sourceIx, dstIx));
             }
 
-            //foreach (var dstIx in Bits.Enumerate(captures))
             while (Bits.TryPopLsb(ref captures, out var dstIx))
             {
                 moves.Add(new Move(moveType|MoveType.Capture, sourceIx, dstIx));

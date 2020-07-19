@@ -44,8 +44,8 @@ namespace Dragonfly.Engine.Benchmark
         public bool AlwaysShow => true;
         public ColumnCategory Category => ColumnCategory.Custom;
         public int PriorityInCategory => 0;
-        public bool IsNumeric => false; // TODO:????
-        public UnitType UnitType => UnitType.Dimensionless; // TODO:????
+        public bool IsNumeric => false;
+        public UnitType UnitType => UnitType.Dimensionless;
         public string Legend => $"Mean kilonodes per second";
     }
 
@@ -54,7 +54,7 @@ namespace Dragonfly.Engine.Benchmark
     {
         public PerftBenchConfig()
         {
-            AddColumn(new SpeedColumn()); // TODO: how to get this dynamically?
+            AddColumn(new SpeedColumn());
         }
     }
 

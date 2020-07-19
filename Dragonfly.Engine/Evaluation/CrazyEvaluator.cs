@@ -113,7 +113,6 @@ namespace Dragonfly.Engine.Evaluation
                 }
             }
 
-            // TODO: save the evaluation info to some kind of structure so we can dump it... maybe optionally?
             // How to do this efficiently without making a bunch of objects, and allowing each evaluator to have its own parameters?
 
             // the core of the speculation is valuing positioning 10x more highly than it should

@@ -119,42 +119,8 @@ namespace Dragonfly.Engine.MoveGeneration.Tables
 
         #region DoMove helpers
 
-        // TODO: these aren't used anymore
-        private static readonly ulong[] CastlingRookSrcValues = GenerateCastlingRookSrc();
-        private static readonly ulong[] CastlingRookDstValues = GenerateCastlingRookDst();
-
         private static readonly int[] CastlingRookSrcIxs = GenerateCastlingRookSrcIxs();
         private static readonly int[] CastlingRookDstIxs = GenerateCastlingRookDstIxs();
-
-        private static ulong[] GenerateCastlingRookSrc()
-        {
-            var ret = new ulong[64];
-            ret[WhiteKingsideDstIx] = Position.ValueFromIx(WhiteKingsideRookIx);
-            ret[WhiteQueensideDstIx] = Position.ValueFromIx(WhiteQueensideRookIx);
-            ret[BlackKingsideDstIx] = Position.ValueFromIx(BlackKingsideRookIx);
-            ret[BlackQueensideDstIx] = Position.ValueFromIx(BlackQueensideRookIx);
-            return ret;
-        }
-
-        private static ulong[] GenerateCastlingRookDst()
-        {
-            var ret = new ulong[64];
-            ret[WhiteKingsideDstIx] = Position.ValueFromIx(WhiteKingsideRookDstIx);
-            ret[WhiteQueensideDstIx] = Position.ValueFromIx(WhiteQueensideRookDstIx);
-            ret[BlackKingsideDstIx] = Position.ValueFromIx(BlackKingsideRookDstIx);
-            ret[BlackQueensideDstIx] = Position.ValueFromIx(BlackQueensideRookDstIx);
-            return ret;
-        }
-
-        public static ulong GetCastlingRookSrcValue(int castlingDstIx)
-        {
-            return CastlingRookSrcValues[castlingDstIx];
-        }
-
-        public static ulong GetCastlingRookDstValue(int castlingDstIx)
-        {
-            return CastlingRookDstValues[castlingDstIx];
-        }
 
         private static int[] GenerateCastlingRookSrcIxs()
         {

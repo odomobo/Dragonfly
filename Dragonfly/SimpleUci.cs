@@ -212,9 +212,9 @@ namespace Dragonfly
                 $"time {(int)timeMs} " +
                 $"nodes {statistics.Nodes} " +
                 $"nps {nps} " +
-                $"score cp {statistics.CurrentScore.Value} " + // TODO: make this more sophisticated
+                $"score cp {statistics.CurrentScore.Value} " + // TODO: make this more sophisticated, (e.g. lower bound vs exact, mate in)
                 $"pv {pvString} " +
-                // TODO: add things like best move, score, etc
+                // TODO: add things like best move
                 "string " + // below this are nonstandard info values; I think without string, some GUIs would have a problem with this
                 $"internalCutNodes {statistics.InternalCutNodes} " +
                 $"internalPvNodes {statistics.InternalPVNodes} " +

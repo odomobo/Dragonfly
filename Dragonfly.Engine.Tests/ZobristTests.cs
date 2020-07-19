@@ -23,8 +23,8 @@ namespace Dragonfly.Engine.Tests
         [TestCaseSource(typeof(ZobristData), nameof(ZobristData.ZobristTestCases))]
         public void ZobristTest(string fen, int depth)
         {
-            var board = BoardParsing.PositionFromFen(fen);
-            ZobristTestHelper(board, depth);
+            var position = BoardParsing.PositionFromFen(fen);
+            ZobristTestHelper(position, depth);
         }
 
         private void ZobristTestHelper(Position position, int depth)
