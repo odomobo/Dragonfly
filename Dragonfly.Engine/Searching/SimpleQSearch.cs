@@ -10,6 +10,8 @@ namespace Dragonfly.Engine.Searching
 {
     public sealed class SimpleQSearch : IQSearch
     {
+        private const int MaxDepth = 10;
+
         private readonly IEvaluator _evaluator;
         private readonly IMoveGen _moveGen; // Note: eventually we also want a qsearch movegen
         private readonly CompositeMoveOrderer _quiescenceMoveOrderer;
@@ -64,7 +66,8 @@ namespace Dragonfly.Engine.Searching
             }
 
             // for now, let's do this to prevent qsearch explosion
-            if (depth > 5)
+            // TODO: should we do something in order to return a conservatively low value?
+            if (depth > MaxDepth)
                 return standPatEval;
 
             var moves = _moveListCache.Get(ply);

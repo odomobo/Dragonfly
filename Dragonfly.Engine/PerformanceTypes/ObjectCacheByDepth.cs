@@ -15,12 +15,12 @@ namespace Dragonfly.Engine.PerformanceTypes
             ResizeTo(initialSize);
         }
 
-        public T Get(int depth)
+        public T Get(int ply)
         {
-            if (_cache.Count <= depth)
-                ResizeTo(depth*2);
+            if (_cache.Count <= ply)
+                ResizeTo(ply*2);
 
-            return _cache[depth];
+            return _cache[ply];
         }
 
         private void ResizeTo(int newSize)

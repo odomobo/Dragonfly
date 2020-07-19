@@ -53,7 +53,7 @@ namespace Dragonfly
             var search = new SimpleAlphaBetaSearch(moveGen, evaluator, qSearch);
             var timeStrategy = new TimePerMoveStrategy(TimeSpan.FromSeconds(10));
 
-            search.Search(BoardParsing.PositionFromFen(MidgameFen), timeStrategy);
+            search.Search(BoardParsing.PositionFromFen(MidgameFen), timeStrategy, s => { });
         }
 
         private static void PerformanceTesting(string fen, int perftDepth, TimeSpan timespan)

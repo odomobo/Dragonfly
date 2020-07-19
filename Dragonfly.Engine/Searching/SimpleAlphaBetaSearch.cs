@@ -27,7 +27,7 @@ namespace Dragonfly.Engine.Searching
             _qSearch = qSearch;
         }
 
-        public (Move move, Statistics statistics) Search(Position position, ITimeStrategy timeStrategy)
+        public (Move move, Statistics statistics) Search(Position position, ITimeStrategy timeStrategy, Statistics.PrintInfoDelegate printInfoDelegate)
         {
             // This is non-reentrant, so let's make sure nobody accidentally calls us twice
             lock (this)
@@ -91,11 +91,13 @@ namespace Dragonfly.Engine.Searching
                     // if we don't do this, we'll never return from an endgame position
                     if (timeStrategy.ShouldStop(_statistics))
                         return (bestMove, _statistics);
+
+                    // if we didn't return, let's print some info!
+                    printInfoDelegate(_statistics);
                 }
             }
         }
 
-        // TODO: name actualDepth and depth appropriately
         private Score InnerSearch(Position position, int depth, Score alpha, Score beta, int ply)
         {
             // do it every 64? hmm..
@@ -172,7 +174,6 @@ namespace Dragonfly.Engine.Searching
 
             if (raisedAlpha)
             {
-                // TODO: eventually commit to triangular pv table
                 _statistics.InternalPVNodes++;
             }
             else

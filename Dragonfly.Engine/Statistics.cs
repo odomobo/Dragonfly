@@ -9,6 +9,8 @@ namespace Dragonfly.Engine
 {
     public sealed class Statistics
     {
+        public delegate void PrintInfoDelegate(Statistics statistics);
+
         public DateTime StartTime;
         public Color SideCalculating;
         public List<Move> BestLine = new List<Move>();

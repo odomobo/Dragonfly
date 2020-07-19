@@ -101,7 +101,7 @@ namespace Dragonfly
 
         private void Go()
         {
-            var (move, statistics) = _search.Search(_position, _timeStrategy);
+            var (move, statistics) = _search.Search(_position, _timeStrategy, PrintInfo);
             PrintInfo(statistics);
             Console.WriteLine($"bestmove {BoardParsing.CoordinateStringFromMove(move)}");
         }
@@ -215,7 +215,7 @@ namespace Dragonfly
 
             if (timeStrategies.Count == 0)
                 return new DefaultTimeStrategy();
-            else if (timeStrategies.Count == 0)
+            else if (timeStrategies.Count == 1)
                 return timeStrategies.First();
             else
                 return new CompositeTimeStrategy(timeStrategies);
