@@ -10,10 +10,6 @@ namespace Dragonfly.Engine
 {
     public sealed class Statistics
     {
-        // TODO where should these delegates live?
-        public delegate void PrintInfoDelegate(Statistics statistics);
-        public delegate void PrintBestMoveDelegate(Move bestMove);
-
         public Stopwatch Timer = new Stopwatch();
         public Color SideCalculating;
         public List<Move> BestLine = new List<Move>();

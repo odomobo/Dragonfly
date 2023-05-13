@@ -33,11 +33,11 @@ namespace Dragonfly.Engine
         /// </summary>
         private State _workerState;
 
+        // TODO: wrap these into an enum
         private ISearch _search;
         private Position _position;
         private ITimeStrategy _timeStrategy;
-        private Statistics.PrintInfoDelegate _printInfoDelegate;
-        private Statistics.PrintBestMoveDelegate _printBestMoveDelegate;
+        private IProtocol _protocol;
 
         public SearchWorkerThread()
         {
@@ -50,19 +50,17 @@ namespace Dragonfly.Engine
         }
 
         /// <summary>
-        /// If the thread is already searching, this will block until it naturally stops searching.
+        /// If the thread is already searching, this will block until it naturally stops searching (or another thread stops the search).
         /// </summary>
         /// <param name="search"></param>
         /// <param name="position"></param>
         /// <param name="timeStrategy"></param>
-        /// <param name="printInfoDelegate"></param>
-        /// <param name="printBestMoveDelegate"></param>
+        /// <param name="protocol"></param>
         public void StartSearch(
             ISearch search,
             Position position,
             ITimeStrategy timeStrategy,
-            Statistics.PrintInfoDelegate printInfoDelegate,
-            Statistics.PrintBestMoveDelegate printBestMoveDelegate
+            IProtocol protocol
         )
         {
             lock (_workThread)
@@ -72,6 +70,10 @@ namespace Dragonfly.Engine
                     if (_workerState == State.Waiting)
                         break;
 
+                    // nothing else we can do
+                    if (_workerState == State.Exiting)
+                        return;
+
                     Monitor.Wait(_workThread);
                 }
 
@@ -80,8 +82,7 @@ namespace Dragonfly.Engine
                 _search = search;
                 _position = position;
                 _timeStrategy = timeStrategy;
-                _printInfoDelegate = printInfoDelegate;
-                _printBestMoveDelegate = printBestMoveDelegate;
+                _protocol = protocol;
 
                 _workerState = State.Searching;
                 Monitor.PulseAll(_workThread);
@@ -136,9 +137,9 @@ namespace Dragonfly.Engine
                     // worker state is Searching
                 }
 
-                var (bestMove, statistics) = _search.Search(_position, _timeStrategy, _printInfoDelegate);
-                _printInfoDelegate(statistics);
-                _printBestMoveDelegate(bestMove);
+                var (bestMove, statistics) = _search.Search(_position, _timeStrategy, _protocol);
+                _protocol.PrintInfo(statistics);
+                _protocol.PrintBestMove(bestMove);
 
                 lock (_workThread)
                 {

@@ -41,7 +41,7 @@ namespace Dragonfly
             var promotionMvvLvaMoveOrderer = new CompositeMoveOrderer(new IMoveOrderer[] {new PromotionsOrderer(), new MvvLvaOrderer()});
             var qSearch = new SimpleQSearch(evaluator, moveGen, promotionMvvLvaMoveOrderer, CompositeMoveOrderer.NullMoveOrderer);
             //var search = new SimpleAlphaBetaSearch(moveGen, evaluator, qSearch);
-            var search = new IidAlphaBetaSearch(moveGen, evaluator, qSearch, promotionMvvLvaMoveOrderer);
+            var search = new IidAlphaBetaSearch(moveGen, new StandardGameTerminator(),  evaluator, qSearch, promotionMvvLvaMoveOrderer);
 
             var uci = new SimpleUci(moveGen, search, Console.In, TextWriter.Synchronized(Console.Out));
             uci.Loop();
@@ -53,10 +53,10 @@ namespace Dragonfly
             var evaluator = new Evaluator();
             var promotionMvvLvaMoveOrderer = new CompositeMoveOrderer(new IMoveOrderer[] { new PromotionsOrderer(), new MvvLvaOrderer() });
             var qSearch = new SimpleQSearch(evaluator, moveGen, promotionMvvLvaMoveOrderer, CompositeMoveOrderer.NullMoveOrderer);
-            var search = new SimpleAlphaBetaSearch(moveGen, evaluator, qSearch);
+            var search = new SimpleAlphaBetaSearch(moveGen, new StandardGameTerminator(), evaluator, qSearch);
             var timeStrategy = new TimePerMoveStrategy(TimeSpan.FromSeconds(10));
 
-            search.Search(BoardParsing.PositionFromFen(MidgameFen), timeStrategy, s => { });
+            search.Search(BoardParsing.PositionFromFen(MidgameFen), timeStrategy, new DummyProtocol());
         }
 
         private static void PerformanceTesting(string fen, int perftDepth, TimeSpan timespan)

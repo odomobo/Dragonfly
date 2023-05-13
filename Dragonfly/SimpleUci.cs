@@ -10,7 +10,7 @@ using Dragonfly.Engine.TimeStrategies;
 
 namespace Dragonfly
 {
-    class SimpleUci
+    class SimpleUci : IProtocol
     {
         private const string InitialFen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 
@@ -56,7 +56,7 @@ namespace Dragonfly
                         break;
                     case "go":
                         _timeStrategy = TimeStrategyFromGoOptionsDict(OptionsDictFromGoOptions(options));
-                        _searchWorkerThread.StartSearch(_search, _position, _timeStrategy, PrintInfo, PrintBestMove);
+                        _searchWorkerThread.StartSearch(_search, _position, _timeStrategy, this);
                         break;
                     case "stop":
                         _searchWorkerThread.StopSearch();
@@ -199,7 +199,7 @@ namespace Dragonfly
 
         #endregion Go options
 
-        private void PrintInfo(Statistics statistics)
+        public void PrintInfo(Statistics statistics)
         {
             var time = statistics.Timer.Elapsed;
             var timeMs = time.TotalMilliseconds;
@@ -231,9 +231,14 @@ namespace Dragonfly
             );
         }
 
-        private void PrintBestMove(Move bestMove)
+        public void PrintBestMove(Move bestMove)
         {
             _output.WriteLine($"bestmove {BoardParsing.CoordinateStringFromMove(bestMove)}");
+        }
+
+        public void PrintDebugMessage(string message)
+        {
+            _output.WriteLine($"info string {message}");
         }
 
         private void SetPosition(string optionsStr)

@@ -11,6 +11,7 @@ namespace Dragonfly.Engine.Searching
     public sealed class SimpleAlphaBetaSearch : ISearch
     {
         private readonly IMoveGenerator _moveGenerator;
+        private IGameTerminator _gameTerminator;
         private readonly IEvaluator _evaluator; // TODO: do we need this?
         private readonly IQSearch _qSearch;
         private IPVTable _pvTable;
@@ -20,14 +21,15 @@ namespace Dragonfly.Engine.Searching
         private readonly ObjectCacheByDepth<Position> _positionCache = new ObjectCacheByDepth<Position>();
         private readonly ObjectCacheByDepth<List<Move>> _moveListCache = new ObjectCacheByDepth<List<Move>>();
 
-        public SimpleAlphaBetaSearch(IMoveGenerator moveGenerator, IEvaluator evaluator, IQSearch qSearch)
+        public SimpleAlphaBetaSearch(IMoveGenerator moveGenerator, IGameTerminator gameTerminator, IEvaluator evaluator, IQSearch qSearch)
         {
             _moveGenerator = moveGenerator;
+            _gameTerminator = gameTerminator;
             _evaluator = evaluator;
             _qSearch = qSearch;
         }
 
-        public (Move move, Statistics statistics) Search(Position position, ITimeStrategy timeStrategy, Statistics.PrintInfoDelegate printInfoDelegate)
+        public (Move move, Statistics statistics) Search(Position position, ITimeStrategy timeStrategy, IProtocol protocol)
         {
             // setup
             _timeStrategy = timeStrategy;
@@ -98,7 +100,7 @@ namespace Dragonfly.Engine.Searching
                 }
 
                 // if we didn't return, let's print some info!
-                printInfoDelegate(_statistics);
+                protocol.PrintInfo(_statistics);
             }
         }
 
@@ -114,12 +116,10 @@ namespace Dragonfly.Engine.Searching
             // by nature of this being called, we know this is a non-root node
             _statistics.NormalNonRootNodes++;
 
-            // Note: we don't return draw on 50 move counter; if the engine doesn't know how to make progress in 50 moves, telling the engine it's about to draw can only induce mistakes.
-            if (position.RepetitionNumber >= 3)
+            if (_gameTerminator.IsPositionTerminal(position, out var terminalScore))
             {
                 _statistics.TerminalNodes++;
-                // TODO: contempt
-                return 0; // draw
+                return terminalScore;
             }
 
             if (depth <= 0)
@@ -172,11 +172,7 @@ namespace Dragonfly.Engine.Searching
             if (!anyMoves)
             {
                 _statistics.TerminalNodes++;
-
-                if (position.InCheck())
-                    return Score.GetMateScore(position.GamePly);
-                else
-                    return 0; // draw; TODO: contempt
+                return _gameTerminator.NoLegalMovesScore(position);
             }
 
             _statistics.NormalNonLeafNodes++;

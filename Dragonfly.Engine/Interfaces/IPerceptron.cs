@@ -5,8 +5,8 @@ using Dragonfly.Engine.CoreTypes;
 
 namespace Dragonfly.Engine.Interfaces
 {
-    public interface ISearch
+    public interface IPerceptron
     {
-        (Move move, Statistics statistics) Search(Position position, ITimeStrategy timeStrategy, IProtocol protocol);
+        float Identify(Position position);
     }
 }
