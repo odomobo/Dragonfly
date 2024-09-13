@@ -34,9 +34,6 @@ namespace Dragonfly.Engine.Searching
         private ITimeStrategy _timeStrategy;
         private Statistics _statistics;
         private int _enteredCount; // this is used to only call _timeStrategy occasionally, instead on every entry of InnerSearch()
-        private readonly ObjectCacheByDepth<Position> _positionCache = new ObjectCacheByDepth<Position>();
-        private readonly ObjectCacheByDepth<List<Move>> _moveListCache = new ObjectCacheByDepth<List<Move>>();
-        private readonly ObjectCacheByDepth<List<ScoredMove>> _iidScoredMoveListCache = new ObjectCacheByDepth<List<ScoredMove>>();
 
         public IidAlphaBetaSearch(IMoveGenerator moveGenerator, IGameTerminator gameTerminator, IEvaluator evaluator, IQSearch qSearch, CompositeMoveOrderer moveOrderer)
         {
@@ -59,10 +56,8 @@ namespace Dragonfly.Engine.Searching
             _qSearch.StartSearch(_timeStrategy, _pvTable, _statistics);
 
             Move bestMove = Move.Null;
-            var moveList = new List<Move>();
-            _moveGenerator.Generate(moveList, position);
-
-            var cachedPositionObject = new Position();
+            var moveList = new StaticList256<Move>();
+            _moveGenerator.Generate(ref moveList, position);
 
             if (!_moveGenerator.OnlyLegalMoves)
             {
@@ -70,7 +65,7 @@ namespace Dragonfly.Engine.Searching
                 for (int i = moveList.Count - 1; i >= 0; i--)
                 {
                     var move = moveList[i];
-                    var testingPosition = Position.MakeMove(cachedPositionObject, move, position);
+                    var testingPosition = position.MakeMove(move);
                     if (testingPosition.MovedIntoCheck())
                         moveList.QuickRemoveAt(i);
                 }
@@ -97,7 +92,7 @@ namespace Dragonfly.Engine.Searching
                 {
                     var move = scoredMoveList[i].Move;
 
-                    var nextPosition = Position.MakeMove(cachedPositionObject, move, position);
+                    var nextPosition = position.MakeMove(move);
                     _pvTable.Add(move, 0);
 
                     _statistics.CurrentDepth = depth;
@@ -141,12 +136,11 @@ namespace Dragonfly.Engine.Searching
         }
 
         // all moves need to be legal
-        private void SortWithIid(Position position, List<Move> moves, int depth, Score alpha, Score beta, int ply)
+        private void SortWithIid(Position position, ref StaticList256<Move> moves, int depth, Score alpha, Score beta, int ply)
         {
             // SortWithIid is considered a root node; it's not a leaf of the parent caller, it's more of a helper
             _statistics.NormalNonLeafNodes++;
 
-            var cachedPositionObject = _positionCache.Get(ply);
             // create .5 pawn buffer in alpha and beta
             alpha -= 50;
             if (alpha < Score.MinValue)
@@ -160,12 +154,12 @@ namespace Dragonfly.Engine.Searching
             //beta = Score.MaxValue;
 
             // TODO: use a Span<ScoredMove>, once the version of .net core we're using supports Span.Sort()
-            var scoredMoves = _iidScoredMoveListCache.Get(ply);
-            scoredMoves.Clear();
+            var scoredMoves = new StaticList256<ScoredMove>();
 
-            foreach (var move in _moveOrderer.Order(moves, position))
+            _moveOrderer.Sort(ref moves, position);
+            foreach (var move in moves)
             {
-                var nextPosition = Position.MakeMove(cachedPositionObject, move, position);
+                var nextPosition = position.MakeMove(move);
 
                 var score = -InnerSearch(nextPosition, (depth/2) - 1, true, -beta, -alpha, ply+1);
                 // leave a buffer for better ordering
@@ -212,11 +206,9 @@ namespace Dragonfly.Engine.Searching
                 return _qSearch.Search(position, alpha, beta, ply);
             }
 
-            var moveList = _moveListCache.Get(ply);
-            moveList.Clear();
+            var moveList = new StaticList256<Move>();
 
-            _moveGenerator.Generate(moveList, position);
-            var cachedPositionObject = _positionCache.Get(ply);
+            _moveGenerator.Generate(ref moveList, position);
 
             if (!_moveGenerator.OnlyLegalMoves)
             {
@@ -224,7 +216,7 @@ namespace Dragonfly.Engine.Searching
                 for (int i = moveList.Count - 1; i >= 0; i--)
                 {
                     var move = moveList[i];
-                    var testingPosition = Position.MakeMove(cachedPositionObject, move, position);
+                    var testingPosition = position.MakeMove(move);
                     if (testingPosition.MovedIntoCheck())
                         moveList.QuickRemoveAt(i);
                 }
@@ -238,13 +230,13 @@ namespace Dragonfly.Engine.Searching
 
             // if depth is 1 or 2, then we'd literally just be searching twice
             if (depth > 1)
-                SortWithIid(position, moveList, depth, alpha, beta, ply);
+                SortWithIid(position, ref moveList, depth, alpha, beta, ply);
 
             bool raisedAlpha = false;
             int moveNumber = 0;
             foreach (var move in moveList)
             {
-                var nextPosition = Position.MakeMove(cachedPositionObject, move, position);
+                var nextPosition = position.MakeMove(move);
 
                 moveNumber++;
 

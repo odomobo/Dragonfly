@@ -62,8 +62,6 @@ namespace Dragonfly.Engine
 
         private readonly IMoveGenerator _moveGenerator;
         private readonly PerftTable? _perftTable;
-        private readonly ObjectCacheByDepth<Position> _positionCache = new ObjectCacheByDepth<Position>();
-        private readonly ObjectCacheByDepth<List<Move>> _moveListCache = new ObjectCacheByDepth<List<Move>>();
 
         public Perft(IMoveGenerator moveGenerator, int? tableSize = null)
         {
@@ -86,15 +84,13 @@ namespace Dragonfly.Engine
                 return count;
             }
 
-            List<Move> moves = _moveListCache.Get(depth);
-            moves.Clear();
+            var moves = new StaticList256<Move>();
 
-            _moveGenerator.Generate(moves, b);
+            _moveGenerator.Generate(ref moves, b);
 
-            var tmpPosition = _positionCache.Get(depth);
             foreach (var move in moves)
             {
-                var nextPosition = Position.MakeMove(tmpPosition, move, b);
+                var nextPosition = b.MakeMove(move);
                 
                 // check move legality if using a pseudolegal move generator
                 if (!_moveGenerator.OnlyLegalMoves && nextPosition.MovedIntoCheck())

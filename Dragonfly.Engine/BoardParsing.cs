@@ -6,6 +6,7 @@ using Dragonfly.Engine.CoreTypes;
 using Dragonfly.Engine.Interfaces;
 using Dragonfly.Engine.MoveGeneration;
 using Dragonfly.Engine.MoveGeneration.Tables;
+using Dragonfly.Engine.PerformanceTypes;
 
 namespace Dragonfly.Engine
 {
@@ -206,8 +207,8 @@ namespace Dragonfly.Engine
             string coordinateString,
             out Move move)
         {
-            List<Move> moves = new List<Move>();
-            moveGenerator.Generate(moves, b);
+            var moves = new StaticList256<Move>();
+            moveGenerator.Generate(ref moves, b);
 
             foreach (var tmpMove in moves)
             {
@@ -218,7 +219,7 @@ namespace Dragonfly.Engine
                 // if a pseudolegal move generator, then we need to make sure that the move we're attempting is even legal
                 if (!moveGenerator.OnlyLegalMoves)
                 {
-                    var testingBoard = Position.MakeMove(new Position(), tmpMove, b);
+                    var testingBoard = b.MakeMove(tmpMove);
 
                     // if we moved into check, clearly it was an invalid move
                     if (testingBoard.MovedIntoCheck())

@@ -47,6 +47,11 @@ namespace Dragonfly.Engine.CoreTypes
                 return true;
         }
 
+        public override string ToString()
+        {
+            return _value.ToString();
+        }
+
         public static implicit operator Score(int score) => new Score(score);
         public static explicit operator int(Score score) => score._value;
 

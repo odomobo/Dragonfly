@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using Dragonfly.Engine.CoreTypes;
+using Dragonfly.Engine.PerformanceTypes;
 
 namespace Dragonfly.Engine.Interfaces
 {
@@ -15,6 +16,6 @@ namespace Dragonfly.Engine.Interfaces
         /// <param name="count"></param>
         /// <param name="position"></param>
         /// <returns>The new start of the array</returns>
-        public int PartitionAndSort(List<Move> moves, int start, int count, Position position);
+        public int PartitionAndSort(ref StaticList256<Move> moves, int start, int count, Position position);
     }
 }

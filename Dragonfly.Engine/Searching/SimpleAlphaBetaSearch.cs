@@ -18,8 +18,6 @@ namespace Dragonfly.Engine.Searching
         private ITimeStrategy _timeStrategy;
         private Statistics _statistics;
         private int _enteredCount; // this is used to only call _timeStrategy occasionally, instead on every entry of InnerSearch()
-        private readonly ObjectCacheByDepth<Position> _positionCache = new ObjectCacheByDepth<Position>();
-        private readonly ObjectCacheByDepth<List<Move>> _moveListCache = new ObjectCacheByDepth<List<Move>>();
 
         public SimpleAlphaBetaSearch(IMoveGenerator moveGenerator, IGameTerminator gameTerminator, IEvaluator evaluator, IQSearch qSearch)
         {
@@ -41,8 +39,8 @@ namespace Dragonfly.Engine.Searching
             _qSearch.StartSearch(_timeStrategy, _pvTable, _statistics);
 
             Move bestMove = Move.Null;
-            var moveList = new List<Move>();
-            _moveGenerator.Generate(moveList, position);
+            var moveList = new StaticList256<Move>();
+            _moveGenerator.Generate(ref moveList, position);
 
             // TODO: instead of looping here, why don't we only loop in InnerSearch and get the best value from the PV table?
             // That would simplify things a lot.
@@ -56,10 +54,9 @@ namespace Dragonfly.Engine.Searching
                 Score alpha = Score.MinValue;
                 Score beta = Score.MaxValue;
 
-                var cachedPositionObject = new Position();
                 foreach (var move in moveList)
                 {
-                    var nextPosition = Position.MakeMove(cachedPositionObject, move, position);
+                    var nextPosition = position.MakeMove(move);
 
                     if (!_moveGenerator.OnlyLegalMoves && nextPosition.MovedIntoCheck())
                         continue;
@@ -129,19 +126,17 @@ namespace Dragonfly.Engine.Searching
                 return _qSearch.Search(position, alpha, beta, ply);
             }
 
-            var moveList = _moveListCache.Get(ply);
-            moveList.Clear();
+            var moveList = new StaticList256<Move>();
 
-            _moveGenerator.Generate(moveList, position);
+            _moveGenerator.Generate(ref moveList, position);
 
             bool anyMoves = false;
             bool raisedAlpha = false;
 
             int moveNumber = 0;
-            var cachedPositionObject = _positionCache.Get(ply);
             foreach (var move in moveList)
             {
-                var nextPosition = Position.MakeMove(cachedPositionObject, move, position);
+                var nextPosition = position.MakeMove(move);
 
                 if (!_moveGenerator.OnlyLegalMoves && nextPosition.MovedIntoCheck())
                     continue;

@@ -277,7 +277,7 @@ namespace Dragonfly
                 foreach (var moveStr in options)
                 {
                     Move move = BoardParsing.GetMoveFromCoordinateString(_moveGenerator, _position, moveStr);
-                    _position = Position.MakeMove(new Position(), move, _position);
+                    _position = _position.MakeMove(move);
                 }
             }
         }

@@ -10,6 +10,7 @@ using Dragonfly.Engine.Evaluation;
 using Dragonfly.Engine.Interfaces;
 using Dragonfly.Engine.MoveGeneration;
 using Dragonfly.Engine.MoveOrdering;
+using Dragonfly.Engine.PerformanceTypes;
 using Dragonfly.Engine.Searching;
 using Dragonfly.Engine.TimeStrategies;
 
@@ -117,7 +118,7 @@ namespace Dragonfly
             foreach (var moveStr in moves)
             {
                 Move move = BoardParsing.GetMoveFromCoordinateString(moveGen, position, moveStr);
-                position = Position.MakeMove(new Position(), move, position);
+                position = position.MakeMove(move);
                 Debugging.Dump(position);
             }
 
@@ -134,8 +135,8 @@ namespace Dragonfly
 
             var total = 0;
 
-            List<Move> moves = new List<Move>();
-            moveGenerator.Generate(moves, position);
+            var moves = new StaticList256<Move>();
+            moveGenerator.Generate(ref moves, position);
 
             var movesDict = new SortedDictionary<string, Move>();
             foreach (var move in moves)
@@ -145,7 +146,7 @@ namespace Dragonfly
 
             foreach (var (moveStr, move) in movesDict)
             {
-                var nextBoard = Position.MakeMove(new Position(), move, position);
+                var nextBoard = position.MakeMove(move);
 
                 // check move legality if using a pseudolegal move generator
                 if (!moveGenerator.OnlyLegalMoves && nextBoard.MovedIntoCheck())

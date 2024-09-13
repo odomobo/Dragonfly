@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using Dragonfly.Engine.CoreTypes;
 using Dragonfly.Engine.Interfaces;
+using Dragonfly.Engine.PerformanceTypes;
 
 namespace Dragonfly.Engine.MoveOrdering
 {
@@ -40,9 +41,9 @@ namespace Dragonfly.Engine.MoveOrdering
             }
         }
 
-        public int PartitionAndSort(List<Move> moves, int start, int count, Position position)
+        public int PartitionAndSort(ref StaticList256<Move> moves, int start, int count, Position position)
         {
-            int newCount = moves.PartitionBy(start, count, move => move.MoveType.HasFlag(MoveType.Capture));
+            int newCount = moves.WithSpan(s => s.PartitionBy(start, count, move => move.MoveType.HasFlag(MoveType.Capture)));
 
             var comparer = new MvvLvaComparer(position);
             moves.Sort(start, newCount, comparer);

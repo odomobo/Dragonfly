@@ -18,8 +18,6 @@ namespace Dragonfly.Engine.Searching
         private readonly CompositeMoveOrderer _checkEvasionsMoveOrderer;
         private ITimeStrategy _timeStrategy; // Note: we don't actually need this
         private Statistics _statistics;
-        private readonly ObjectCacheByDepth<Position> _positionCache = new ObjectCacheByDepth<Position>();
-        private readonly ObjectCacheByDepth<List<Move>> _moveListCache = new ObjectCacheByDepth<List<Move>>();
 
         public SimpleQSearch(IEvaluator evaluator, IMoveGenerator moveGenerator, CompositeMoveOrderer quiescenceMoveOrderer, CompositeMoveOrderer checkEvasionsMoveOrderer)
         {
@@ -70,22 +68,21 @@ namespace Dragonfly.Engine.Searching
             if (depth > MaxDepth)
                 return standPatEval;
 
-            var moves = _moveListCache.Get(ply);
-            moves.Clear();
+            var moves = new StaticList256<Move>();
 
             bool moveGenIsStrictlyLegal;
-            IEnumerable<Move> moveEnumerator;
+            //IEnumerable<Move> moveEnumerator;
             if (position.InCheck())
             {
                 // if we're in check, we need to try all moves
-                _moveGenerator.Generate(moves, position);
+                _moveGenerator.Generate(ref moves, position);
                 moveGenIsStrictlyLegal = _moveGenerator.OnlyLegalMoves;
-                moveEnumerator = _checkEvasionsMoveOrderer.Order(moves, position);
+                _checkEvasionsMoveOrderer.Sort(ref moves, position);
             }
             else
             {
                 // if not in check, then only look at captures and promotions
-                _moveGenerator.Generate(moves, position);
+                _moveGenerator.Generate(ref moves, position);
                 moveGenIsStrictlyLegal = _moveGenerator.OnlyLegalMoves;
 
                 // since we don't have a qsearch movegen, we need to remove the non-applicable moves
@@ -98,14 +95,13 @@ namespace Dragonfly.Engine.Searching
 
                 // TODO: we should use SEE to determine which moves to keep!
 
-                moveEnumerator = _quiescenceMoveOrderer.Order(moves, position);
+                _quiescenceMoveOrderer.Sort(ref moves, position);
             }
 
             int moveNumber = 0;
-            var cachedPositionObject = _positionCache.Get(ply);
-            foreach (var move in moveEnumerator)
+            foreach (var move in moves)
             {
-                var nextPosition = Position.MakeMove(cachedPositionObject, move, position);
+                var nextPosition = position.MakeMove(move);
                 
                 if (!moveGenIsStrictlyLegal && nextPosition.MovedIntoCheck())
                     continue;

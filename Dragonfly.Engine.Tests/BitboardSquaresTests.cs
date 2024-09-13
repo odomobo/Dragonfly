@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using Dragonfly.Engine.CoreTypes;
 using Dragonfly.Engine.MoveGeneration;
+using Dragonfly.Engine.PerformanceTypes;
 using NUnit.Framework;
 
 namespace Dragonfly.Engine.Tests
@@ -32,13 +33,12 @@ namespace Dragonfly.Engine.Tests
             if (depth <= 0)
                 return;
 
-            var moves = new List<Move>();
-            _moveGenerator.Generate(moves, position);
+            var moves = new StaticList256<Move>();
+            _moveGenerator.Generate(ref moves, position);
 
-            var tmpPosition = new Position();
             foreach (var move in moves)
             {
-                var updatedBoard = Position.MakeMove(tmpPosition, move, position);
+                var updatedBoard = position.MakeMove(move);
 
                 if (!_moveGenerator.OnlyLegalMoves && updatedBoard.MovedIntoCheck())
                     continue;

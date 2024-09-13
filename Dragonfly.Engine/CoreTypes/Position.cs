@@ -8,8 +8,8 @@ namespace Dragonfly.Engine.CoreTypes
 {
     public sealed class Position
     {
-        private BitboardArray _pieceBitboards;
-        private PieceSquareArray _squares;
+        private InlineArray12<ulong> _pieceBitboards;
+        private InlineArray64<Piece> _squares;
         private ulong _occupiedWhite;
         private ulong _occupiedBlack;
         private ulong _occupied;
@@ -31,10 +31,10 @@ namespace Dragonfly.Engine.CoreTypes
         // Takes ownership of all arrays passed to it; they should not be changed after the position is created.
         public Position(Piece[] pieceSquares, Color sideToMove, ulong castlingRights, ulong enPassant, int fiftyMoveCounter, int fullMove)
         {
-            _pieceBitboards = new BitboardArray();
-            _squares = new PieceSquareArray();
+            _pieceBitboards = new InlineArray12<ulong>();
+            _squares = new InlineArray64<Piece>();
             // safer to go by the length the PieceSquareArray, because the Piece[] will always error on index out of bounds
-            for (int i = 0; i < _squares.Length; i++)
+            for (int i = 0; i < _squares.Length(); i++)
                 _squares[i] = pieceSquares[i];
 
             PopulatePieceBitboardsFromSquares(ref _pieceBitboards, pieceSquares);
@@ -61,13 +61,13 @@ namespace Dragonfly.Engine.CoreTypes
 
         public Position()
         {
-            _pieceBitboards = new BitboardArray();
-            _squares = new PieceSquareArray();
+            _pieceBitboards = new InlineArray12<ulong>();
+            _squares = new InlineArray64<Piece>();
         }
 
-        private static void PopulatePieceBitboardsFromSquares(ref BitboardArray pieceBitboards, Piece[] squares)
+        private static void PopulatePieceBitboardsFromSquares(ref InlineArray12<ulong> pieceBitboards, Piece[] squares)
         {
-            for (int i = 0; i < pieceBitboards.Length; i++)
+            for (int i = 0; i < pieceBitboards.Length(); i++)
                 pieceBitboards[i] = 0;
 
             for (int ix = 0; ix < 64; ix++)
@@ -91,10 +91,18 @@ namespace Dragonfly.Engine.CoreTypes
 
         #region MakeMove and its helpers
 
-        public static Position MakeMove(Position shell, Move move, Position parent)
+        public Position MakeMove(Move move)
+        {
+            var shell = new Position();
+            MakeMove(shell, move, this);
+            return shell;
+        }
+
+        private static Position MakeMove(Position shell, Move move, Position parent)
         {
             // copy data which doesn't depend on performing the move
-            parent.CopyPieceBitboards(ref shell._pieceBitboards);
+            //parent.CopyPieceBitboards(ref shell._pieceBitboards);
+            shell._pieceBitboards = parent._pieceBitboards; // makes a copy
             parent.CopySquares(ref shell._squares);
             shell.ZobristHash = parent.ZobristHash;
             shell.Parent = parent;
@@ -312,13 +320,13 @@ namespace Dragonfly.Engine.CoreTypes
         }
 
         // would need to copy the contents if this were an array
-        private void CopyPieceBitboards(ref BitboardArray ret)
+        private void CopyPieceBitboards(ref InlineArray12<ulong> ret)
         {
             ret = _pieceBitboards;
         }
 
         // would need to copy the contents if this were an array
-        private void CopySquares(ref PieceSquareArray ret)
+        private void CopySquares(ref InlineArray64<Piece> ret)
         {
             ret = _squares;
         }
