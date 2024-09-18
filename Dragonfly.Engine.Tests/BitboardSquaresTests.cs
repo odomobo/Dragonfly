@@ -33,8 +33,8 @@ namespace Dragonfly.Engine.Tests
             if (depth <= 0)
                 return;
 
-            var moves = new StaticList256<Move>();
-            _moveGenerator.Generate(ref moves, position);
+            var moves = new List<Move>();
+            _moveGenerator.Generate(moves, position);
 
             foreach (var move in moves)
             {

@@ -41,9 +41,9 @@ namespace Dragonfly.Engine.MoveOrdering
             }
         }
 
-        public int PartitionAndSort(ref StaticList256<Move> moves, int start, int count, Position position)
+        public int PartitionAndSort(List<Move> moves, int start, int count, Position position)
         {
-            int newCount = moves.WithSpan(s => s.PartitionBy(start, count, move => move.MoveType.HasFlag(MoveType.Capture)));
+            int newCount = moves.PartitionBy(start, count, move => move.MoveType.HasFlag(MoveType.Capture));
 
             var comparer = new MvvLvaComparer(position);
             moves.Sort(start, newCount, comparer);

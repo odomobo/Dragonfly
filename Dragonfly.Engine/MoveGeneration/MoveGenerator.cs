@@ -16,49 +16,49 @@ namespace Dragonfly.Engine.MoveGeneration
 
         public bool OnlyLegalMoves => false;
 
-        public void Generate(ref StaticList256<Move> moves, Position position)
+        public void Generate(List<Move> moves, Position position)
         {
             Debug.Assert(!moves.Any());
 
-            GeneratePawnMoves(ref moves, position, position.GetPieceBitboard(position.SideToMove, PieceType.Pawn));
-            GenerateKnightMoves(ref moves, position, position.GetPieceBitboard(position.SideToMove, PieceType.Knight));
+            GeneratePawnMoves(moves, position, position.GetPieceBitboard(position.SideToMove, PieceType.Pawn));
+            GenerateKnightMoves(moves, position, position.GetPieceBitboard(position.SideToMove, PieceType.Knight));
             // we can combine generation of queen with bishop and rook moves because when we store moves in the move list, we don't record the piece type which is moving
             GenerateBishopMoves(
-                ref moves,
+                moves,
                 position,
                 PieceType.Bishop,
                 position.GetPieceBitboard(position.SideToMove, PieceType.Bishop)
             );
             GenerateBishopMoves(
-                ref moves,
+                moves,
                 position,
                 PieceType.Queen,
                 position.GetPieceBitboard(position.SideToMove, PieceType.Queen)
             );
             GenerateRookMoves(
-                ref moves, 
+                moves, 
                 position, 
                 PieceType.Rook,
                 position.GetPieceBitboard(position.SideToMove, PieceType.Rook)
             );
             GenerateRookMoves(
-                ref moves,
+                moves,
                 position,
                 PieceType.Queen,
                 position.GetPieceBitboard(position.SideToMove, PieceType.Queen)
             );
             GenerateKingNormalMoves(
-                ref moves,
+                moves,
                 position,
                 position.GetPieceBitboard(position.SideToMove, PieceType.King)
             );
             GenerateKingCastling(
-                ref moves,
+                moves,
                 position
             );
         }
 
-        private void GeneratePawnMoves(ref StaticList256<Move> moves, Position position, ulong sourceSquares)
+        private void GeneratePawnMoves(List<Move> moves, Position position, ulong sourceSquares)
         {
             var color = position.SideToMove;
             ulong promotionSourceSquares = sourceSquares & PawnPromotionSourceTable[(int) color];
@@ -123,40 +123,40 @@ namespace Dragonfly.Engine.MoveGeneration
             }
         }
 
-        private void GenerateKnightMoves(ref StaticList256<Move> moves, Position position, ulong sourceSquares)
+        private void GenerateKnightMoves(List<Move> moves, Position position, ulong sourceSquares)
         {
             while (Bits.TryPopLsb(ref sourceSquares, out var sourceIx))
             {
                 var dstSquares = KnightMoveTable.GetMoves(sourceIx);
                 dstSquares &= ~position.GetOccupied(position.SideToMove);
 
-                GenerateMoves(ref moves, MoveType.Normal, PieceType.Knight, sourceIx, dstSquares, position.GetOccupied());
+                GenerateMoves(moves, MoveType.Normal, PieceType.Knight, sourceIx, dstSquares, position.GetOccupied());
             }
         }
 
-        private void GenerateBishopMoves(ref StaticList256<Move> moves, Position position, PieceType pieceType, ulong sourceSquares)
+        private void GenerateBishopMoves(List<Move> moves, Position position, PieceType pieceType, ulong sourceSquares)
         {
             while (Bits.TryPopLsb(ref sourceSquares, out var sourceIx))
             {
                 var dstSquares = BishopMoveTable.GetMoves(sourceIx, position.GetOccupied());
                 dstSquares &= ~position.GetOccupied(position.SideToMove);
 
-                GenerateMoves(ref moves, MoveType.Normal, pieceType, sourceIx, dstSquares, position.GetOccupied());
+                GenerateMoves(moves, MoveType.Normal, pieceType, sourceIx, dstSquares, position.GetOccupied());
             }
         }
 
-        private void GenerateRookMoves(ref StaticList256<Move> moves, Position position, PieceType pieceType, ulong sourceSquares)
+        private void GenerateRookMoves(List<Move> moves, Position position, PieceType pieceType, ulong sourceSquares)
         {
             while (Bits.TryPopLsb(ref sourceSquares, out var sourceIx))
             {
                 var dstSquares = RookMoveTable.GetMoves(sourceIx, position.GetOccupied());
                 dstSquares &= ~position.GetOccupied(position.SideToMove);
 
-                GenerateMoves(ref moves, MoveType.Normal, pieceType, sourceIx, dstSquares, position.GetOccupied());
+                GenerateMoves(moves, MoveType.Normal, pieceType, sourceIx, dstSquares, position.GetOccupied());
             }
         }
 
-        private void GenerateKingNormalMoves(ref StaticList256<Move> moves, Position position, ulong sourceSquares)
+        private void GenerateKingNormalMoves(List<Move> moves, Position position, ulong sourceSquares)
         {
             while (Bits.TryPopLsb(ref sourceSquares, out var sourceIx))
             {
@@ -164,11 +164,11 @@ namespace Dragonfly.Engine.MoveGeneration
                 // don't allow king to move on piece of same color
                 dstSquares &= ~position.GetOccupied(position.SideToMove);
 
-                GenerateMoves(ref moves, MoveType.Normal, PieceType.King, sourceIx, dstSquares, position.GetOccupied());
+                GenerateMoves(moves, MoveType.Normal, PieceType.King, sourceIx, dstSquares, position.GetOccupied());
             }
         }
 
-        private void GenerateKingCastling(ref StaticList256<Move> moves, Position position)
+        private void GenerateKingCastling(List<Move> moves, Position position)
         {
             var castlingDsts = position.CastlingRights & CastlingTables.GetCastlingRightsDstColorMask(position.SideToMove);
             while (Bits.TryPopLsb(ref castlingDsts, out var dstIx))
@@ -205,7 +205,7 @@ namespace Dragonfly.Engine.MoveGeneration
             return (quiets, captures);
         }
 
-        private void GenerateMoves(ref StaticList256<Move> moves, MoveType moveType, PieceType pieceType, int sourceIx, ulong dstSquares, ulong occupancy)
+        private void GenerateMoves(List<Move> moves, MoveType moveType, PieceType pieceType, int sourceIx, ulong dstSquares, ulong occupancy)
         {
             var (quiets, captures) = SeparateQuietsCaptures(dstSquares, occupancy);
 

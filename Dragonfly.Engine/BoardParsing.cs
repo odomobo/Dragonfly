@@ -207,8 +207,8 @@ namespace Dragonfly.Engine
             string coordinateString,
             out Move move)
         {
-            var moves = new StaticList256<Move>();
-            moveGenerator.Generate(ref moves, b);
+            var moves = new List<Move>();
+            moveGenerator.Generate(moves, b);
 
             foreach (var tmpMove in moves)
             {

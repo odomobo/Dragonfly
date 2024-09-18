@@ -39,8 +39,8 @@ namespace Dragonfly.Engine.Searching
             _qSearch.StartSearch(_timeStrategy, _pvTable, _statistics);
 
             Move bestMove = Move.Null;
-            var moveList = new StaticList256<Move>();
-            _moveGenerator.Generate(ref moveList, position);
+            var moveList = new List<Move>();
+            _moveGenerator.Generate(moveList, position);
 
             // TODO: instead of looping here, why don't we only loop in InnerSearch and get the best value from the PV table?
             // That would simplify things a lot.
@@ -126,9 +126,9 @@ namespace Dragonfly.Engine.Searching
                 return _qSearch.Search(position, alpha, beta, ply);
             }
 
-            var moveList = new StaticList256<Move>();
+            var moveList = new List<Move>();
 
-            _moveGenerator.Generate(ref moveList, position);
+            _moveGenerator.Generate(moveList, position);
 
             bool anyMoves = false;
             bool raisedAlpha = false;

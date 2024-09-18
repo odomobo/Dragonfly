@@ -56,8 +56,8 @@ namespace Dragonfly.Engine.Searching
             _qSearch.StartSearch(_timeStrategy, _pvTable, _statistics);
 
             Move bestMove = Move.Null;
-            var moveList = new StaticList256<Move>();
-            _moveGenerator.Generate(ref moveList, position);
+            var moveList = new List<Move>();
+            _moveGenerator.Generate(moveList, position);
 
             if (!_moveGenerator.OnlyLegalMoves)
             {
@@ -136,7 +136,7 @@ namespace Dragonfly.Engine.Searching
         }
 
         // all moves need to be legal
-        private void SortWithIid(Position position, ref StaticList256<Move> moves, int depth, Score alpha, Score beta, int ply)
+        private void SortWithIid(Position position, List<Move> moves, int depth, Score alpha, Score beta, int ply)
         {
             // SortWithIid is considered a root node; it's not a leaf of the parent caller, it's more of a helper
             _statistics.NormalNonLeafNodes++;
@@ -154,9 +154,9 @@ namespace Dragonfly.Engine.Searching
             //beta = Score.MaxValue;
 
             // TODO: use a Span<ScoredMove>, once the version of .net core we're using supports Span.Sort()
-            var scoredMoves = new StaticList256<ScoredMove>();
+            var scoredMoves = new List<ScoredMove>();
 
-            _moveOrderer.Sort(ref moves, position);
+            _moveOrderer.Sort(moves, position);
             foreach (var move in moves)
             {
                 var nextPosition = position.MakeMove(move);
@@ -206,9 +206,9 @@ namespace Dragonfly.Engine.Searching
                 return _qSearch.Search(position, alpha, beta, ply);
             }
 
-            var moveList = new StaticList256<Move>();
+            var moveList = new List<Move>();
 
-            _moveGenerator.Generate(ref moveList, position);
+            _moveGenerator.Generate(moveList, position);
 
             if (!_moveGenerator.OnlyLegalMoves)
             {
@@ -230,7 +230,7 @@ namespace Dragonfly.Engine.Searching
 
             // if depth is 1 or 2, then we'd literally just be searching twice
             if (depth > 1)
-                SortWithIid(position, ref moveList, depth, alpha, beta, ply);
+                SortWithIid(position, moveList, depth, alpha, beta, ply);
 
             bool raisedAlpha = false;
             int moveNumber = 0;

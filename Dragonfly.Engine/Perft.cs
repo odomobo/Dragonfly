@@ -84,9 +84,9 @@ namespace Dragonfly.Engine
                 return count;
             }
 
-            var moves = new StaticList256<Move>();
+            var moves = new List<Move>();
 
-            _moveGenerator.Generate(ref moves, b);
+            _moveGenerator.Generate(moves, b);
 
             foreach (var move in moves)
             {

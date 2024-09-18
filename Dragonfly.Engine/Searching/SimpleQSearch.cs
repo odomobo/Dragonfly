@@ -68,21 +68,21 @@ namespace Dragonfly.Engine.Searching
             if (depth > MaxDepth)
                 return standPatEval;
 
-            var moves = new StaticList256<Move>();
+            var moves = new List<Move>();
 
             bool moveGenIsStrictlyLegal;
             //IEnumerable<Move> moveEnumerator;
             if (position.InCheck())
             {
                 // if we're in check, we need to try all moves
-                _moveGenerator.Generate(ref moves, position);
+                _moveGenerator.Generate(moves, position);
                 moveGenIsStrictlyLegal = _moveGenerator.OnlyLegalMoves;
-                _checkEvasionsMoveOrderer.Sort(ref moves, position);
+                _checkEvasionsMoveOrderer.Sort(moves, position);
             }
             else
             {
                 // if not in check, then only look at captures and promotions
-                _moveGenerator.Generate(ref moves, position);
+                _moveGenerator.Generate(moves, position);
                 moveGenIsStrictlyLegal = _moveGenerator.OnlyLegalMoves;
 
                 // since we don't have a qsearch movegen, we need to remove the non-applicable moves
@@ -95,7 +95,7 @@ namespace Dragonfly.Engine.Searching
 
                 // TODO: we should use SEE to determine which moves to keep!
 
-                _quiescenceMoveOrderer.Sort(ref moves, position);
+                _quiescenceMoveOrderer.Sort(moves, position);
             }
 
             int moveNumber = 0;

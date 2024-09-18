@@ -9,6 +9,6 @@ namespace Dragonfly.Engine.Interfaces
     public interface IMoveGenerator
     {
         bool OnlyLegalMoves { get; }
-        void Generate(ref StaticList256<Move> moves, Position position);
+        void Generate(List<Move> moves, Position position);
     }
 }

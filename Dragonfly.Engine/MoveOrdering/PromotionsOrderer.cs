@@ -22,9 +22,9 @@ namespace Dragonfly.Engine.MoveOrdering
 
         private static readonly PromotionsComparer PromotionsComparerInstance = new PromotionsComparer();
 
-        public int PartitionAndSort(ref StaticList256<Move> moves, int start, int count, Position position)
+        public int PartitionAndSort(List<Move> moves, int start, int count, Position position)
         {
-            var newCount = moves.WithSpan(s => s.PartitionBy(start, count, move => move.MoveType.HasFlag(MoveType.Promotion)));
+            var newCount = moves.PartitionBy(start, count, move => move.MoveType.HasFlag(MoveType.Promotion));
 
             moves.Sort(start, newCount, PromotionsComparerInstance);
 

@@ -20,7 +20,7 @@ namespace Dragonfly.Engine.MoveOrdering
             _moveOrderers = moveOrderers.ToArray();
         }
 
-        public void Sort(ref StaticList256<Move> moves, Position position)
+        public void Sort(List<Move> moves, Position position)
         {
             int start = 0;
             int count = moves.Count;
@@ -33,7 +33,7 @@ namespace Dragonfly.Engine.MoveOrdering
 
             foreach (var moveOrderer in _moveOrderers)
             {
-                var pivot = moveOrderer.PartitionAndSort(ref moves, start, count, position);
+                var pivot = moveOrderer.PartitionAndSort(moves, start, count, position);
 
                 // TODO: remove; this was only useful when this acted as a generator
                 //for (; start < pivot; start++)

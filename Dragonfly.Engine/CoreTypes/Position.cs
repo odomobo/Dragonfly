@@ -10,11 +10,16 @@ namespace Dragonfly.Engine.CoreTypes
     {
         private InlineArray12<ulong> _pieceBitboards;
         private InlineArray64<Piece> _squares;
-        private ulong _occupiedWhite;
-        private ulong _occupiedBlack;
+        private InlineArray2<ulong> _occupiedByColor;
+        // TODO: remove
+        //private ulong _occupiedWhite;
+        //private ulong _occupiedBlack;
         private ulong _occupied;
-        private bool? _inCheckWhite;
-        private bool? _inCheckBlack;
+        private InlineArray2<bool?> _inCheckByColor;
+        // TODO: remove
+        //private bool? _inCheckWhite;
+        //private bool? _inCheckBlack;
+
         public Position? Parent { get; private set; }
 
         public Color SideToMove { get; private set; }
@@ -39,10 +44,10 @@ namespace Dragonfly.Engine.CoreTypes
 
             PopulatePieceBitboardsFromSquares(ref _pieceBitboards, pieceSquares);
 
-            _occupiedWhite = CalculateOccupied(Color.White);
-            _occupiedBlack = CalculateOccupied(Color.Black);
+            _occupiedByColor[(int)Color.White] = CalculateOccupied(Color.White);
+            _occupiedByColor[(int)Color.Black] = CalculateOccupied(Color.Black);
 
-            _occupied = _occupiedWhite | _occupiedBlack;
+            _occupied = _occupiedByColor[0] | _occupiedByColor[1];
 
             Parent = null;
 
@@ -106,8 +111,8 @@ namespace Dragonfly.Engine.CoreTypes
             parent.CopySquares(ref shell._squares);
             shell.ZobristHash = parent.ZobristHash;
             shell.Parent = parent;
-            shell._inCheckWhite = null;
-            shell._inCheckBlack = null;
+            shell._inCheckByColor[0] = null;
+            shell._inCheckByColor[1] = null;
             shell.SideToMove = parent.SideToMove.Other();
             shell.EnPassant = 0; // this gets set for double moves
             shell.FiftyMoveCounter = CalculateFiftyMoveCounter(parent, move);
@@ -142,9 +147,9 @@ namespace Dragonfly.Engine.CoreTypes
             }
 
             shell.CastlingRights = parent.CastlingRights & CastlingTables.GetCastlingUpdateMask(move);
-            shell._occupiedWhite = shell.CalculateOccupied(Color.White);
-            shell._occupiedBlack = shell.CalculateOccupied(Color.Black);
-            shell._occupied = shell._occupiedWhite | shell._occupiedBlack;
+            shell._occupiedByColor[(int)Color.White] = shell.CalculateOccupied(Color.White);
+            shell._occupiedByColor[(int)Color.Black] = shell.CalculateOccupied(Color.Black);
+            shell._occupied = shell._occupiedByColor[0] | shell._occupiedByColor[1];
             shell.ZobristHash ^= ZobristHashing.OtherHashDiff(parent, shell);
             shell.RepetitionNumber = CalculateRepetitionNumber(shell);
 
@@ -348,10 +353,7 @@ namespace Dragonfly.Engine.CoreTypes
 
         public ulong GetOccupied(Color c)
         {
-            if (c == Color.White)
-                return _occupiedWhite;
-            else
-                return _occupiedBlack;
+            return _occupiedByColor[(int)c];
         }
 
         public ulong GetOccupied()
@@ -361,10 +363,12 @@ namespace Dragonfly.Engine.CoreTypes
 
         public bool InCheck(Color side)
         {
-            if (side == Color.White)
-                return InCheckWhite();
-            else
-                return InCheckBlack();
+            if (!_inCheckByColor[(int)side].HasValue)
+            {
+                _inCheckByColor[(int)side] = IsAttacked(Bits.GetLsb(GetPieceBitboard(side, PieceType.King)), side);
+            }
+
+            return _inCheckByColor[(int)side].Value;
         }
 
         public bool InCheck()
@@ -389,26 +393,6 @@ namespace Dragonfly.Engine.CoreTypes
                 return false;
 
             return true;
-        }
-
-        private bool InCheckWhite()
-        {
-            if (!_inCheckWhite.HasValue)
-            {
-                _inCheckWhite = IsAttacked(Bits.GetLsb(GetPieceBitboard(Color.White, PieceType.King)), Color.White);
-            }
-
-            return _inCheckWhite.Value;
-        }
-
-        private bool InCheckBlack()
-        {
-            if (!_inCheckBlack.HasValue)
-            {
-                _inCheckBlack = IsAttacked(Bits.GetLsb(GetPieceBitboard(Color.Black, PieceType.King)), Color.Black);
-            }
-
-            return _inCheckBlack.Value;
         }
 
         public Piece GetPiece(int ix)
