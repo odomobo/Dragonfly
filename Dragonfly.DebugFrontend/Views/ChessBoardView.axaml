@@ -1,0 +1,61 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:Dragonfly.DebugFrontend.ViewModels"
+             xmlns:views="clr-namespace:Dragonfly.DebugFrontend.Views"
+             mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="400"
+             x:Class="Dragonfly.DebugFrontend.Views.ChessBoardView"
+             x:DataType="vm:ChessBoardViewModel">
+
+	<Design.DataContext>
+		<!-- This only sets the DataContext for the previewer in an IDE,
+         to set the actual DataContext for runtime, set the DataContext property in code (look at App.axaml.cs) -->
+		<vm:ChessBoardViewModel />
+	</Design.DataContext>
+	
+		<ItemsControl ItemsSource="{Binding SquaresCollection}">
+			<ItemsControl.ItemsPanel>
+				<ItemsPanelTemplate>
+					<UniformGrid Rows="8" Columns="8"/>
+					
+					<!--<Grid>
+						<Grid.RowDefinitions>
+							<RowDefinition Height="*"></RowDefinition>
+							<RowDefinition Height="*"></RowDefinition>
+							<RowDefinition Height="*"></RowDefinition>
+							<RowDefinition Height="*"></RowDefinition>
+							<RowDefinition Height="*"></RowDefinition>
+							<RowDefinition Height="*"></RowDefinition>
+							<RowDefinition Height="*"></RowDefinition>
+							<RowDefinition Height="*"></RowDefinition>
+						</Grid.RowDefinitions>
+
+						<Grid.ColumnDefinitions>
+							<ColumnDefinition Width="*"></ColumnDefinition>
+							<ColumnDefinition Width="*"></ColumnDefinition>
+							<ColumnDefinition Width="*"></ColumnDefinition>
+							<ColumnDefinition Width="*"></ColumnDefinition>
+							<ColumnDefinition Width="*"></ColumnDefinition>
+							<ColumnDefinition Width="*"></ColumnDefinition>
+							<ColumnDefinition Width="*"></ColumnDefinition>
+							<ColumnDefinition Width="*"></ColumnDefinition>
+						</Grid.ColumnDefinitions>
+					</Grid>-->
+				</ItemsPanelTemplate>
+			</ItemsControl.ItemsPanel>
+
+			<ItemsControl.Styles>
+				<Style x:DataType="vm:ChessBoardSquareViewModel" Selector="ItemsControl > ContentPresenter">
+					<Setter Property="Grid.Row" Value="{Binding Path=RowIx}" />
+					<Setter Property="Grid.Column" Value="{Binding Path=ColumnIx}" />
+				</Style>
+			</ItemsControl.Styles>
+
+			<ItemsControl.ItemTemplate>
+				<DataTemplate>
+					<views:ChessBoardSquareView />
+				</DataTemplate>
+			</ItemsControl.ItemTemplate>
+		</ItemsControl>
+</UserControl>

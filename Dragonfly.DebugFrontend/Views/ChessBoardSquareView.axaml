@@ -1,0 +1,22 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:Dragonfly.DebugFrontend.ViewModels"
+             xmlns:views="clr-namespace:Dragonfly.DebugFrontend.Views"
+             mc:Ignorable="d" d:DesignWidth="50" d:DesignHeight="50"
+             x:Class="Dragonfly.DebugFrontend.Views.ChessBoardSquareView"
+             x:DataType="vm:ChessBoardSquareViewModel"
+			 PointerPressed="OnPointerPressed"
+			 DragDrop.AllowDrop="True">
+
+	<Design.DataContext>
+		<!-- This only sets the DataContext for the previewer in an IDE,
+         to set the actual DataContext for runtime, set the DataContext property in code (look at App.axaml.cs) -->
+		<vm:ChessBoardSquareViewModel />
+	</Design.DataContext>
+	<Border Background="{Binding SquareColor}">
+	    <!--<TextBlock Text="{Binding PieceString}" FontSize="36" FontFamily="{StaticResource OpenSansEmojiFont}" Foreground="Black" HorizontalAlignment="Center" VerticalAlignment="Center"/>-->
+		<Image Width="50" Height="50" Source="{Binding PieceImage}" RenderOptions.BitmapInterpolationMode="HighQuality" />
+	</Border>
+</UserControl>

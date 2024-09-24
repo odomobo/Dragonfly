@@ -234,6 +234,42 @@ namespace Dragonfly.Engine
             return false;
         }
 
+        public static bool TryGetMoveFromSourceDestinationPromoteQueen(
+            IMoveGenerator moveGenerator,
+            Position b,
+            int sourceIx,
+            int destinationIx,
+            out Move move)
+        {
+            var moves = new List<Move>();
+            moveGenerator.Generate(moves, b);
+
+            foreach (var tmpMove in moves)
+            {
+                if (tmpMove.SourceIx != sourceIx || tmpMove.DstIx != destinationIx)
+                    continue;
+
+                if (tmpMove.MoveType.HasFlag(MoveType.Promotion) && tmpMove.PromotionPiece != PieceType.Queen)
+                    continue;
+
+                // if a pseudolegal move generator, then we need to make sure that the move we're attempting is even legal
+                if (!moveGenerator.OnlyLegalMoves)
+                {
+                    var testingBoard = b.MakeMove(tmpMove);
+
+                    // if we moved into check, clearly it was an invalid move
+                    if (testingBoard.MovedIntoCheck())
+                        continue;
+                }
+
+                move = tmpMove;
+                return true;
+            }
+
+            move = default; // in practice, this is fine, because callers should never use this if returning false
+            return false;
+        }
+
         public static char LetterFromPieceType(PieceType pieceType)
         {
             // will return uppercase, which is what we want

@@ -400,6 +400,11 @@ namespace Dragonfly.Engine.CoreTypes
             return _squares[ix];
         }
 
+        public Piece GetPieceFromFileRank(int file, int rank)
+        {
+            return GetPiece(IxFromFileRank(file, rank));
+        }
+
         public PieceType GetPieceType(int ix)
         {
             return GetPiece(ix).PieceType;

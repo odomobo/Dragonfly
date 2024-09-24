@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.30204.135
+# Visual Studio Version 17
+VisualStudioVersion = 17.8.34511.84
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MersenneTwister", "MersenneTwister\MersenneTwister.csproj", "{486B9D5A-1196-479B-9327-B3138BB6F4B1}"
 EndProject
@@ -12,6 +12,10 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Dragonfly.Engine.Benchmark", "Dragonfly.Engine.Benchmark\Dragonfly.Engine.Benchmark.csproj", "{F106DF2A-BE68-42B4-A3D1-ECF8D99DF4F8}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Dragonfly.Engine.Tests", "Dragonfly.Engine.Tests\Dragonfly.Engine.Tests.csproj", "{A37958E2-FF1B-4272-8E0D-513FEC326395}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Dragonfly.DebugFrontend", "Dragonfly.DebugFrontend\Dragonfly.DebugFrontend.csproj", "{A5921C0C-37C5-47A7-9C10-E6E46F0E84EA}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Dragonfly.DebugFrontend.Desktop", "Dragonfly.DebugFrontend.Desktop\Dragonfly.DebugFrontend.Desktop.csproj", "{2F2A5B25-0EF7-46B8-A7B6-CE75ED9BE480}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -61,6 +65,22 @@ Global
 		{A37958E2-FF1B-4272-8E0D-513FEC326395}.Release|Any CPU.Build.0 = Release|Any CPU
 		{A37958E2-FF1B-4272-8E0D-513FEC326395}.Release|x64.ActiveCfg = Release|x64
 		{A37958E2-FF1B-4272-8E0D-513FEC326395}.Release|x64.Build.0 = Release|x64
+		{A5921C0C-37C5-47A7-9C10-E6E46F0E84EA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A5921C0C-37C5-47A7-9C10-E6E46F0E84EA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A5921C0C-37C5-47A7-9C10-E6E46F0E84EA}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{A5921C0C-37C5-47A7-9C10-E6E46F0E84EA}.Debug|x64.Build.0 = Debug|Any CPU
+		{A5921C0C-37C5-47A7-9C10-E6E46F0E84EA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A5921C0C-37C5-47A7-9C10-E6E46F0E84EA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A5921C0C-37C5-47A7-9C10-E6E46F0E84EA}.Release|x64.ActiveCfg = Release|Any CPU
+		{A5921C0C-37C5-47A7-9C10-E6E46F0E84EA}.Release|x64.Build.0 = Release|Any CPU
+		{2F2A5B25-0EF7-46B8-A7B6-CE75ED9BE480}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2F2A5B25-0EF7-46B8-A7B6-CE75ED9BE480}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2F2A5B25-0EF7-46B8-A7B6-CE75ED9BE480}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{2F2A5B25-0EF7-46B8-A7B6-CE75ED9BE480}.Debug|x64.Build.0 = Debug|Any CPU
+		{2F2A5B25-0EF7-46B8-A7B6-CE75ED9BE480}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2F2A5B25-0EF7-46B8-A7B6-CE75ED9BE480}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2F2A5B25-0EF7-46B8-A7B6-CE75ED9BE480}.Release|x64.ActiveCfg = Release|Any CPU
+		{2F2A5B25-0EF7-46B8-A7B6-CE75ED9BE480}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
