@@ -10,7 +10,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Dragonfly.DebugFrontend.ViewModels
+namespace Dragonfly.ToolsGui.ViewModels
 {
     public class ChessBoardViewModel : ViewModelBase
     {
@@ -44,9 +44,7 @@ namespace Dragonfly.DebugFrontend.ViewModels
                 }
             }
 
-
             Position = BoardParsing.PositionFromFen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"); // initial fen
-            //PositionUpdated();
         }
 
         private void PositionUpdated()

@@ -4,12 +4,12 @@ using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Data.Core.Plugins;
 using Avalonia.Markup.Xaml;
 using Avalonia.Media.Imaging;
-using Dragonfly.DebugFrontend.ViewModels;
-using Dragonfly.DebugFrontend.Views;
+using Dragonfly.ToolsGui.ViewModels;
+using Dragonfly.ToolsGui.Views;
 using System.Diagnostics;
 using System.Threading;
 
-namespace Dragonfly.DebugFrontend;
+namespace Dragonfly.ToolsGui;
 
 public partial class App : Application
 {

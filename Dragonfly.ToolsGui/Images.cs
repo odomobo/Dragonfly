@@ -8,7 +8,7 @@ using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Dragonfly.DebugFrontend
+namespace Dragonfly.ToolsGui
 {
     internal class Images
     {
@@ -30,7 +30,7 @@ namespace Dragonfly.DebugFrontend
         public readonly Bitmap BQ;
         public readonly Bitmap BK;
 
-        private const string Path = "avares://Dragonfly.DebugFrontend/Assets/Pieces/";
+        private const string Path = "avares://Dragonfly.ToolsGui/Assets/Pieces/";
 
         private Images()
         {

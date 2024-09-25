@@ -1,7 +1,7 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using System.ComponentModel;
 
-namespace Dragonfly.DebugFrontend.ViewModels;
+namespace Dragonfly.ToolsGui.ViewModels;
 
 public class ViewModelBase : ObservableObject
 {

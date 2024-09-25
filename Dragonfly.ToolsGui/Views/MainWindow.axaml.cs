@@ -1,6 +1,6 @@
 ﻿using Avalonia.Controls;
 
-namespace Dragonfly.DebugFrontend.Views;
+namespace Dragonfly.ToolsGui.Views;
 
 public partial class MainWindow : Window
 {

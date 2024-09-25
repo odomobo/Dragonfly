@@ -2,10 +2,10 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:vm="clr-namespace:Dragonfly.DebugFrontend.ViewModels"
-             xmlns:views="clr-namespace:Dragonfly.DebugFrontend.Views"
+             xmlns:vm="clr-namespace:Dragonfly.ToolsGui.ViewModels"
+             xmlns:views="clr-namespace:Dragonfly.ToolsGui.Views"
              mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="400"
-             x:Class="Dragonfly.DebugFrontend.Views.ChessBoardView"
+             x:Class="Dragonfly.ToolsGui.Views.ChessBoardView"
              x:DataType="vm:ChessBoardViewModel">
 
 	<Design.DataContext>
@@ -18,30 +18,6 @@
 			<ItemsControl.ItemsPanel>
 				<ItemsPanelTemplate>
 					<UniformGrid Rows="8" Columns="8"/>
-					
-					<!--<Grid>
-						<Grid.RowDefinitions>
-							<RowDefinition Height="*"></RowDefinition>
-							<RowDefinition Height="*"></RowDefinition>
-							<RowDefinition Height="*"></RowDefinition>
-							<RowDefinition Height="*"></RowDefinition>
-							<RowDefinition Height="*"></RowDefinition>
-							<RowDefinition Height="*"></RowDefinition>
-							<RowDefinition Height="*"></RowDefinition>
-							<RowDefinition Height="*"></RowDefinition>
-						</Grid.RowDefinitions>
-
-						<Grid.ColumnDefinitions>
-							<ColumnDefinition Width="*"></ColumnDefinition>
-							<ColumnDefinition Width="*"></ColumnDefinition>
-							<ColumnDefinition Width="*"></ColumnDefinition>
-							<ColumnDefinition Width="*"></ColumnDefinition>
-							<ColumnDefinition Width="*"></ColumnDefinition>
-							<ColumnDefinition Width="*"></ColumnDefinition>
-							<ColumnDefinition Width="*"></ColumnDefinition>
-							<ColumnDefinition Width="*"></ColumnDefinition>
-						</Grid.ColumnDefinitions>
-					</Grid>-->
 				</ItemsPanelTemplate>
 			</ItemsControl.ItemsPanel>
 

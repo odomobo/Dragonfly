@@ -7,7 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Dragonfly.DebugFrontend.ViewModels
+namespace Dragonfly.ToolsGui.ViewModels
 {
     public class ChessBoardSquareViewModel : ViewModelBase
     {

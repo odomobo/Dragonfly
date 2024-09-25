@@ -2,26 +2,26 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:vm="clr-namespace:Dragonfly.DebugFrontend.ViewModels"
-			 xmlns:views="clr-namespace:Dragonfly.DebugFrontend.Views"
+			 xmlns:vm="clr-namespace:Dragonfly.ToolsGui.ViewModels"
+			 xmlns:views="clr-namespace:Dragonfly.ToolsGui.Views"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
-             x:Class="Dragonfly.DebugFrontend.Views.MainView"
-             x:DataType="vm:MainViewModel">
-  <Design.DataContext>
-    <!-- This only sets the DataContext for the previewer in an IDE,
+             x:Class="Dragonfly.ToolsGui.Views.TestingView"
+             x:DataType="vm:TestingViewModel">
+	<Design.DataContext>
+		<!-- This only sets the DataContext for the previewer in an IDE,
          to set the actual DataContext for runtime, set the DataContext property in code (look at App.axaml.cs) -->
-    <vm:MainViewModel />
-  </Design.DataContext>
-
-    <WrapPanel>
+		<vm:TestingViewModel />
+	</Design.DataContext>
+	
+	<WrapPanel>
 		<!--
-		<TextBlock Text="{Binding Greeting}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-		-->
+			<TextBlock Text="{Binding Greeting}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+			-->
 		<views:ChessBoardView DataContext="{Binding ChessBoardViewModel}" Width="400" Height="400" />
-        <Button Command="{Binding ClickHello}">Hello</Button>
+		<Button Command="{Binding ClickHello}">Hello</Button>
 		<TextBlock Text="{Binding ClickedCount}" />
 		<TextBox Text="{Binding Log}" Width="200" />
 		<Rectangle Width="100" Height="100" Fill="Red" PointerPressed="OnPointerPressed" />
 		<Rectangle Width="100" Height="100" Fill="Blue" DragDrop.AllowDrop="True" Name="DropDestinationRect" />
-    </WrapPanel>
+	</WrapPanel>
 </UserControl>

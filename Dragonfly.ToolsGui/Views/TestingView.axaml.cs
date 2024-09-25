@@ -1,12 +1,12 @@
-﻿using Avalonia.Controls;
+using Avalonia.Controls;
 using Avalonia.Input;
-using Dragonfly.DebugFrontend.ViewModels;
+using Dragonfly.ToolsGui.ViewModels;
 
-namespace Dragonfly.DebugFrontend.Views;
+namespace Dragonfly.ToolsGui.Views;
 
-public partial class MainView : UserControl
+public partial class TestingView : UserControl
 {
-    public MainView()
+    public TestingView()
     {
         InitializeComponent();
 
@@ -24,7 +24,7 @@ public partial class MainView : UserControl
 
     private void DropEventHandler(object? sender, DragEventArgs e)
     {
-        var vm = (MainViewModel)this.DataContext;
+        var vm = (TestingViewModel)this.DataContext;
         vm.Drop(sender, e);
     }
 }

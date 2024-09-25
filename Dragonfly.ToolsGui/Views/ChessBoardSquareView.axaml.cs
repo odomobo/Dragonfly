@@ -1,9 +1,9 @@
 using Avalonia.Controls;
 using Avalonia.Input;
-using Dragonfly.DebugFrontend.ViewModels;
+using Dragonfly.ToolsGui.ViewModels;
 using Dragonfly.Engine.CoreTypes;
 
-namespace Dragonfly.DebugFrontend.Views;
+namespace Dragonfly.ToolsGui.Views;
 
 public partial class ChessBoardSquareView : UserControl
 {

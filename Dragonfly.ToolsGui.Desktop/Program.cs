@@ -2,7 +2,7 @@
 
 using Avalonia;
 
-namespace Dragonfly.DebugFrontend.Desktop;
+namespace Dragonfly.ToolsGui.Desktop;
 
 class Program
 {
