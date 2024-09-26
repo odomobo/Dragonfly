@@ -27,8 +27,8 @@ namespace Dragonfly
         static void Main(string[] args)
         {
             // TODO: refactor test code out of here and into its own binary? maybe
-            //Uci();
-            Bench();
+            Uci();
+            //Bench();
             //GetPerftPositions.DumpEvalsForEachPosition();
             //PerformanceTesting(OpeningFen, 5, TimeSpan.FromSeconds(10));
             //IncrementalPerft(KiwipeteFen, 7);

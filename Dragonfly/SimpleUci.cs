@@ -74,8 +74,8 @@ namespace Dragonfly
         private void HandleUci()
         {
             // Note: this should ideally match what is in the project properties
-            _output.WriteLine("id name Dragonfly 0.1.0.0");
-            _output.WriteLine("id author odomobo");
+            _output.WriteLine($"id name {VersionInfo.EngineName} {VersionInfo.VersionWithCodename}");
+            _output.WriteLine($"id author {VersionInfo.Author}");
 
             // TODO: options
 

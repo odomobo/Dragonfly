@@ -1,0 +1,12 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+			 xmlns:dialogHost="clr-namespace:DialogHostAvalonia;assembly=DialogHost.Avalonia"
+             mc:Ignorable="d" d:DesignWidth="100" d:DesignHeight="100"
+             x:Class="Dragonfly.ToolsGui.Views.Dialogs.OkMessageBoxView">
+	<StackPanel Orientation="Vertical" >
+		<TextBlock HorizontalAlignment="Center" Margin="10" Name="Message" Text=""/>
+		<Button HorizontalAlignment="Center" Margin="10" Command="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=dialogHost:DialogHost}, Path=CloseDialogCommand}">Ok</Button>
+	</StackPanel>
+</UserControl>

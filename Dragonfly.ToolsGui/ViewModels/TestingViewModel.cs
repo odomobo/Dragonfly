@@ -28,17 +28,6 @@ namespace Dragonfly.ToolsGui.ViewModels
 
         public RelayCommand ClickHello { get; }
 
-        //public RelayCommand ClickHello { 
-        //    get 
-        //    {
-        //        if (_clickHello == null)
-        //        {
-        //            _clickHello = new RelayCommand(Click);
-        //        }
-        //        return _clickHello;
-        //    }
-        //}
-
         public void Drop(object? sender, DragEventArgs e)
         {
             if (!e.Data.Contains("ChessMoveSourceSquare"))
@@ -51,7 +40,6 @@ namespace Dragonfly.ToolsGui.ViewModels
             Log += chessMoveSourceSquare + "\n";
         }
 
-        //private RelayCommand _clickHello = null;
         private void Click()
         {
             ClickedCount++;

@@ -4,6 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="clr-namespace:Dragonfly.ToolsGui.ViewModels"
 			 xmlns:views="clr-namespace:Dragonfly.ToolsGui.Views"
+			 xmlns:dialogHost="clr-namespace:DialogHostAvalonia;assembly=DialogHost.Avalonia"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="Dragonfly.ToolsGui.Views.MainView"
              x:DataType="vm:MainViewModel">
@@ -13,25 +14,31 @@
     <vm:MainViewModel />
   </Design.DataContext>
 
-	<DockPanel>
-		<Menu DockPanel.Dock="Top">
-			<MenuItem Header="_File">
-				<MenuItem Header="_Open..."/>
-				<Separator/>
-				<MenuItem Header="_Exit"/>
-			</MenuItem>
-			<MenuItem Header="_Edit">
-				<MenuItem Header="Copy"/>
-				<MenuItem Header="Paste"/>
-			</MenuItem>
-			<MenuItem Header="_Testing" Command="{Binding TestingMenuItem}"/>
-		</Menu>
+	<dialogHost:DialogHost CloseOnClickAway="False">
 	
-		<WrapPanel>
-			<!--
-			<TextBlock Text="{Binding Greeting}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-			-->
-			<views:ChessBoardView DataContext="{Binding ChessBoardViewModel}" Width="400" Height="400" />
-		</WrapPanel>
-	</DockPanel>
+		<DockPanel>
+			<Menu DockPanel.Dock="Top">
+				<MenuItem Header="_File">
+					<MenuItem Header="_Open..." Click="OpenMenuItem_Clicked" />
+					<Separator/>
+					<MenuItem Header="_Exit"/>
+				</MenuItem>
+				<MenuItem Header="_Edit">
+					<MenuItem Header="Copy"/>
+					<MenuItem Header="Paste"/>
+				</MenuItem>
+				<MenuItem Header="_Testing" Command="{Binding TestingMenuItemCommand}"/>
+			</Menu>
+
+			<!-- put the content over which the dialog is shown here (e.g. your main window grid)-->
+			<WrapPanel>
+				<!--
+				<TextBlock Text="{Binding Greeting}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+				-->
+				<views:ChessBoardView DataContext="{Binding ChessBoardViewModel}" Width="400" Height="400" />
+
+			</WrapPanel>
+
+		</DockPanel>
+	</dialogHost:DialogHost>
 </UserControl>
