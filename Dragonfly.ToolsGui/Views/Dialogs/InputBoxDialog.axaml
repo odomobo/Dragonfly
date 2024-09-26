@@ -2,14 +2,14 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-			 xmlns:dialogHost="clr-namespace:DialogHostAvalonia;assembly=DialogHost.Avalonia"
-             mc:Ignorable="d" d:DesignWidth="100" d:DesignHeight="100"
-             x:Class="Dragonfly.ToolsGui.Views.Dialogs.YesNoMessageBoxView">
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="Dragonfly.ToolsGui.Views.Dialogs.InputBoxDialog">
 	<StackPanel Orientation="Vertical">
 		<TextBlock HorizontalAlignment="Center" Margin="10" Name="Message" Text=""/>
+		<TextBox Margin="10" Name="Input"/>
 		<StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-			<Button Margin="10" Click="Yes_Clicked"><TextBlock Name="Yes" Text="Yes"/></Button>
-			<Button Margin="10" Click="No_Clicked"><TextBlock Name="No" Text="No"/></Button>
+			<Button Margin="10" Click="Ok_Clicked"><TextBlock Name="Ok" Text="Ok"/></Button>
+			<Button Margin="10" Click="Cancel_Clicked"><TextBlock Name="Cancel" Text="Cancel"/></Button>
 		</StackPanel>
 	</StackPanel>
 </UserControl>

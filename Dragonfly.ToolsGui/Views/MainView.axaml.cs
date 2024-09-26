@@ -29,15 +29,24 @@ public partial class MainView : UserControl
 
         if (files.Count >= 1)
         {
-            var messageBox = new YesNoMessageBoxView($"Selected a file: {files[0].Name}");
-            var result = await DialogHost.Show(messageBox);
+            var messageBox = new MessageBoxDialog($"Selected a file: {files[0].Name}", true);
+            var result1 = (bool) await DialogHost.Show(messageBox);
 
-            var otherMessageBox = new OkMessageBoxView($"Received result from dialog: {result}");
-            result = await DialogHost.Show(otherMessageBox);
+            if (result1 == true)
+            {
+                var inputBox = new InputBoxDialog($"You liked that? Enter your favorite food:");
+                var result2 = (string?) await DialogHost.Show(inputBox);
+
+                if (result2 != null)
+                {
+                    messageBox = new MessageBoxDialog($"Your favorite food is {result2}? I mean, I guess...");
+                    await DialogHost.Show(messageBox);
+                }
+            }
         }
         else
         {
-            var messageBox = new OkMessageBoxView("No file was selected.");
+            var messageBox = new MessageBoxDialog("No file was selected.");
             var result = await DialogHost.Show(messageBox);
         }
     }

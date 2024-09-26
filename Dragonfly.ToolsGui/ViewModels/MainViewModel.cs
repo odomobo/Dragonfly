@@ -25,32 +25,8 @@ public partial class MainViewModel : ViewModelBase
         Title = $"Dragonfly Tools GUI - {VersionInfo.VersionWithCodename}";
 
         ChessBoardViewModel = new ChessBoardViewModel();
-        //OpenMenuItemCommand = new AsyncRelayCommand(OpenMenuItemFn);
         TestingMenuItemCommand = new RelayCommand(TestingMenuItemFn);
     }
-
-    //public AsyncRelayCommand OpenMenuItemCommand { get; set; }
-    //private async Task OpenMenuItemFn()
-    //{
-    //    // Get top level from the current control. Alternatively, you can use Window reference instead.
-    //    var topLevel = TopLevel.GetTopLevel(_control);
-
-    //    // Start async operation to open the dialog.
-    //    var files = await topLevel.StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
-    //    {
-    //        Title = "Open Text File",
-    //        AllowMultiple = false
-    //    });
-
-    //    if (files.Count >= 1)
-    //    {
-    //        // do something
-    //    }
-    //    else
-    //    {
-    //        // do something else
-    //    }
-    //}
 
     public RelayCommand TestingMenuItemCommand { get; set; }
     private void TestingMenuItemFn()

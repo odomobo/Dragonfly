@@ -32,8 +32,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Update="Views\Dialogs\OkMessageBoxView.axaml.cs">
-      <DependentUpon>OkMessageBoxView.axaml</DependentUpon>
+    <Compile Update="Views\Dialogs\InputBoxDialog.axaml.cs">
+      <DependentUpon>InputBoxDialog.axaml</DependentUpon>
+    </Compile>
+    <Compile Update="Views\Dialogs\MessageBoxDialog.axaml.cs">
+      <DependentUpon>MessageBoxDialog.axaml</DependentUpon>
     </Compile>
   </ItemGroup>
 </Project>

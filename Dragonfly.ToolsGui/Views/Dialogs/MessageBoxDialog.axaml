@@ -4,9 +4,12 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 			 xmlns:dialogHost="clr-namespace:DialogHostAvalonia;assembly=DialogHost.Avalonia"
              mc:Ignorable="d" d:DesignWidth="100" d:DesignHeight="100"
-             x:Class="Dragonfly.ToolsGui.Views.Dialogs.OkMessageBoxView">
-	<StackPanel Orientation="Vertical" >
+             x:Class="Dragonfly.ToolsGui.Views.Dialogs.MessageBoxDialog">
+	<StackPanel Orientation="Vertical">
 		<TextBlock HorizontalAlignment="Center" Margin="10" Name="Message" Text=""/>
-		<Button HorizontalAlignment="Center" Margin="10" Command="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=dialogHost:DialogHost}, Path=CloseDialogCommand}">Ok</Button>
+		<StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+			<Button Margin="10" Click="Ok_Clicked" Name="OkButton"><TextBlock Name="Ok" Text="Ok"/></Button>
+			<Button Margin="10" Click="Cancel_Clicked" Name="CancelButton"><TextBlock Name="Cancel" Text="Cancel"/></Button>
+		</StackPanel>
 	</StackPanel>
 </UserControl>
