@@ -8,10 +8,12 @@
 
   <ItemGroup>
     <None Remove="perfts.epd" />
+    <None Remove="testPgns.pgn" />
   </ItemGroup>
 
   <ItemGroup>
     <EmbeddedResource Include="perfts.epd" />
+    <EmbeddedResource Include="testPgns.pgn" />
   </ItemGroup>
 
   <ItemGroup>

@@ -381,6 +381,12 @@ namespace Dragonfly.Engine.CoreTypes
             return InCheck(SideToMove.Other());
         }
 
+        public bool WillMoveIntoCheck(Move move)
+        {
+            var testingBoard = MakeMove(move);
+            return testingBoard.MovedIntoCheck();
+        }
+
         public bool IsValid()
         {
             if (Bits.PopCount(GetPieceBitboard(Color.White, PieceType.King)) != 1)
@@ -465,6 +471,18 @@ namespace Dragonfly.Engine.CoreTypes
             var rank = ix / 8;
             var file = ix % 8;
             return (file, rank);
+        }
+
+        public static int FileFromIx(int ix)
+        {
+            var (file, rank) = FileRankFromIx(ix);
+            return file;
+        }
+
+        public static int RankFromIx(int ix)
+        {
+            var (file, rank) = FileRankFromIx(ix);
+            return rank;
         }
 
         public static bool FileRankOnBoard(int file, int rank)

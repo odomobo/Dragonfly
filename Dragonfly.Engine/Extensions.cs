@@ -1,5 +1,8 @@
-﻿using System;
+﻿using Dragonfly.Engine.CoreTypes;
+using Dragonfly.Engine.Interfaces;
+using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 
 namespace Dragonfly.Engine
@@ -89,6 +92,28 @@ namespace Dragonfly.Engine
 
             // "first" is sitting on the first false
             return first - start;
+        }
+
+        public static IEnumerable<Move> FilterBy(this IEnumerable<Move> moves, Position position, int? srcFile, int? srcRank, PieceType pieceType, int dstIx, PieceType promotionPiece)
+        {
+            return moves
+                .Where(m => m.DstIx == dstIx)
+                .Where(m => position.GetPieceType(m.SourceIx) == pieceType)
+                .Where(m => srcFile == null || srcFile.Value == Position.FileFromIx(m.SourceIx))
+                .Where(m => srcRank == null || srcRank.Value == Position.RankFromIx(m.SourceIx))
+                .Where(m => promotionPiece == m.PromotionPiece);
+        }
+
+        public static void GenerateOnlyLegalMoves(this IMoveGenerator moveGenerator, List<Move> moves, Position position)
+        {
+            moveGenerator.Generate(moves, position);
+            if (!moveGenerator.OnlyLegalMoves)
+            {
+                // the ToList() is necessary, because we clear moves in the next step, possibly before the where generator can be evaluated
+                var filteredMoves = moves.Where(m => !position.WillMoveIntoCheck(m)).ToList();
+                moves.Clear();
+                moves.AddRange(filteredMoves);
+            }
         }
     }
 }
