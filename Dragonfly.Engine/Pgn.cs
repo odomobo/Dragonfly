@@ -2,6 +2,7 @@
 using Dragonfly.Engine.Interfaces;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -116,6 +117,94 @@ namespace Dragonfly.Engine
             }
 
             return ret;
+        }
+
+        public static IEnumerable<Pgn> ParsePgnFile(IMoveGenerator moveGenerator, string filename)
+        {
+            using var reader = new StreamReader(filename);
+            return ParsePgnStream(moveGenerator, reader);
+        }
+
+        public static IEnumerable<Pgn> ParsePgnStream(IMoveGenerator moveGenerator, StreamReader reader)
+        {
+            foreach (var pgnString in SplitPgnStreamIntoPgns(reader))
+            {
+                yield return ParsePgn(moveGenerator, pgnString);
+            }
+        }
+
+        private enum PgnParserState
+        {
+            HeaderReady,
+            HeaderProcessing,
+            MovesReady,
+            MovesProcessing,
+        }
+        public static IEnumerable<string> SplitPgnStreamIntoPgns(StreamReader reader)
+        {
+            var sb = new StringBuilder();
+            var state = PgnParserState.HeaderReady;
+            
+            while (true)
+            {
+                var line = reader.ReadLine();
+                if (line == null)
+                    break;
+
+                // first, handle state transitions
+                if (string.IsNullOrWhiteSpace(line))
+                {
+                    switch (state)
+                    {
+                        // header ready stays in state
+                        case PgnParserState.HeaderReady:
+                            break;
+                        // header processing transitions to next state
+                        case PgnParserState.HeaderProcessing:
+                            state = PgnParserState.MovesReady;
+                            break;
+                        // moves ready stays in state
+                        case PgnParserState.MovesReady:
+                            break;
+                        // moves processing transitions to next state, including flushing pgn
+                        case PgnParserState.MovesProcessing:
+                            yield return sb.ToString();
+                            sb.Clear();
+                            state = PgnParserState.HeaderReady;
+                            break;
+                    }
+                }
+                else if (state is PgnParserState.HeaderReady or PgnParserState.HeaderProcessing)
+                {
+                    state = PgnParserState.HeaderProcessing;
+                    sb.AppendLine(line);
+                }
+                else if (state is PgnParserState.MovesReady or PgnParserState.MovesProcessing)
+                {
+                    bool isFirstLine = state == PgnParserState.MovesReady;
+                    state = PgnParserState.MovesProcessing;
+
+                    if (isFirstLine)
+                    {
+                        sb.AppendLine();
+                    }
+
+                    sb.AppendLine(line);
+                }
+                else
+                {
+                    throw new Exception("Should not be able to reach here");
+                }
+            }
+
+            // flush
+            if (state == PgnParserState.MovesProcessing)
+            {
+                yield return sb.ToString();
+                // not really necessary
+                sb.Clear();
+                state = PgnParserState.HeaderReady;
+            }
         }
     }
 }

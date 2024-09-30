@@ -14,7 +14,7 @@
     <vm:MainViewModel />
   </Design.DataContext>
 
-	<dialogHost:DialogHost CloseOnClickAway="False">
+	<dialogHost:DialogHost CloseOnClickAway="False" Name="DH">
 	
 		<DockPanel>
 			<Menu DockPanel.Dock="Top">
@@ -23,11 +23,10 @@
 					<Separator/>
 					<MenuItem Header="_Exit"/>
 				</MenuItem>
-				<MenuItem Header="_Edit">
-					<MenuItem Header="Copy"/>
-					<MenuItem Header="Paste"/>
+				<MenuItem Header="_Tools">
+					<MenuItem Header="PgnToFen" Click="PgnToFen_Clicked" />
 				</MenuItem>
-				<MenuItem Header="_Testing" Command="{Binding TestingMenuItemCommand}"/>
+				<MenuItem Header="T_esting" Command="{Binding TestingMenuItemCommand}"/>
 			</Menu>
 
 			<!-- put the content over which the dialog is shown here (e.g. your main window grid)-->

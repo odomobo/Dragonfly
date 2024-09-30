@@ -19,82 +19,24 @@ namespace Dragonfly.Engine.Tests
             }
         }
 
-
-        private enum PgnParserState
-        {
-            HeaderReady,
-            HeaderProcessing,
-            MovesReady,
-            MovesProcessing,
-        }
         public static IEnumerable<string> GetPgnsEnumerator()
         {
-            var sb = new StringBuilder();
-            var state = PgnParserState.HeaderReady;
-            foreach (var line in GetResourceEnumerator("Dragonfly.Engine.Tests.testPgns.pgn"))
-            {
-                // first, handle state transitions
-                if (string.IsNullOrWhiteSpace(line)) 
-                {
-                    switch (state)
-                    {
-                        // header ready stays in state
-                        case PgnParserState.HeaderReady:
-                            break;
-                        // header processing transitions to next state
-                        case PgnParserState.HeaderProcessing:
-                            state = PgnParserState.MovesReady;
-                            break;
-                        // moves ready stays in state
-                        case PgnParserState.MovesReady:
-                            break;
-                        // moves processing transitions to next state, including flushing pgn
-                        case PgnParserState.MovesProcessing:
-                            yield return sb.ToString();
-                            sb.Clear();
-                            state = PgnParserState.HeaderReady;
-                            break;
-                    }
-                }
-                else if (state is PgnParserState.HeaderReady or PgnParserState.HeaderProcessing) 
-                {
-                    state = PgnParserState.HeaderProcessing;
-                    sb.AppendLine(line);
-                }
-                else if (state is PgnParserState.MovesReady or PgnParserState.MovesProcessing)
-                {
-                    bool isFirstLine = state == PgnParserState.MovesReady;
-                    state = PgnParserState.MovesProcessing;
-                    
-                    if (isFirstLine)
-                    {
-                        sb.AppendLine();
-                    }
+            var assembly = Assembly.GetExecutingAssembly();
 
-                    sb.AppendLine(line);
-                }
-                else
-                {
-                    throw new Exception("Should not be able to reach here");
-                }
-            }
-
-            // flush
-            if (state == PgnParserState.MovesProcessing)
+            using Stream stream = assembly.GetManifestResourceStream("Dragonfly.Engine.Tests.testPgns.pgn");
+            using StreamReader reader = new StreamReader(stream);
+            // this is silly, but let's do it. Basically, this lets the stream and streamreader stay open until we've read all the PGNs
+            foreach (var pgn in Pgn.SplitPgnStreamIntoPgns(reader))
             {
-                yield return sb.ToString();
-                // not really necessary
-                sb.Clear();
-                state = PgnParserState.HeaderReady;
+                yield return pgn;
             }
         }
-
         private static IEnumerable<string> GetResourceEnumerator(string resourceName)
         {
             var assembly = Assembly.GetExecutingAssembly();
 
             using (Stream stream = assembly.GetManifestResourceStream(resourceName))
-            using (StreamReader reader = new StreamReader(stream!))
+            using (StreamReader reader = new StreamReader(stream))
             {
                 while (true)
                 {

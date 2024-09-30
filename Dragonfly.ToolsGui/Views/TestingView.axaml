@@ -4,6 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 			 xmlns:vm="clr-namespace:Dragonfly.ToolsGui.ViewModels"
 			 xmlns:views="clr-namespace:Dragonfly.ToolsGui.Views"
+			 xmlns:dialogHost="clr-namespace:DialogHostAvalonia;assembly=DialogHost.Avalonia"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="Dragonfly.ToolsGui.Views.TestingView"
              x:DataType="vm:TestingViewModel">
@@ -12,16 +13,18 @@
          to set the actual DataContext for runtime, set the DataContext property in code (look at App.axaml.cs) -->
 		<vm:TestingViewModel />
 	</Design.DataContext>
-	
-	<WrapPanel>
-		<!--
-			<TextBlock Text="{Binding Greeting}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-			-->
-		<views:ChessBoardView DataContext="{Binding ChessBoardViewModel}" Width="400" Height="400" />
-		<Button Command="{Binding ClickHello}">Hello</Button>
-		<TextBlock Text="{Binding ClickedCount}" />
-		<TextBox Text="{Binding Log}" Width="200" />
-		<Rectangle Width="100" Height="100" Fill="Red" PointerPressed="OnPointerPressed" />
-		<Rectangle Width="100" Height="100" Fill="Blue" DragDrop.AllowDrop="True" Name="DropDestinationRect" />
-	</WrapPanel>
+
+	<dialogHost:DialogHost CloseOnClickAway="False" Name="DH">
+		<WrapPanel>
+			<!--
+				<TextBlock Text="{Binding Greeting}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+				-->
+			<views:ChessBoardView DataContext="{Binding ChessBoardViewModel}" Width="400" Height="400" />
+			<Button Command="{Binding ClickHello}">Hello</Button>
+			<TextBlock Text="{Binding ClickedCount}" />
+			<TextBox Text="{Binding Log}" Width="200" />
+			<Rectangle Width="100" Height="100" Fill="Red" PointerPressed="OnPointerPressed" />
+			<Rectangle Width="100" Height="100" Fill="Blue" DragDrop.AllowDrop="True" Name="DropDestinationRect" />
+		</WrapPanel>
+	</dialogHost:DialogHost>
 </UserControl>
