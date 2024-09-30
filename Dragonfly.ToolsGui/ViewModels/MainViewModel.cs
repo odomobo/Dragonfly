@@ -25,14 +25,5 @@ public partial class MainViewModel : ViewModelBase
         Title = $"Dragonfly Tools GUI - {VersionInfo.VersionWithCodename}";
 
         ChessBoardViewModel = new ChessBoardViewModel();
-        TestingMenuItemCommand = new RelayCommand(TestingMenuItemFn);
-    }
-
-    public RelayCommand TestingMenuItemCommand { get; set; }
-    private void TestingMenuItemFn()
-    {
-        var window = new TestingWindow();
-        window.DataContext = new TestingViewModel();
-        window.Show();
     }
 }

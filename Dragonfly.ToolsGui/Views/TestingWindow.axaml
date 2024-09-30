@@ -1,10 +1,40 @@
 <Window xmlns="https://github.com/avaloniaui"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-		xmlns:views="clr-namespace:Dragonfly.ToolsGui.Views"
-        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
-        x:Class="Dragonfly.ToolsGui.Views.TestingWindow"
-        Title="TestingWindow">
-	<views:TestingView />
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+			 xmlns:vm="clr-namespace:Dragonfly.ToolsGui.ViewModels"
+			 xmlns:views="clr-namespace:Dragonfly.ToolsGui.Views"
+			 xmlns:dialogHost="clr-namespace:DialogHostAvalonia;assembly=DialogHost.Avalonia"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="Dragonfly.ToolsGui.Views.TestingWindow"
+             x:DataType="vm:TestingViewModel"
+			 Title="TestingWindow">
+	<Design.DataContext>
+		<!-- This only sets the DataContext for the previewer in an IDE,
+         to set the actual DataContext for runtime, set the DataContext property in code (look at App.axaml.cs) -->
+		<vm:TestingViewModel />
+	</Design.DataContext>
+
+	<dialogHost:DialogHost CloseOnClickAway="False" Name="DH">
+		<DockPanel>
+			<Menu DockPanel.Dock="Top">
+				<MenuItem Header="_File">
+					<MenuItem Header="_Open..." Click="Open_Clicked" />
+					<Separator/>
+					<MenuItem Header="_Exit"/>
+				</MenuItem>
+			</Menu>
+			<WrapPanel>
+				<!--
+					<TextBlock Text="{Binding Greeting}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+					-->
+				<views:ChessBoardView DataContext="{Binding ChessBoardViewModel}" Width="400" Height="400" />
+				<Button Command="{Binding ClickHello}">Hello</Button>
+				<TextBlock Text="{Binding ClickedCount}" />
+				<TextBox Text="{Binding Log}" Width="200" />
+				<Rectangle Width="100" Height="100" Fill="Red" PointerPressed="OnPointerPressed" />
+				<Rectangle Width="100" Height="100" Fill="Blue" DragDrop.AllowDrop="True" Name="DropDestinationRect" />
+			</WrapPanel>
+		</DockPanel>
+	</dialogHost:DialogHost>
 </Window>

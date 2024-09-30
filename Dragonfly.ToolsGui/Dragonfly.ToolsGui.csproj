@@ -40,6 +40,9 @@
     <Compile Update="Views\Dialogs\MessageBoxDialog.axaml.cs">
       <DependentUpon>MessageBoxDialog.axaml</DependentUpon>
     </Compile>
+    <Compile Update="Views\TestingWindow.axaml.cs">
+      <DependentUpon>TestingWindow.axaml</DependentUpon>
+    </Compile>
     <Compile Update="Views\Utilities\PgnToFenSettings.Designer.cs">
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
       <AutoGen>True</AutoGen>

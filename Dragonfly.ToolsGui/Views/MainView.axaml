@@ -19,14 +19,14 @@
 		<DockPanel>
 			<Menu DockPanel.Dock="Top">
 				<MenuItem Header="_File">
-					<MenuItem Header="_Open..." Click="OpenMenuItem_Clicked" />
+					<MenuItem Header="_Open..." />
 					<Separator/>
 					<MenuItem Header="_Exit"/>
 				</MenuItem>
 				<MenuItem Header="_Tools">
 					<MenuItem Header="PgnToFen" Click="PgnToFen_Clicked" />
 				</MenuItem>
-				<MenuItem Header="T_esting" Command="{Binding TestingMenuItemCommand}"/>
+				<MenuItem Header="T_esting" Click="Testing_Clicked"/>
 			</Menu>
 
 			<!-- put the content over which the dialog is shown here (e.g. your main window grid)-->
