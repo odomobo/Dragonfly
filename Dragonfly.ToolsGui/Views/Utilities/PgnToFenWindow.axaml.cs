@@ -19,6 +19,7 @@ namespace Dragonfly.ToolsGui.Views.Utilities;
 
 public partial class PgnToFenWindow : Window
 {
+    private PgnToFenViewModel _vm => (PgnToFenViewModel)DataContext;
     public PgnToFenWindow()
     {
         InitializeComponent();
@@ -39,9 +40,9 @@ public partial class PgnToFenWindow : Window
             Patterns = new[] {"*.pgn"},
         };
 
-        var suggestedPathName = Path.GetDirectoryName(PgnFile.Text);
+        var suggestedPathName = Path.GetDirectoryName(_vm.PgnFile);
         var suggestedPath = await topLevel.StorageProvider.TryGetFolderFromPathAsync(suggestedPathName);
-        var suggestedFileName = Path.GetFileName(PgnFile.Text);
+        var suggestedFileName = Path.GetFileName(_vm.PgnFile);
 
         // Start async operation to open the dialog.
         var files = await topLevel.StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
@@ -55,7 +56,7 @@ public partial class PgnToFenWindow : Window
 
         if (files.Count == 1)
         {
-            PgnFile.Text = files[0].Path.AbsolutePath;
+            _vm.PgnFile = files[0].Path.AbsolutePath;
         }
     }
 
@@ -69,9 +70,9 @@ public partial class PgnToFenWindow : Window
             Patterns = new[] { "*.fen" },
         };
 
-        var suggestedPathName = Path.GetDirectoryName(FenFile.Text);
+        var suggestedPathName = Path.GetDirectoryName(_vm.FenFile);
         var suggestedPath = await topLevel.StorageProvider.TryGetFolderFromPathAsync(suggestedPathName);
-        var suggestedFileName = Path.GetFileName(FenFile.Text);
+        var suggestedFileName = Path.GetFileName(_vm.FenFile);
 
         // Start async operation to open the dialog.
         var file = await topLevel.StorageProvider.SaveFilePickerAsync(new FilePickerSaveOptions
@@ -86,15 +87,15 @@ public partial class PgnToFenWindow : Window
 
         if (file != null)
         {
-            FenFile.Text = file.Path.AbsolutePath;
+            _vm.FenFile = file.Path.AbsolutePath;
         }
     }
 
     private async void ButtonProcess_Click(object? sender, RoutedEventArgs e)
     {
-        var message = new ProcessingDialog($"Processing reading file {PgnFile.Text} writing to file {FenFile.Text}");
-        var pgnFile = PgnFile.Text;
-        var fenFile = FenFile.Text;
+        var message = new ProcessingDialog($"Processing reading file {_vm.PgnFile} writing to file {_vm.FenFile}");
+        var pgnFile = _vm.PgnFile;
+        var fenFile = _vm.FenFile;
         var t = new Thread(() => ProcessPgnFile(pgnFile, fenFile, message));
         t.Start();
 
