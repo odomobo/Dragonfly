@@ -93,26 +93,27 @@ public partial class PgnToFenWindow : Window
 
     private async void ButtonProcess_Click(object? sender, RoutedEventArgs e)
     {
-        var message = new ProcessingDialog($"Processing reading file {_vm.PgnFile} writing to file {_vm.FenFile}");
+        //var message = new ProcessingDialog($"Processing reading file {_vm.PgnFile} writing to file {_vm.FenFile}");
+        //await DialogHost.Show(message, DH);
+        var message = ProcessingDialog.AddProcessingDialog(DH, $"Processing reading file {_vm.PgnFile} writing to file {_vm.FenFile}");
+
         var pgnFile = _vm.PgnFile;
         var fenFile = _vm.FenFile;
         var t = new Thread(() => ProcessPgnFile(pgnFile, fenFile, message));
         t.Start();
-
-        await DialogHost.Show(message, DH);
     }
 
-    private void ProcessPgnFile(string pgnFile, string fenFile, ProcessingDialog dialog)
+    private void ProcessPgnFile(string pgnFile, string fenFile, IProgressNotifier progress)
     {
         try
         {
             PgnToFen.TransformToFenWithoutDuplicatePositions(pgnFile, fenFile);
 
-            dialog.Finished("Successful");
+            progress.Finished("Successful");
         }
         catch (Exception e)
         {
-            dialog.Finished(e.ToString());
+            progress.Finished(e.ToString());
         }
     }
 }

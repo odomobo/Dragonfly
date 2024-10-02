@@ -5,12 +5,20 @@ using Avalonia.Markup.Xaml;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
 using DialogHostAvalonia;
+using Dragonfly.Tools;
 using System.Threading.Channels;
 
 namespace Dragonfly.ToolsGui.Views.Dialogs;
 
-public partial class ProcessingDialog : UserControl
+public partial class ProcessingDialog : UserControl, IProgressNotifier
 {
+    public static ProcessingDialog AddProcessingDialog(DialogHost dh, string message = "Processing...", bool showProgressBar = false)
+    {
+        var ret = new ProcessingDialog(message, showProgressBar);
+        DialogHost.Show(ret, dh);
+        return ret;
+    }
+
     public ProcessingDialog(string message = "Processing...", bool showProgressBar = false)
     {
         InitializeComponent();
