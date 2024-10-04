@@ -17,7 +17,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Dragonfly.ToolsGui", "Drago
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Dragonfly.ToolsGui.Desktop", "Dragonfly.ToolsGui.Desktop\Dragonfly.ToolsGui.Desktop.csproj", "{31AB872F-F8EA-4536-9B1C-D5A3413B7C86}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Dragonfly.Tools", "Dragonfly.Tools\Dragonfly.Tools.csproj", "{2A6DC253-3F27-4B19-A31F-54E89D68B924}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Dragonfly.Tools", "Dragonfly.Tools\Dragonfly.Tools.csproj", "{2A6DC253-3F27-4B19-A31F-54E89D68B924}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Dragonfly.Tools.Tests", "Dragonfly.Tools.Tests\Dragonfly.Tools.Tests.csproj", "{70F76DC2-939C-4E32-BE6F-7B637A832C12}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -91,6 +93,14 @@ Global
 		{2A6DC253-3F27-4B19-A31F-54E89D68B924}.Release|Any CPU.Build.0 = Release|Any CPU
 		{2A6DC253-3F27-4B19-A31F-54E89D68B924}.Release|x64.ActiveCfg = Release|Any CPU
 		{2A6DC253-3F27-4B19-A31F-54E89D68B924}.Release|x64.Build.0 = Release|Any CPU
+		{70F76DC2-939C-4E32-BE6F-7B637A832C12}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{70F76DC2-939C-4E32-BE6F-7B637A832C12}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{70F76DC2-939C-4E32-BE6F-7B637A832C12}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{70F76DC2-939C-4E32-BE6F-7B637A832C12}.Debug|x64.Build.0 = Debug|Any CPU
+		{70F76DC2-939C-4E32-BE6F-7B637A832C12}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{70F76DC2-939C-4E32-BE6F-7B637A832C12}.Release|Any CPU.Build.0 = Release|Any CPU
+		{70F76DC2-939C-4E32-BE6F-7B637A832C12}.Release|x64.ActiveCfg = Release|Any CPU
+		{70F76DC2-939C-4E32-BE6F-7B637A832C12}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

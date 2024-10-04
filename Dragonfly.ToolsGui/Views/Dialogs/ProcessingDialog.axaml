@@ -13,7 +13,9 @@
 			  ShowProgressText="True" />
 		
 		<TextBlock HorizontalAlignment="Center" Margin="10" Name="Message" Text="Processing..."/>
-		<TextBlock HorizontalAlignment="Center" Margin="10" Name="FinishedMessage" Text="" IsVisible="False"/>
+		<ScrollViewer MaxWidth="500" MaxHeight="500">
+			<SelectableTextBlock HorizontalAlignment="Center" Margin="10" Name="FinishedMessage" Text="" IsVisible="False"/>
+		</ScrollViewer>
 		<Button HorizontalAlignment="Center" Name="FinishedButton" Click="Close_Clicked" IsVisible="False">Close</Button>
 	</StackPanel>
 </UserControl>

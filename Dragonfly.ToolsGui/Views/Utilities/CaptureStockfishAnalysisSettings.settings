@@ -1,0 +1,21 @@
+﻿<?xml version='1.0' encoding='utf-8'?>
+<SettingsFile xmlns="http://schemas.microsoft.com/VisualStudio/2004/01/settings" CurrentProfile="(Default)" GeneratedClassNamespace="Dragonfly.ToolsGui.Views.Utilities" GeneratedClassName="CaptureStockfishAnalysisSettings">
+  <Profiles />
+  <Settings>
+    <Setting Name="StockfishPath" Type="System.String" Scope="User">
+      <Value Profile="(Default)" />
+    </Setting>
+    <Setting Name="ThreadCount" Type="System.Int32" Scope="User">
+      <Value Profile="(Default)">1</Value>
+    </Setting>
+    <Setting Name="FenFile" Type="System.String" Scope="User">
+      <Value Profile="(Default)" />
+    </Setting>
+    <Setting Name="JsonOutputFile" Type="System.String" Scope="User">
+      <Value Profile="(Default)" />
+    </Setting>
+    <Setting Name="NodeCount" Type="System.Int32" Scope="User">
+      <Value Profile="(Default)">10000000</Value>
+    </Setting>
+  </Settings>
+</SettingsFile>

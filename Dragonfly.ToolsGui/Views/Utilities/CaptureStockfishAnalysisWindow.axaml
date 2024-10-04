@@ -1,0 +1,40 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+		xmlns:vm="clr-namespace:Dragonfly.ToolsGui.Views.Utilities"
+		xmlns:dialogHost="clr-namespace:DialogHostAvalonia;assembly=DialogHost.Avalonia"
+        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+        x:Class="Dragonfly.ToolsGui.Views.Utilities.CaptureStockfishAnalysisWindow"
+		x:DataType="vm:CaptureStockfishAnalysisViewModel"
+        Title="Capture Stockfish Analysis">
+	<Design.DataContext>
+		<!-- This only sets the DataContext for the previewer in an IDE,
+         to set the actual DataContext for runtime, set the DataContext property in code (look at App.axaml.cs) -->
+		<vm:CaptureStockfishAnalysisViewModel />
+	</Design.DataContext>
+
+	<dialogHost:DialogHost CloseOnClickAway="False" Name="DH">
+		<StackPanel Orientation="Vertical">
+			<TextBlock Text="FEN file to analyze:" />
+			<TextBox Name="FenFile" Text="{Binding FenFile}"/>
+			<Button Click="ButtonFenFile_Click">Select FEN file</Button>
+
+			<TextBlock Text="Stockfish path:" />
+			<TextBox Text="{Binding StockfishPath}" />
+			<Button Click="ButtonStockfishPath_Click">Select Stockfish Path</Button>
+			
+			<TextBlock Text="Number of threads:" />
+			<NumericUpDown Minimum="1" Maximum="256" Value="{Binding ThreadCount}" />
+
+			<TextBlock Text="Number of nodes to analyze per position:" />
+			<NumericUpDown Minimum="1" Maximum="1000000000" Value="{Binding NodeCount}" />
+			
+			<TextBlock Text="Json output file:" />
+			<TextBox Text="{Binding JsonOutputFile}"/>
+			<Button Click="ButtonJsonOutputFile_Click">Select json output file</Button>
+			
+			<Button Click="ButtonProcess_Click">Process</Button>
+		</StackPanel>
+	</dialogHost:DialogHost>
+</Window>

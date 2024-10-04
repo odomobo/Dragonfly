@@ -43,6 +43,11 @@
     <Compile Update="Views\TestingWindow.axaml.cs">
       <DependentUpon>TestingWindow.axaml</DependentUpon>
     </Compile>
+    <Compile Update="Views\Utilities\CaptureStockfishAnalysisSettings.Designer.cs">
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>CaptureStockfishAnalysisSettings.settings</DependentUpon>
+    </Compile>
     <Compile Update="Views\Utilities\PgnToFenSettings.Designer.cs">
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
       <AutoGen>True</AutoGen>
@@ -51,12 +56,25 @@
     <Compile Update="Views\Utilities\PgnToFenWindow.axaml.cs">
       <DependentUpon>PgnToFenWindow.axaml</DependentUpon>
     </Compile>
+    <Compile Update="Views\Utilities\TransformStockfishAnalysisSettings.Designer.cs">
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>TransformStockfishAnalysisSettings.settings</DependentUpon>
+    </Compile>
   </ItemGroup>
 
   <ItemGroup>
+    <None Update="Views\Utilities\CaptureStockfishAnalysisSettings.settings">
+      <Generator>SettingsSingleFileGenerator</Generator>
+      <LastGenOutput>CaptureStockfishAnalysisSettings.Designer.cs</LastGenOutput>
+    </None>
     <None Update="Views\Utilities\PgnToFenSettings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>PgnToFenSettings.Designer.cs</LastGenOutput>
+    </None>
+    <None Update="Views\Utilities\TransformStockfishAnalysisSettings.settings">
+      <Generator>SettingsSingleFileGenerator</Generator>
+      <LastGenOutput>TransformStockfishAnalysisSettings.Designer.cs</LastGenOutput>
     </None>
   </ItemGroup>
 </Project>

@@ -25,6 +25,20 @@ public partial class MainView : UserControl
         window.Show();
     }
 
+    private async void CaptureStockfishAnalysis_Clicked(object sender, RoutedEventArgs args)
+    {
+        var window = new CaptureStockfishAnalysisWindow();
+        window.DataContext = new CaptureStockfishAnalysisViewModel();
+        window.Show();
+    }
+
+    private async void TransformStockfishAnalysis_Clicked(object sender, RoutedEventArgs args)
+    {
+        var window = new TransformStockfishAnalysisWindow();
+        window.DataContext = new TransformStockfishAnalysisViewModel();
+        window.Show();
+    }
+
     private async void Testing_Clicked(object sender, RoutedEventArgs args)
     {
         var window = new TestingWindow();

@@ -24,7 +24,9 @@
 					<MenuItem Header="_Exit"/>
 				</MenuItem>
 				<MenuItem Header="_Tools">
-					<MenuItem Header="PgnToFen" Click="PgnToFen_Clicked" />
+					<MenuItem Header="Pgn to Fen" Click="PgnToFen_Clicked" />
+					<MenuItem Header="Capture Stockfish Analysis" Click="CaptureStockfishAnalysis_Clicked" />
+					<MenuItem Header="Transform Stockfish Analysis" Click="TransformStockfishAnalysis_Clicked" />
 				</MenuItem>
 				<MenuItem Header="T_esting" Click="Testing_Clicked"/>
 			</Menu>
