@@ -104,6 +104,20 @@ namespace Dragonfly.Engine
             }
         }
 
+        public void Join()
+        {
+            lock (_workThread)
+            {
+                while (true)
+                {
+                    if (_workerState != State.Searching)
+                        return;
+
+                    Monitor.Wait(_workThread);
+                }
+            }
+        }
+
         public void Exit()
         {
             lock (_workThread)

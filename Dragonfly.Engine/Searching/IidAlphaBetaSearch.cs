@@ -83,6 +83,13 @@ namespace Dragonfly.Engine.Searching
             // The PV table would probably need to handle that case.
             for (int depth = 1;; depth++)
             {
+                // if we've reached depth 100, let's return
+                if (depth >= 100)
+                {
+                    _statistics.Timer.Stop();
+                    return (bestMove, _statistics);
+                }
+
                 _statistics.NormalNonLeafNodes++;
 
                 Score alpha = Score.MinValue;

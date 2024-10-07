@@ -28,6 +28,14 @@ public partial class ProcessingDialog : UserControl, IProgressNotifier
 
     private async void Close_Clicked(object sender, RoutedEventArgs args)
     {
+        // always try to stop flashing, in case we were flashing
+        var window = this.FindAncestorOfType<Window>();
+        var platformHandle = window.TryGetPlatformHandle();
+        if (platformHandle != null)
+        {
+            WindowsInterop.StopFlashingWindow(platformHandle.Handle);
+        }
+
         var dialogHost = this.FindAncestorOfType<DialogHost>();
         dialogHost.CloseDialogCommand.Execute(true);
     }

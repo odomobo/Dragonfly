@@ -48,6 +48,11 @@
       <AutoGen>True</AutoGen>
       <DependentUpon>CaptureStockfishAnalysisSettings.settings</DependentUpon>
     </Compile>
+    <Compile Update="Views\Utilities\EvaluateSuiteSettings.Designer.cs">
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>EvaluateSuiteSettings.settings</DependentUpon>
+    </Compile>
     <Compile Update="Views\Utilities\PgnToFenSettings.Designer.cs">
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
       <AutoGen>True</AutoGen>
@@ -67,6 +72,10 @@
     <None Update="Views\Utilities\CaptureStockfishAnalysisSettings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>CaptureStockfishAnalysisSettings.Designer.cs</LastGenOutput>
+    </None>
+    <None Update="Views\Utilities\EvaluateSuiteSettings.settings">
+      <Generator>SettingsSingleFileGenerator</Generator>
+      <LastGenOutput>EvaluateSuiteSettings.Designer.cs</LastGenOutput>
     </None>
     <None Update="Views\Utilities\PgnToFenSettings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>

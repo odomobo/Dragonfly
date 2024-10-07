@@ -27,7 +27,7 @@ namespace Dragonfly.Tools
 
                 try
                 {
-                    MachineSleep.KeepAwake();
+                    WindowsInterop.KeepAwake();
                     InnerRun(fenFile, jsonOutputFile, stockfishFile, threadCount, nodeCount, progress);
                     progress.Finished("Completed!");
                 }
@@ -37,7 +37,7 @@ namespace Dragonfly.Tools
                 }
                 finally
                 {
-                    MachineSleep.AllowSleep();
+                    WindowsInterop.AllowSleep();
                 }
             });
         }

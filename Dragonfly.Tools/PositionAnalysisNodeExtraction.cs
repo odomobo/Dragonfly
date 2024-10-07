@@ -10,6 +10,13 @@ using System.Threading.Tasks;
 
 namespace Dragonfly.Tools
 {
+    public class PositionAnalysisNode
+    {
+        public string Fen { get; set; }
+        public ulong Hash { get; set; }
+        public Dictionary<string, Score> MoveScores { get; set; }
+    }
+
     static public class PositionAnalysisNodeExtraction
     {
         public static void Run(string stockfishJsonFile, string positionAnalysisJsonFile, IProgressNotifier progress)
@@ -18,7 +25,7 @@ namespace Dragonfly.Tools
             {
                 try
                 {
-                    MachineSleep.KeepAwake();
+                    WindowsInterop.KeepAwake();
                     InnerRun(stockfishJsonFile, positionAnalysisJsonFile, progress);
                     progress.Finished("Completed!");
                 }
@@ -28,7 +35,7 @@ namespace Dragonfly.Tools
                 }
                 finally
                 {
-                    MachineSleep.AllowSleep();
+                    WindowsInterop.AllowSleep();
                 }
             });
         }
