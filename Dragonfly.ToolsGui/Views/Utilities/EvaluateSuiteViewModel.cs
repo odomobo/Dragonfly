@@ -12,29 +12,16 @@ namespace Dragonfly.ToolsGui.Views.Utilities
     {
         private EvaluateSuiteSettings _settings => EvaluateSuiteSettings.Default;
 
-        public string InputFile
+        public string InputFolder
         {
-            get => _settings.InputFile;
+            get => _settings.InputFolder;
             set
             {
-                if (_settings.InputFile == value)
+                if (_settings.InputFolder == value)
                     return;
-                _settings.InputFile = value;
+                _settings.InputFolder = value;
                 _settings.Save();
-                OnPropertyChanged(nameof(InputFile));
-            }
-        }
-
-        public string OutputFile
-        {
-            get => _settings.OutputFile;
-            set
-            {
-                if (_settings.OutputFile == value)
-                    return;
-                _settings.OutputFile = value;
-                _settings.Save();
-                OnPropertyChanged(nameof(OutputFile));
+                OnPropertyChanged(nameof(InputFolder));
             }
         }
 

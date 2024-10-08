@@ -16,13 +16,9 @@
 
 	<dialogHost:DialogHost CloseOnClickAway="False" Name="DH">
 		<StackPanel Orientation="Vertical">
-			<TextBlock Text="Intermediary Analysis File:" />
-			<TextBox Text="{Binding InputFile}"/>
-			<Button Click="InputFile_Click">Select Intermediary Analysis File</Button>
-
-			<TextBlock Text="Engine Evaluation Output File:" />
-			<TextBox Text="{Binding OutputFile}"/>
-			<Button Click="OutputFile_Click">Select Engine Evaluation Output File</Button>
+			<TextBlock Text="Evaluation Folder:" />
+			<TextBox Text="{Binding InputFolder}"/>
+			<Button Click="InputFolder_Click">Select Evaluation Folder</Button>
 
 			<TextBlock Text="Number of threads:" />
 			<NumericUpDown Minimum="1" Maximum="256" Value="{Binding ThreadCount}" />

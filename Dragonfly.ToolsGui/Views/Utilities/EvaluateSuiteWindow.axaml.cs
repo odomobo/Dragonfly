@@ -20,74 +20,36 @@ public partial class EvaluateSuiteWindow : Window
         InitializeComponent();
     }
 
-    private async void InputFile_Click(object? sender, RoutedEventArgs e)
+    private async void InputFolder_Click(object? sender, RoutedEventArgs e)
     {
         // Get top level from the current control. Alternatively, you can use Window reference instead.
         var topLevel = TopLevel.GetTopLevel(this);
 
-        var json = new FilePickerFileType("JSON")
-        {
-            Patterns = new[] { "*.json" },
-        };
-
-        var suggestedPathName = Path.GetDirectoryName(_vm.InputFile);
+        var suggestedPathName = Path.GetDirectoryName(_vm.InputFolder);
         var suggestedPath = await topLevel.StorageProvider.TryGetFolderFromPathAsync(suggestedPathName);
-        var suggestedFileName = Path.GetFileName(_vm.InputFile);
+        var suggestedFileName = Path.GetFileName(_vm.InputFolder);
 
-        // Start async operation to open the dialog.
-        var files = await topLevel.StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
+        var folders = await topLevel.StorageProvider.OpenFolderPickerAsync(new FolderPickerOpenOptions
         {
-            Title = "Open JSON File",
+            Title = "Open Analysis Folder",
             AllowMultiple = false,
-            FileTypeFilter = new List<FilePickerFileType> { json, FilePickerFileTypes.All },
-            SuggestedFileName = suggestedFileName,
+            //SuggestedFileName = suggestedFileName,
             SuggestedStartLocation = suggestedPath,
         });
 
-        if (files.Count == 1)
+        if (folders.Count == 1)
         {
-            _vm.InputFile = files[0].Path.AbsolutePath;
-        }
-    }
-
-    private async void OutputFile_Click(object? sender, RoutedEventArgs e)
-    {
-        // Get top level from the current control. Alternatively, you can use Window reference instead.
-        var topLevel = TopLevel.GetTopLevel(this);
-
-        var json = new FilePickerFileType("JSON")
-        {
-            Patterns = new[] { "*.json" },
-        };
-
-        var suggestedPathName = Path.GetDirectoryName(_vm.OutputFile);
-        var suggestedPath = await topLevel.StorageProvider.TryGetFolderFromPathAsync(suggestedPathName);
-        var suggestedFileName = Path.GetFileName(_vm.OutputFile);
-
-        // Start async operation to open the dialog.
-        var file = await topLevel.StorageProvider.SaveFilePickerAsync(new FilePickerSaveOptions
-        {
-            Title = "Open JSON Output File",
-            FileTypeChoices = new List<FilePickerFileType> { json, FilePickerFileTypes.All },
-            DefaultExtension = "json",
-            ShowOverwritePrompt = true,
-            SuggestedFileName = suggestedFileName,
-            SuggestedStartLocation = suggestedPath,
-        });
-
-        if (file != null)
-        {
-            _vm.OutputFile = file.Path.AbsolutePath;
+            _vm.InputFolder = folders[0].Path.AbsolutePath;
         }
     }
 
     private async void ButtonProcess_Click(object? sender, RoutedEventArgs e)
     {
-        var progress = ProcessingDialog.AddProcessingDialog(DH, $"Running engine evaluation against position file: {_vm.InputFile}", true);
+        var progress = ProcessingDialog.AddProcessingDialog(DH, $"Running engine evaluation against analysis folder: {_vm.InputFolder}", true);
 
         var platformHandle = this.TryGetPlatformHandle();
 
         var evaluationSuite = new EvaluationSuite(true); // TODO: parameterize with inputs
-        evaluationSuite.Run(_vm.InputFile, _vm.OutputFile, _vm.ThreadCount, _vm.NodeCount, progress, platformHandle?.Handle);
+        evaluationSuite.Run(_vm.InputFolder, _vm.ThreadCount, _vm.NodeCount, progress, platformHandle?.Handle);
     }
 }

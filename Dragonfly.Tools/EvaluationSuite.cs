@@ -28,16 +28,14 @@ namespace Dragonfly.Tools
     {
         private int _completedCount = 0;
         private int _totalCount;
-        public void Run(string analysisFile, string outputFile, int threadCount, int nodeCount, IProgressNotifier progress, nint? windowHandle)
+        public void Run(string analysisFolder, int threadCount, int nodeCount, IProgressNotifier progress, nint? windowHandle)
         {
             Task.Run(() =>
             {
-
                 try
                 {
                     WindowsInterop.KeepAwake();
-                    InnerRun(analysisFile, outputFile, threadCount, nodeCount, progress);
-                    progress.Finished("Completed!");
+                    InnerRun(analysisFolder, threadCount, nodeCount, progress);
                 }
                 catch (Exception ex)
                 {
@@ -54,8 +52,12 @@ namespace Dragonfly.Tools
             });
         }
 
-        private void InnerRun(string analysisFile, string outputFile, int threadCount, int nodeCount, IProgressNotifier progress)
+        private void InnerRun(string analysisFolder, int threadCount, int nodeCount, IProgressNotifier progress)
         {
+            var sw = Stopwatch.StartNew();
+
+            var analysisFile = Path.Combine(analysisFolder, "_evaluation_positions.ep.json"); // TODO: make a constant somewhere
+
             // Open analysis file, slurp json
             List<PositionAnalysisNode> positionAnalyses;
             using (var filestream = new FileStream(analysisFile, FileMode.Open))
@@ -70,10 +72,16 @@ namespace Dragonfly.Tools
             var options = new ParallelOptions { MaxDegreeOfParallelism = threadCount };
             var evaluations = MyParallel.Map(positionAnalyses, options, analysis => EvaluatePosition(analysis, nodeCount, progress));
 
+            // TODO: store actual score in here instead of xx.xxx
+            var outputFileName = $"xx.xxx_{VersionInfo.Version}-({VersionInfo.Codename})_{nodeCount.ToShortString()}_{DateTime.Now:yyyy-MM-dd_hhmm}.ev.json";
+            var outputFile = Path.Combine(analysisFolder, outputFileName);
+
             using (var filestream = File.Create(outputFile))
             {
                 JsonSerializer.Serialize(filestream, evaluations, new JsonSerializerOptions { WriteIndented = _writeIndented });
             }
+
+            progress.Finished($"Wrote file: {Path.GetFileName(outputFile)}\nCompleted in {sw.Elapsed}");
         }
 
         private EvaluationNode EvaluatePosition(PositionAnalysisNode analysis, int nodeCount, IProgressNotifier progress)

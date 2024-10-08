@@ -26,24 +26,12 @@ namespace Dragonfly.ToolsGui.Views.Utilities {
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("")]
-        public string InputFile {
+        public string InputFolder {
             get {
-                return ((string)(this["InputFile"]));
+                return ((string)(this["InputFolder"]));
             }
             set {
-                this["InputFile"] = value;
-            }
-        }
-        
-        [global::System.Configuration.UserScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("")]
-        public string OutputFile {
-            get {
-                return ((string)(this["OutputFile"]));
-            }
-            set {
-                this["OutputFile"] = value;
+                this["InputFolder"] = value;
             }
         }
         
