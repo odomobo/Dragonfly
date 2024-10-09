@@ -1,6 +1,7 @@
 ﻿using Dragonfly.Engine;
 using Dragonfly.Engine.CoreTypes;
 using Dragonfly.Engine.MoveGeneration;
+using Dragonfly.Tools;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -29,7 +30,9 @@ namespace Dragonfly.ToolsGui.ViewModels
         }
         private Position _position;
 
-        public ChessBoardViewModel()
+        // TODO: make the drag and drop action be configurable
+        // Note: defaults to initial fen
+        public ChessBoardViewModel(string fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1")
         {
             SquaresCollection = new ObservableCollection<ChessBoardSquareViewModel>();
             Squares = new ChessBoardSquareViewModel[8,8];
@@ -44,7 +47,7 @@ namespace Dragonfly.ToolsGui.ViewModels
                 }
             }
 
-            Position = BoardParsing.PositionFromFen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"); // initial fen
+            Position = BoardParsing.PositionFromFen(fen);
         }
 
         private void PositionUpdated()

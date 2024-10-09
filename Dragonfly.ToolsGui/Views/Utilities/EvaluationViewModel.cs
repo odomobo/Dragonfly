@@ -10,7 +10,13 @@ using System.Threading.Tasks;
 
 namespace Dragonfly.ToolsGui.Views.Utilities
 {
-    internal record EvaluationEntry(int Index, string Fen, double? GoldenLoss, double? NewLoss, double? RelativeLoss);
+    internal record EvaluationEntry(int Index, string Fen, double? GoldenLoss, double? NewLoss, double? RelativeLoss)
+    {
+        public ChessBoardViewModel ChessBoardViewModel => new ChessBoardViewModel(Fen);
+        public string GoldenLossFormatted => $"{GoldenLoss:00.000}";
+        public string NewLossFormatted => $"{NewLoss:00.000}";
+        public string RelativeLossFormatted => $"{RelativeLoss:00.000}";
+    }
 
     internal class EvaluationViewModel : ViewModelBase
     {
@@ -62,6 +68,9 @@ namespace Dragonfly.ToolsGui.Views.Utilities
         public double? GetLoss(PositionAnalysisNode positionAnalysisNode, EvaluationNode? entry)
         {
             if (entry == null)
+                return null;
+
+            if (positionAnalysisNode.MoveScores.Count == 0)
                 return null;
 
             var bestMoveScore = positionAnalysisNode.MoveScores.Max(ms => ms.Value);

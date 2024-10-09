@@ -3,6 +3,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 		xmlns:vm="clr-namespace:Dragonfly.ToolsGui.Views.Utilities"
+		xmlns:views="clr-namespace:Dragonfly.ToolsGui.Views"
 		xmlns:dialogHost="clr-namespace:DialogHostAvalonia;assembly=DialogHost.Avalonia"
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
         x:Class="Dragonfly.ToolsGui.Views.Utilities.EvaluationWindow"
@@ -31,9 +32,9 @@
 							</Style>
 						</DataGridTextColumn.CellStyle>-->
 					</DataGridTextColumn>
-					<DataGridTextColumn Header="Golden Loss" Binding="{Binding GoldenLoss}" />
-					<DataGridTextColumn Header="New Loss" Binding="{Binding NewLoss}" />
-					<DataGridTextColumn Header="Relative Loss" Binding="{Binding RelativeLoss}" />
+					<DataGridTextColumn Header="Golden Loss" Binding="{Binding GoldenLossFormatted}" />
+					<DataGridTextColumn Header="New Loss" Binding="{Binding NewLossFormatted}" />
+					<DataGridTextColumn Header="Relative Loss" Binding="{Binding RelativeLossFormatted}" />
 				</DataGrid.Columns>
 				<!--<ToolTip.Tip>
 					<StackPanel>
@@ -43,7 +44,12 @@
 				</ToolTip.Tip>-->
 				<DataGrid.Styles>
 					<Style x:DataType="vm:EvaluationEntry" Selector="DataGridRow">
-						<Setter Property="ToolTip.Tip" Value="{Binding Fen}" />
+						<Setter Property="ToolTip.Tip">
+							<Template>
+								<!--<TextBlock Text="{Binding Fen}" Background="Red"></TextBlock>-->
+								<views:ChessBoardView DataContext="{Binding ChessBoardViewModel}" Width="200" Height="200" />
+							</Template>
+						</Setter>
 					</Style>
 				</DataGrid.Styles>
 			</DataGrid>
