@@ -14,7 +14,7 @@ namespace Dragonfly.Tools
     {
         public string Fen { get; set; }
         public ulong Hash { get; set; }
-        public Dictionary<string, Score> MoveScores { get; set; }
+        public Dictionary<string, int> MoveScores { get; set; }
     }
 
     static public class PositionAnalysisNodeExtraction
@@ -74,7 +74,7 @@ namespace Dragonfly.Tools
 
             var lines = stockfishRawAnalysis.EngineOutput.Split(new string[] { "\r\n", "\n" }, StringSplitOptions.None);
 
-            var depthScoredMoves = new Dictionary<string, (int depth, Score score)>();
+            var depthScoredMoves = new Dictionary<string, (int depth, int score)>();
 
             foreach (var line in lines)
             { 
@@ -87,7 +87,7 @@ namespace Dragonfly.Tools
                 // if there isn't already a move, or if the recorded move is shallower than the current move, then store the current move
                 if (!depthScoredMoves.ContainsKey(move) || depth >= depthScoredMoves[move].depth)
                 {
-                    depthScoredMoves[move] = (depth, score);
+                    depthScoredMoves[move] = (depth, score.Value);
                 }
             }
 
@@ -118,9 +118,9 @@ namespace Dragonfly.Tools
                     return new Score(score);
                 case "mate":
                     if (score > 0)
-                        return Score.GetMateScore(Color.White, gamePly + score);
+                        return Score.GetMateScore(Color.Black, gamePly + score);
                     else
-                        return Score.GetMateScore(Color.Black, gamePly - score);
+                        return Score.GetMateScore(Color.White, gamePly - score);
                 default:
                     throw new Exception($"Unknown score type: {type}");
             }

@@ -1,0 +1,52 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+		xmlns:vm="clr-namespace:Dragonfly.ToolsGui.Views.Utilities"
+		xmlns:dialogHost="clr-namespace:DialogHostAvalonia;assembly=DialogHost.Avalonia"
+        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+        x:Class="Dragonfly.ToolsGui.Views.Utilities.EvaluationWindow"
+		x:DataType="vm:EvaluationViewModel"
+        Title="Evaluation">
+	<Design.DataContext>
+		<!-- This only sets the DataContext for the previewer in an IDE,
+         to set the actual DataContext for runtime, set the DataContext property in code (look at App.axaml.cs) -->
+		<vm:EvaluationViewModel />
+	</Design.DataContext>
+
+	<dialogHost:DialogHost CloseOnClickAway="False" Name="DH">
+		<DockPanel>
+			<DataGrid
+				ItemsSource="{Binding EvaluationEntries}"
+				AutoGenerateColumns="False" IsReadOnly="True"
+				GridLinesVisibility="All"
+				BorderThickness="1" BorderBrush="Gray">
+				<!--Width="200" Height="200">-->
+				<DataGrid.Columns>
+					<DataGridTextColumn Header="Index"  Binding="{Binding Index}"/>
+					<DataGridTextColumn Header="Fen" Binding="{Binding Fen}">
+						<!--<DataGridTextColumn.CellStyle>
+							<Style TargetType="DataGridCell">
+								<Setter Property="ToolTip" Value="Hyello" />
+							</Style>
+						</DataGridTextColumn.CellStyle>-->
+					</DataGridTextColumn>
+					<DataGridTextColumn Header="Golden Loss" Binding="{Binding GoldenLoss}" />
+					<DataGridTextColumn Header="New Loss" Binding="{Binding NewLoss}" />
+					<DataGridTextColumn Header="Relative Loss" Binding="{Binding RelativeLoss}" />
+				</DataGrid.Columns>
+				<!--<ToolTip.Tip>
+					<StackPanel>
+						<TextBlock FontSize="16">Rectangle</TextBlock>
+						<TextBlock>Some explanation here.</TextBlock>
+					</StackPanel>
+				</ToolTip.Tip>-->
+				<DataGrid.Styles>
+					<Style x:DataType="vm:EvaluationEntry" Selector="DataGridRow">
+						<Setter Property="ToolTip.Tip" Value="{Binding Fen}" />
+					</Style>
+				</DataGrid.Styles>
+			</DataGrid>
+		</DockPanel>
+	</dialogHost:DialogHost>
+</Window>

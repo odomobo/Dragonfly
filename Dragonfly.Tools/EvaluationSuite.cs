@@ -56,14 +56,7 @@ namespace Dragonfly.Tools
         {
             var sw = Stopwatch.StartNew();
 
-            var analysisFile = Path.Combine(analysisFolder, "_evaluation_positions.ep.json"); // TODO: make a constant somewhere
-
-            // Open analysis file, slurp json
-            List<PositionAnalysisNode> positionAnalyses;
-            using (var filestream = new FileStream(analysisFile, FileMode.Open))
-            {
-                positionAnalyses = JsonSerializer.Deserialize<List<PositionAnalysisNode>>(filestream);
-            }
+            var positionAnalyses = FileHandling.GetPositionAnalysisNodesFromEvaluationFolder(analysisFolder);
 
             _totalCount = positionAnalyses.Count;
             progress.UpdateProgress(0, _totalCount);
@@ -110,7 +103,7 @@ namespace Dragonfly.Tools
             {
                 Fen = analysis.Fen,
                 Hash = analysis.Hash,
-                Move = bestMoveProtocol.BestMove.Value.ToString(),
+                Move = BoardParsing.CoordinateStringFromMove(bestMoveProtocol.BestMove.Value),
                 NodeCount = nodeCount,
             };
         }

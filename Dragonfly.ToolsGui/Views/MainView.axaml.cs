@@ -47,6 +47,13 @@ public partial class MainView : UserControl
         window.Show();
     }
 
+    private async void OpenEvaluation_Clicked(object sender, RoutedEventArgs args)
+    {
+        var window = new OpenEvaluationWindow();
+        window.DataContext = new OpenEvaluationViewModel();
+        window.Show();
+    }
+
     private async void Testing_Clicked(object sender, RoutedEventArgs args)
     {
         var window = new TestingWindow();

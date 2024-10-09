@@ -8,6 +8,7 @@
     <Application.Styles>
         <FluentTheme />
 		<dialogHostAvalonia:DialogHostStyles />
+		<StyleInclude Source="avares://Avalonia.Controls.DataGrid/Themes/Fluent.xaml"/>
     </Application.Styles>
 	<Application.Resources>
 		<FontFamily x:Key="NunitoFont">avares://Dragonfly.ToolsGui/Assets/Fonts/Nunito-VariableFont_wght.ttf#Nunito</FontFamily>

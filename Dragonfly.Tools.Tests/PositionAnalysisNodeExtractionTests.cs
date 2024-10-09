@@ -36,10 +36,10 @@ namespace Dragonfly.Tools.Tests
                     .Returns(new Score(36));
                 yield return new TestCaseData("info depth 52 seldepth 10 multipv 1 score mate 5 nodes 16000315 nps 3213559 hashfull 192 tbhits 0 time 4979 pv g3a3 c2b1 e4e3 b1c2 a3b4 c2c1 e3d3 c1d1 b4d2",
                     114)
-                    .Returns(Score.GetMateScore(Color.White, 114 + 5));
+                    .Returns(Score.GetMateScore(Color.Black, 114 + 5));
                 yield return new TestCaseData("info depth 245 seldepth 11 multipv 1 score mate -5 nodes 12403870 nps 4963533 hashfull 32 tbhits 0 time 2499 pv d2c2 e4d4 c2b2 d4c4 b2a2 g3g2 a2a1 c4c3 a1b1 g2b2",
                     113)
-                    .Returns(Score.GetMateScore(Color.Black, 113 + 5));
+                    .Returns(Score.GetMateScore(Color.White, 113 + 5));
             }
         }
 

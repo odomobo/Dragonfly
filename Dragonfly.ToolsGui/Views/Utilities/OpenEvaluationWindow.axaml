@@ -1,0 +1,34 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+		xmlns:vm="clr-namespace:Dragonfly.ToolsGui.Views.Utilities"
+		xmlns:dialogHost="clr-namespace:DialogHostAvalonia;assembly=DialogHost.Avalonia"
+        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+        x:Class="Dragonfly.ToolsGui.Views.Utilities.OpenEvaluationWindow"
+		x:DataType="vm:OpenEvaluationViewModel"
+        Title="Open Evaluation">
+	<Design.DataContext>
+		<!-- This only sets the DataContext for the previewer in an IDE,
+         to set the actual DataContext for runtime, set the DataContext property in code (look at App.axaml.cs) -->
+		<vm:OpenEvaluationViewModel />
+	</Design.DataContext>
+
+	<dialogHost:DialogHost CloseOnClickAway="False" Name="DH">
+		<StackPanel Orientation="Vertical">
+			<TextBlock Text="Evaluation Folder:" />
+			<TextBox Text="{Binding InputFolder}"/>
+			<Button Click="InputFolder_Click">Select Evaluation Folder</Button>
+
+			<TextBlock Text="Golden Evaluation file:" />
+			<TextBox Text="{Binding GoldenEvaluationFile}"/>
+			<Button Click="ButtonGoldenEvaluationFile_Click">Select Golden Evaluation file</Button>
+
+			<TextBlock Text="New Evaluation file:" />
+			<TextBox Text="{Binding NewEvaluationFile}"/>
+			<Button Click="ButtonNewEvaluationFile_Click">Select New Evaluation file</Button>
+			
+			<Button Click="ButtonOpenEvaluation_Click">Open Evaluation</Button>
+		</StackPanel>
+	</dialogHost:DialogHost>
+</Window>
